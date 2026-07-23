@@ -221,6 +221,7 @@ void ConfigManager::setDefaults()
     m_builtinIcons = true;
     m_fontFamily.clear();
     m_defaultView = "grid";
+    m_startupLocation = "last";
     m_showHidden = false;
     m_sortBy = "name";
     m_sortAscending = true;
@@ -278,6 +279,8 @@ void ConfigManager::loadConfig()
             m_fontFamily = QString::fromStdString(*v);
         if (auto v = config["general"]["default_view"].value<std::string>())
             m_defaultView = QString::fromStdString(*v);
+        if (auto v = config["general"]["startup_location"].value<std::string>())
+            m_startupLocation = QString::fromStdString(*v);
         if (auto v = config["general"]["show_hidden"].value<bool>())
             m_showHidden = *v;
         if (auto v = config["general"]["sort_by"].value<std::string>())
@@ -382,6 +385,7 @@ QString ConfigManager::iconTheme() const { return m_iconTheme; }
 bool ConfigManager::builtinIcons() const { return m_builtinIcons; }
 QString ConfigManager::fontFamily() const { return m_fontFamily; }
 QString ConfigManager::defaultView() const { return m_defaultView; }
+QString ConfigManager::startupLocation() const { return m_startupLocation; }
 bool ConfigManager::showHidden() const { return m_showHidden; }
 QString ConfigManager::sortBy() const { return m_sortBy; }
 bool ConfigManager::sortAscending() const { return m_sortAscending; }
@@ -496,6 +500,14 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     if (settings.contains("showHidden")) {
         m_showHidden = settings.value("showHidden").toBool();
         general.insert_or_assign("show_hidden", m_showHidden);
+    }
+
+    if (settings.contains("startupLocation")) {
+        const QString loc = settings.value("startupLocation").toString().trimmed();
+        if (loc == "home" || loc == "last") {
+            m_startupLocation = loc;
+            general.insert_or_assign("startup_location", loc.toStdString());
+        }
     }
 
     if (settings.contains("sortBy")) {

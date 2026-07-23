@@ -263,7 +263,11 @@ int main(int argc, char *argv[])
                 sessionData = doc.object();
         }
     }
-    if (sessionData.contains("tabs"))
+    // Startup location: "home" always opens a fresh tab at the home folder
+    // (TabListModel already seeds one), so we simply skip restoring the saved
+    // tabs. "last" (the default) restores the previous session. Window geometry
+    // is restored below regardless of this setting.
+    if (config->startupLocation() != QStringLiteral("home") && sessionData.contains("tabs"))
         tabModel->restoreSession(sessionData.value("tabs").toArray(),
                                  sessionData.value("activeTab").toInt(0));
 

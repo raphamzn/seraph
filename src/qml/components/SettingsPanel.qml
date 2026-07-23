@@ -50,10 +50,15 @@ Window {
     readonly property string defaultSortBy: "name"
     readonly property bool defaultSortAscending: true
     readonly property bool defaultRememberSortPerFolder: true
+    readonly property string defaultStartupLocation: "last"
 
     // Sort column dropdown: parallel label/value arrays.
     readonly property var sortByLabels: ["Name", "Size", "Modified", "Type"]
     readonly property var sortByValues: ["name", "size", "modified", "type"]
+
+    // Startup folder dropdown: parallel label/value arrays.
+    readonly property var startupLocationLabels: ["Last session", "Home folder"]
+    readonly property var startupLocationValues: ["last", "home"]
 
     property bool currentShowHidden: false
     property bool currentSidebarVisible: true
@@ -98,6 +103,7 @@ Window {
     property string draftSortBy: config.sortBy
     property bool draftSortAscending: config.sortAscending
     property bool draftRememberSortPerFolder: config.rememberSortPerFolder
+    property string draftStartupLocation: config.startupLocation
 
     // Helpers to decompose the layout string for the UI
     readonly property var _layoutParts: {
@@ -258,6 +264,7 @@ Window {
         draftSortBy = defaultSortBy
         draftSortAscending = defaultSortAscending
         draftRememberSortPerFolder = defaultRememberSortPerFolder
+        draftStartupLocation = defaultStartupLocation
         applySettingsNow()
     }
 
@@ -296,6 +303,7 @@ Window {
             draftSortBy = config.sortBy
             draftSortAscending = config.sortAscending
             draftRememberSortPerFolder = config.rememberSortPerFolder
+            draftStartupLocation = config.startupLocation
         } finally {
             syncingFromConfig = false
         }
@@ -356,7 +364,8 @@ Window {
             windowButtonLayout: draftWindowButtonLayout,
             sortBy: draftSortBy,
             sortAscending: draftSortAscending,
-            rememberSortPerFolder: draftRememberSortPerFolder
+            rememberSortPerFolder: draftRememberSortPerFolder,
+            startupLocation: draftStartupLocation
         }
     }
 
@@ -627,6 +636,26 @@ Window {
                 onMoved: (value) => {
                     root.draftSidebarWidth = Math.round(value)
                     root.queueSettingsApply()
+                }
+            }
+
+            Text {
+                text: "Startup"
+                color: Theme.accent
+                font.pointSize: Theme.fontSmall
+                font.bold: true
+                Layout.topMargin: 12
+                Layout.bottomMargin: 4
+            }
+
+            Q.Dropdown {
+                Layout.fillWidth: true
+                label: "Open on launch"
+                model: root.startupLocationLabels
+                currentIndex: Math.max(0, root.startupLocationValues.indexOf(root.draftStartupLocation))
+                onSelected: (index, _) => {
+                    root.draftStartupLocation = root.startupLocationValues[index]
+                    root.applySettingsNow()
                 }
             }
 
