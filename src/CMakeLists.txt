@@ -21,6 +21,7 @@ set(SERAPH_SOURCES
     services/remoteaccessservice.cpp
     services/runtimefeaturesservice.cpp
     services/dependencychecker.cpp
+    services/editorlauncher.cpp
     services/gitstatusservice.cpp
     services/metadataextractor.cpp
     providers/thumbnailprovider.cpp

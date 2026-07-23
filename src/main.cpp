@@ -33,6 +33,7 @@
 #include "services/fileoperations.h"
 #include "services/clipboardmanager.h"
 #include "services/draghelper.h"
+#include "services/editorlauncher.h"
 #include "models/filesystemmodel.h"
 #include "models/tablistmodel.h"
 #include "models/bookmarkmodel.h"
@@ -282,6 +283,7 @@ int main(int argc, char *argv[])
     FileOperations *fileOps = new FileOperations(&app);
     UndoManager *undoManager = new UndoManager(fileOps, &app);
     ClipboardManager *clipboard = new ClipboardManager(&app);
+    EditorLauncher *editorLauncher = new EditorLauncher(&app);
     // DragHelper created after IconProvider below
 
     const QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
@@ -425,6 +427,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("remoteAccessService", remoteAccessService);
     engine.rootContext()->setContextProperty("runtimeFeatures", runtimeFeatures);
     engine.rootContext()->setContextProperty("dependencies", dependencies);
+    engine.rootContext()->setContextProperty("editorLauncher", editorLauncher);
 
     const QString installedMainQml = dataDir.isEmpty()
         ? QString()

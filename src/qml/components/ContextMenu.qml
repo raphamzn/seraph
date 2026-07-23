@@ -111,6 +111,23 @@ Item {
         return items
     }
 
+    // Submenu entries for "Open in..." - the code editors / IDEs detected on
+    // the system. Each carries the editorId consumed by the "openin" action.
+    function openInSubmenuItems() {
+        var list = editorLauncher.editors
+        var out = []
+        for (var i = 0; i < list.length; ++i) {
+            out.push({
+                text: list[i].name,
+                shortcut: "",
+                action: "openin",
+                editorId: list[i].id,
+                iconName: list[i].iconName || ""
+            })
+        }
+        return out
+    }
+
     function popup(x, y) {
         closeSubmenu(true)
         _pendingX = x
@@ -597,6 +614,8 @@ Item {
                         items.push({ text: "Open With\u2026", shortcut: "", action: "chooseapp_direct", icon: "ExternalLink", mimeType: mime })
                 }
             }
+            if (targetIsDir && !isTrashView && !remoteContext && editorLauncher.editors.length > 0)
+                items.push({ text: "Open in…", shortcut: "", action: "openin_toggle", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems() })
             if (targetIsDir && !isTrashView && !remoteContext)
                 items.push({ text: "Open in Terminal", shortcut: "", action: "terminal", icon: "Terminal" })
             items.push({ separator: true })
@@ -712,6 +731,7 @@ Item {
         case "paste": pasteRequested(effectiveDir); break
         case "selectall": selectAllRequested(); break
         case "terminal": openInTerminalRequested(effectiveDir); break
+        case "openin": editorLauncher.openIn(extraData, targetPath); break
         case "newfolder": newFolderRequested(effectiveDir); break
         case "newfile": newFileRequested(effectiveDir); break
         case "properties": propertiesRequested(targetPath); break
@@ -926,7 +946,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (subItemData && subItemData.action)
-                        root.executeAction(subItemData.action, subItemData.desktopFile || "", subItemData.mimeType || "")
+                        root.executeAction(subItemData.action, subItemData.desktopFile || subItemData.editorId || "", subItemData.mimeType || "")
                 }
             }
         }

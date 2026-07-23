@@ -75,6 +75,7 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland: lightweigh
 - **udisks2** mount/unmount of removable drives
 - **gvfs / gio** for SFTP, SMB, MTP, trash, etc.
 - **Git status overlays** in file lists (modified, staged, untracked, …)
+- **Open in IDE** — right-click a folder to open it in a detected code editor (VS Code, VSCodium, Cursor, Zed, Sublime Text, and JetBrains IDEs like PhpStorm/WebStorm/PyCharm)
 - **wl-clipboard** for system clipboard
 - **bat** for syntax-highlighted text previews
 - **ffmpeg** for video poster thumbnails
