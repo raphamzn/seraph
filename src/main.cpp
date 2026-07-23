@@ -22,8 +22,9 @@
 #include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <functional>
 #include <unistd.h>
-#ifdef HYPRFM_HAS_KWINDOWSYSTEM
+#ifdef SERAPH_HAS_KWINDOWSYSTEM
 #include <KWindowEffects>
 #endif
 
@@ -66,12 +67,12 @@ int main(int argc, char *argv[])
         "qt.svg.warning=false");
 
     // Keep the default path fast. Full-window MSAA is expensive on many
-    // Wayland/compositor stacks; opt in with HYPRFM_MSAA=2/4 if wanted.
+    // Wayland/compositor stacks; opt in with SERAPH_MSAA=2/4 if wanted.
     QSurfaceFormat fmt;
-    fmt.setSamples(qMax(0, qEnvironmentVariableIntValue("HYPRFM_MSAA")));
+    fmt.setSamples(qMax(0, qEnvironmentVariableIntValue("SERAPH_MSAA")));
     QSurfaceFormat::setDefaultFormat(fmt);
 
-    // HyprFM is a Wayland-only application (wl-copy clipboard, Hyprland
+    // Seraph is a Wayland-only application (wl-copy clipboard, Hyprland
     // integration, KWin blur effects). Detect a non-Wayland session before
     // Qt tries to load the wayland QPA plugin so users see an actionable
     // message instead of the cryptic "Failed to create wl_display" error.
@@ -80,17 +81,17 @@ int main(int argc, char *argv[])
         const char *session = sessionType.isEmpty() ? "unknown" : sessionType.constData();
         fprintf(stderr,
                 "\n"
-                "HyprFM: no Wayland display available (XDG_SESSION_TYPE=%s).\n"
+                "Seraph: no Wayland display available (XDG_SESSION_TYPE=%s).\n"
                 "\n"
-                "HyprFM only supports Wayland sessions. Your current session\n"
+                "Seraph only supports Wayland sessions. Your current session\n"
                 "appears to be X11 or does not expose $WAYLAND_DISPLAY.\n"
                 "\n"
-                "To run HyprFM:\n"
+                "To run Seraph:\n"
                 "  * Log out and pick a Wayland session at the login screen\n"
                 "    (e.g. \"Ubuntu on Wayland\", GNOME on Wayland, Hyprland, KDE\n"
                 "    Plasma Wayland).\n"
                 "  * If running via Flatpak, also grant Wayland socket access:\n"
-                "      flatpak override --user --socket=wayland io.github.soyeb_jim285.HyprFM\n"
+                "      flatpak override --user --socket=wayland io.github.raphamzn.Seraph\n"
                 "\n",
                 session);
         return 1;
@@ -115,13 +116,13 @@ int main(int argc, char *argv[])
     }
 
     QGuiApplication app(argc, argv);
-    app.setApplicationName("HyprFM");
-    app.setOrganizationName("hyprfm");
-    app.setDesktopFileName("hyprfm");
+    app.setApplicationName("Seraph");
+    app.setOrganizationName("seraph");
+    app.setDesktopFileName("seraph");
 
-    // Startup timing: opt-in via HYPRFM_TIMING=1 so normal runs stay quiet.
+    // Startup timing: opt-in via SERAPH_TIMING=1 so normal runs stay quiet.
     // Prints milliseconds from QGuiApplication construction at each phase.
-    const bool timingEnabled = qEnvironmentVariableIntValue("HYPRFM_TIMING") != 0;
+    const bool timingEnabled = qEnvironmentVariableIntValue("SERAPH_TIMING") != 0;
     QElapsedTimer startupTimer;
     startupTimer.start();
     auto mark = [&](const char *label) {
@@ -131,14 +132,14 @@ int main(int argc, char *argv[])
     };
     mark("QGuiApplication ready");
 
-    // Single-instance: if another HyprFM is already running for this user,
+    // Single-instance: if another Seraph is already running for this user,
     // forward our arg over a per-uid unix domain socket and exit. The
     // running instance spawns a new tab for the path. Mirrors how browsers
     // handle `firefox <url>` when a window is already open.
-    const QString hyprfmSocketName = QStringLiteral("hyprfm-%1").arg(static_cast<uint>(getuid()));
+    const QString seraphSocketName = QStringLiteral("seraph-%1").arg(static_cast<uint>(getuid()));
     {
         QLocalSocket probe;
-        probe.connectToServer(hyprfmSocketName);
+        probe.connectToServer(seraphSocketName);
         if (probe.waitForConnected(150)) {
             QJsonObject msg;
             if (!initialOpenPath.isEmpty())
@@ -173,7 +174,34 @@ int main(int argc, char *argv[])
 
     // Ensure config directory exists
     const QString configDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-                              + "/.config/hyprfm";
+                              + "/.config/seraph";
+
+    // One-time migration from the pre-fork HyprFM config location so existing
+    // users keep their settings, bookmarks and per-folder sort order when they
+    // switch to Seraph. Only runs when Seraph has no config of its own yet.
+    if (!QDir(configDir).exists()) {
+        const QString legacyConfigDir =
+            QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.config/hyprfm";
+        if (QDir(legacyConfigDir).exists()) {
+            std::function<void(const QString &, const QString &)> copyDir =
+                [&](const QString &from, const QString &to) {
+                    QDir().mkpath(to);
+                    const QDir src(from);
+                    const auto entries = src.entryInfoList(
+                        QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
+                    for (const QFileInfo &fi : entries) {
+                        const QString target = to + '/' + fi.fileName();
+                        if (fi.isDir())
+                            copyDir(fi.absoluteFilePath(), target);
+                        else
+                            QFile::copy(fi.absoluteFilePath(), target);
+                    }
+                };
+            copyDir(legacyConfigDir, configDir);
+            qInfo() << "Seraph: migrated config from" << legacyConfigDir << "to" << configDir;
+        }
+    }
+
     QDir().mkpath(configDir);
     const QString configPath = configDir + "/config.toml";
 
@@ -188,26 +216,26 @@ int main(int argc, char *argv[])
 
     const QString appDir = QCoreApplication::applicationDirPath();
     const QString dataDir = firstExistingDir({
-        QDir(appDir).filePath("../share/hyprfm"),
-        QDir(appDir).filePath("../../share/hyprfm"),
-        QStringLiteral(HYPRFM_DATA_DIR),
-        QStringLiteral(HYPRFM_SOURCE_DIR),
+        QDir(appDir).filePath("../share/seraph"),
+        QDir(appDir).filePath("../../share/seraph"),
+        QStringLiteral(SERAPH_DATA_DIR),
+        QStringLiteral(SERAPH_SOURCE_DIR),
     });
 
     QStringList themeSearchPaths = {
         QDir(appDir).filePath("../themes"),
         QDir(appDir).filePath("../../themes"),
-        QStringLiteral(HYPRFM_DATA_DIR) + "/themes",
-        QStringLiteral(HYPRFM_SOURCE_DIR) + "/themes",
+        QStringLiteral(SERAPH_DATA_DIR) + "/themes",
+        QStringLiteral(SERAPH_SOURCE_DIR) + "/themes",
     };
     if (!dataDir.isEmpty())
         themeSearchPaths.prepend(QDir(dataDir).filePath("themes"));
 
     const QString themesDir = firstExistingDir(themeSearchPaths);
     if (dataDir.isEmpty())
-        qWarning() << "HyprFM: unable to locate data directory";
+        qWarning() << "Seraph: unable to locate data directory";
     if (themesDir.isEmpty())
-        qWarning() << "HyprFM: unable to locate themes directory";
+        qWarning() << "Seraph: unable to locate themes directory";
 
     const QString systemDefaultTheme = app.styleHints()->colorScheme() == Qt::ColorScheme::Light
         ? QStringLiteral("catppuccin-latte")
@@ -342,13 +370,13 @@ int main(int argc, char *argv[])
 
     // Prefer the installed data layout, but keep source-tree fallbacks for dev builds.
     if (!dataDir.isEmpty()) {
-        engine.addImportPath(dataDir);                           // HyprFM module
+        engine.addImportPath(dataDir);                           // Seraph module
         engine.addImportPath(QDir(dataDir).filePath("src/qml")); // Quill module
     }
-    engine.addImportPath(QStringLiteral(HYPRFM_DATA_DIR));
-    engine.addImportPath(QStringLiteral(HYPRFM_DATA_DIR "/src/qml"));
-    engine.addImportPath(QStringLiteral(HYPRFM_SOURCE_DIR));
-    engine.addImportPath(QStringLiteral(HYPRFM_SOURCE_DIR "/src/qml"));
+    engine.addImportPath(QStringLiteral(SERAPH_DATA_DIR));
+    engine.addImportPath(QStringLiteral(SERAPH_DATA_DIR "/src/qml"));
+    engine.addImportPath(QStringLiteral(SERAPH_SOURCE_DIR));
+    engine.addImportPath(QStringLiteral(SERAPH_SOURCE_DIR "/src/qml"));
 
     // Set icon theme so QIcon::fromTheme() works (e.g. for drag pixmaps)
     QIcon::setThemeName(config->iconTheme());
@@ -396,7 +424,7 @@ int main(int argc, char *argv[])
 
     const QString installedMainQml = dataDir.isEmpty()
         ? QString()
-        : QDir(dataDir).filePath(QStringLiteral("HyprFM/qml/Main.qml"));
+        : QDir(dataDir).filePath(QStringLiteral("Seraph/qml/Main.qml"));
 
     // Prefer the installed on-disk module when it exists so deployed bundles
     // keep working even if Qt's embedded qrc payload is incomplete.
@@ -404,7 +432,7 @@ int main(int argc, char *argv[])
     if (!installedMainQml.isEmpty() && QFile::exists(installedMainQml)) {
         engine.load(QUrl::fromLocalFile(installedMainQml));
     } else {
-        engine.loadFromModule("HyprFM", "Main");
+        engine.loadFromModule("Seraph", "Main");
     }
     mark("engine.load done");
 
@@ -428,7 +456,7 @@ int main(int argc, char *argv[])
         if (!window)
             return;
 
-#ifdef HYPRFM_HAS_KWINDOWSYSTEM
+#ifdef SERAPH_HAS_KWINDOWSYSTEM
         // KWin blur only shows through translucent content; Hyprland keeps
         // using compositor rules against the same transparent window surface.
         const bool blurRequested = config->transparencyEnabled();
@@ -544,11 +572,11 @@ int main(int argc, char *argv[])
     };
 
     // Stale socket from a crashed previous instance would block listen().
-    QLocalServer::removeServer(hyprfmSocketName);
+    QLocalServer::removeServer(seraphSocketName);
     QLocalServer *ipcServer = new QLocalServer(&app);
     ipcServer->setSocketOptions(QLocalServer::UserAccessOption);
-    if (!ipcServer->listen(hyprfmSocketName)) {
-        qWarning() << "HyprFM: single-instance IPC listen failed:" << ipcServer->errorString();
+    if (!ipcServer->listen(seraphSocketName)) {
+        qWarning() << "Seraph: single-instance IPC listen failed:" << ipcServer->errorString();
     }
     QObject::connect(ipcServer, &QLocalServer::newConnection, &app, [ipcServer, openPathInNewTab]() {
         while (QLocalSocket *conn = ipcServer->nextPendingConnection()) {

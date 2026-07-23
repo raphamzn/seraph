@@ -1,9 +1,9 @@
 #!/bin/bash
-# Syncs PKGBUILD + .SRCINFO to the AUR repo after pushing hyprfm
+# Syncs PKGBUILD + .SRCINFO to the AUR repo after pushing seraph
 set -e
 
-MAIN_REPO="$HOME/hyprfm"
-AUR_REPO="$HOME/hyprfm-aur"
+MAIN_REPO="$HOME/seraph"
+AUR_REPO="$HOME/seraph-aur"
 
 cd "$MAIN_REPO"
 

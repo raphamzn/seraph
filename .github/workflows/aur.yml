@@ -34,7 +34,7 @@ jobs:
           AUR_SSH_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
 
       - name: Clone AUR repo
-        run: git clone ssh://aur@aur.archlinux.org/hyprfm-git.git aur-repo
+        run: git clone ssh://aur@aur.archlinux.org/seraph-git.git aur-repo
 
       - name: Sync PKGBUILD from repo and update pkgver
         run: |
@@ -48,8 +48,8 @@ jobs:
       - name: Push to AUR
         run: |
           cd aur-repo
-          git config user.name "Soyeb Pervez Jim"
-          git config user.email "soyebpervezjim@gmail.com"
+          git config user.name "Raphael"
+          git config user.email "raphamzn@gmail.com"
           if git diff --quiet; then
             echo "No changes to push"
             exit 0

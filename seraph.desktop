@@ -1,10 +1,10 @@
 [Desktop Entry]
-Name=HyprFM
+Name=Seraph
 Comment=File manager for Hyprland
-Exec=hyprfm %U
+Exec=seraph %U
 Icon=system-file-manager
 Terminal=false
 Type=Application
 Categories=System;FileManager;
 MimeType=inode/directory;
-StartupWMClass=hyprfm
+StartupWMClass=seraph

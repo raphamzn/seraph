@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# scripts/release.sh — cut a new hyprfm release in one step.
+# scripts/release.sh — cut a new seraph release in one step.
 #
 # Usage:
 #   scripts/release.sh 0.4.22 ["One-line release note for metainfo.xml"]
 #
 # What it does, in order:
 #   1. Bumps every in-tree version reference:
-#        - CMakeLists.txt   project(hyprfm VERSION X.Y.Z ...)
-#        - io.github.soyeb_jim285.HyprFM.yml     hyprfm source `tag: vX.Y.Z`
+#        - CMakeLists.txt   project(seraph VERSION X.Y.Z ...)
+#        - io.github.raphamzn.Seraph.yml     seraph source `tag: vX.Y.Z`
 #        - dist/*.metainfo.xml   screenshot URLs + new <release> entry
 #   2. Runs a quick cmake build as a smoke test (if build/ exists).
 #   3. Creates a "chore: release vX.Y.Z" commit on the current branch.
@@ -37,8 +37,8 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 CMAKE_FILE="CMakeLists.txt"
-FLATPAK_FILE="io.github.soyeb_jim285.HyprFM.yml"
-META_FILE="dist/io.github.soyeb_jim285.HyprFM.metainfo.xml"
+FLATPAK_FILE="io.github.raphamzn.Seraph.yml"
+META_FILE="dist/io.github.raphamzn.Seraph.metainfo.xml"
 
 for f in "$CMAKE_FILE" "$FLATPAK_FILE" "$META_FILE"; do
     [ -f "$f" ] || { echo "release.sh: missing $f" >&2; exit 1; }
@@ -63,34 +63,34 @@ import re, sys, pathlib
 path, version = pathlib.Path(sys.argv[1]), sys.argv[2]
 text = path.read_text()
 new, n = re.subn(
-    r'(project\(hyprfm\s+VERSION\s+)\d+\.\d+\.\d+',
+    r'(project\(seraph\s+VERSION\s+)\d+\.\d+\.\d+',
     rf'\g<1>{version}',
     text,
 )
 if n != 1:
-    raise SystemExit(f"release.sh: expected 1 project(hyprfm VERSION ...) in {path}, found {n}")
+    raise SystemExit(f"release.sh: expected 1 project(seraph VERSION ...) in {path}, found {n}")
 path.write_text(new)
 PY
 
 # 2. Flatpak manifest -------------------------------------------------------
-#    Only the hyprfm git source gets bumped (not qtwayland / wl-clipboard /
+#    Only the seraph git source gets bumped (not qtwayland / wl-clipboard /
 #    bundled fd etc.). We locate it by the immediately-preceding URL line.
 python3 - "$FLATPAK_FILE" "$TAG" <<'PY'
 import re, sys, pathlib
 path, tag = pathlib.Path(sys.argv[1]), sys.argv[2]
 text = path.read_text()
 new, n = re.subn(
-    r'(url:\s*https://github\.com/soyeb-jim285/hyprfm\.git\s*\n(?:[^\n]*\n)*?\s*tag:\s*)v\d+\.\d+\.\d+',
+    r'(url:\s*https://github\.com/raphamzn/seraph\.git\s*\n(?:[^\n]*\n)*?\s*tag:\s*)v\d+\.\d+\.\d+',
     rf'\g<1>{tag}',
     text,
 )
 if n != 1:
-    raise SystemExit(f"release.sh: expected 1 hyprfm tag: line in {path}, found {n}")
+    raise SystemExit(f"release.sh: expected 1 seraph tag: line in {path}, found {n}")
 path.write_text(new)
 PY
 
 # 3. metainfo.xml -----------------------------------------------------------
-#    - rewrite screenshot URLs: hyprfm/v<old>/docs/screenshots → hyprfm/v<new>/…
+#    - rewrite screenshot URLs: seraph/v<old>/docs/screenshots → seraph/v<new>/…
 #    - prepend a new <release version="X.Y.Z" date="YYYY-MM-DD"> entry if
 #      the version isn't already listed.
 python3 - "$META_FILE" "$VERSION" "$TAG" "$NOTE" <<'PY'
@@ -100,7 +100,7 @@ text = path.read_text()
 
 # Screenshot URLs
 text = re.sub(
-    r'(raw\.githubusercontent\.com/soyeb-jim285/hyprfm/)v\d+\.\d+\.\d+',
+    r'(raw\.githubusercontent\.com/raphamzn/seraph/)v\d+\.\d+\.\d+',
     rf'\g<1>{tag}',
     text,
 )
@@ -129,7 +129,7 @@ PY
 # 4. Smoke build (only if a build tree already exists) ---------------------
 if [ -d build ]; then
     echo "==> Smoke build (reusing existing build/)"
-    cmake --build build --target hyprfm >/dev/null
+    cmake --build build --target seraph >/dev/null
 fi
 
 # 5. Commit + tag ----------------------------------------------------------

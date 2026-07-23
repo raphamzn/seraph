@@ -1,5 +1,5 @@
 import QtQuick
-import HyprFM
+import Seraph
 
 Item {
     id: root

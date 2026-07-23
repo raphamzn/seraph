@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qt.labs.platform as Platform
-import HyprFM
+import Seraph
 
 Item {
     id: root

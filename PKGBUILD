@@ -1,10 +1,10 @@
-# Maintainer: Your Name <your@email.com>
-pkgname=hyprfm-git
+# Maintainer: Raphael <raphamzn@gmail.com>
+pkgname=seraph-git
 pkgver=r198.g53be041
 pkgrel=1
 pkgdesc="A lightweight Qt6/QML file manager for Hyprland"
 arch=('x86_64' 'aarch64')
-url="https://github.com/soyeb-jim285/hyprfm"
+url="https://github.com/raphamzn/seraph"
 license=('MIT')
 depends=(
     'glib2'
@@ -35,10 +35,10 @@ optdepends=(
     'perl-image-exiftool: EXIF metadata for images (via exiftool)'
     'udisks2: mount/unmount devices from sidebar'
 )
-provides=('hyprfm')
-conflicts=('hyprfm')
+provides=('seraph')
+conflicts=('seraph')
 source=(
-    "${pkgname}::git+https://github.com/soyeb-jim285/hyprfm.git"
+    "${pkgname}::git+https://github.com/raphamzn/seraph.git"
     "quill-icons::git+https://github.com/soyeb-jim285/quill-icons.git"
     "quill::git+https://github.com/soyeb-jim285/quill.git"
 )
@@ -62,36 +62,36 @@ build() {
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DBUILD_TESTS=OFF \
-        -DHYPRFM_DATA_DIR=/usr/share/hyprfm
+        -DSERAPH_DATA_DIR=/usr/share/seraph
     cmake --build build --parallel
 }
 
 package() {
     # Install the compiled binary
-    install -Dm755 "build/src/hyprfm" "${pkgdir}/usr/bin/hyprfm"
+    install -Dm755 "build/src/seraph" "${pkgdir}/usr/bin/seraph"
 
-    # Install themes — loaded via applicationDirPath()/../themes → /usr/share/hyprfm/themes
-    install -dm755 "${pkgdir}/usr/share/hyprfm/themes"
+    # Install themes — loaded via applicationDirPath()/../themes → /usr/share/seraph/themes
+    install -dm755 "${pkgdir}/usr/share/seraph/themes"
     install -Dm644 "${pkgname}/themes/"*.toml \
-        -t "${pkgdir}/usr/share/hyprfm/themes/"
+        -t "${pkgdir}/usr/share/seraph/themes/"
 
-    # Install QML module metadata (needed for loadFromModule to find HyprFM)
-    install -Dm644 "build/src/HyprFM/qmldir" \
-        "${pkgdir}/usr/share/hyprfm/HyprFM/qmldir"
-    install -Dm644 "build/src/HyprFM/hyprfm.qmltypes" \
-        "${pkgdir}/usr/share/hyprfm/HyprFM/hyprfm.qmltypes" 2>/dev/null || true
+    # Install QML module metadata (needed for loadFromModule to find Seraph)
+    install -Dm644 "build/src/Seraph/qmldir" \
+        "${pkgdir}/usr/share/seraph/Seraph/qmldir"
+    install -Dm644 "build/src/Seraph/seraph.qmltypes" \
+        "${pkgdir}/usr/share/seraph/Seraph/seraph.qmltypes" 2>/dev/null || true
 
     # Install QML sources for Quill module
-    install -dm755 "${pkgdir}/usr/share/hyprfm/src"
-    cp -r "${pkgname}/src/qml" "${pkgdir}/usr/share/hyprfm/src/qml"
+    install -dm755 "${pkgdir}/usr/share/seraph/src"
+    cp -r "${pkgname}/src/qml" "${pkgdir}/usr/share/seraph/src/qml"
 
     # Install desktop entry, icon and AppStream metainfo
-    install -Dm644 "${pkgname}/dist/io.github.soyeb_jim285.HyprFM.desktop" \
-        "${pkgdir}/usr/share/applications/io.github.soyeb_jim285.HyprFM.desktop"
-    install -Dm644 "${pkgname}/dist/io.github.soyeb_jim285.HyprFM.svg" \
-        "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.soyeb_jim285.HyprFM.svg"
-    install -Dm644 "${pkgname}/dist/io.github.soyeb_jim285.HyprFM.metainfo.xml" \
-        "${pkgdir}/usr/share/metainfo/io.github.soyeb_jim285.HyprFM.metainfo.xml"
+    install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.desktop" \
+        "${pkgdir}/usr/share/applications/io.github.raphamzn.Seraph.desktop"
+    install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.svg" \
+        "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.raphamzn.Seraph.svg"
+    install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.metainfo.xml" \
+        "${pkgdir}/usr/share/metainfo/io.github.raphamzn.Seraph.metainfo.xml"
 
     # Install license
     install -Dm644 "${pkgname}/LICENSE" \

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import HyprFM
+import Seraph
 import Quill as Q
 
 GridView {

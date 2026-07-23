@@ -1,21 +1,21 @@
 <div align="center">
 
-<img src="dist/hyprfm.svg" width="96" alt="HyprFM logo"/>
+<img src="dist/io.github.raphamzn.Seraph.svg" width="96" alt="Seraph logo"/>
 
-# HyprFM
+# Seraph
 
 **A fast, keyboard-friendly file manager for Hyprland and Wayland desktops.**
 
-[![License](https://img.shields.io/github/license/soyeb-jim285/hyprfm?style=flat-square)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/soyeb-jim285/hyprfm?style=flat-square)](https://github.com/soyeb-jim285/hyprfm/releases)
-[![AUR](https://img.shields.io/aur/version/hyprfm-git?style=flat-square&logo=arch-linux)](https://aur.archlinux.org/packages/hyprfm-git)
-[![Build](https://img.shields.io/github/actions/workflow/status/soyeb-jim285/hyprfm/build.yml?style=flat-square)](https://github.com/soyeb-jim285/hyprfm/actions)
+[![License](https://img.shields.io/github/license/raphamzn/seraph?style=flat-square)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/raphamzn/seraph/build.yml?style=flat-square)](https://github.com/raphamzn/seraph/actions)
 
 </div>
 
 ---
 
-HyprFM is a Qt6/QML file manager designed to feel native on Hyprland: lightweight, themeable, and built around fast keyboard navigation. It pairs a polished UI with the practical features power users expect — Miller column view, kinetic scrolling, drag & drop, async operations, rich previews, and a TOML-based theme system.
+Seraph is a Qt6/QML file manager designed to feel native on Hyprland: lightweight, themeable, and built around fast keyboard navigation. It pairs a polished UI with the practical features power users expect — Miller column view, kinetic scrolling, drag & drop, async operations, rich previews, and a TOML-based theme system.
+
+> **Seraph is a fork of [HyprFM](https://github.com/soyeb-jim285/hyprfm) by Soyeb Pervez Jim** (MIT). It carries the original work forward under a new name with an independent roadmap. See [Credits](#-credits).
 
 <div align="center">
 
@@ -91,68 +91,19 @@ HyprFM is a Qt6/QML file manager designed to feel native on Hyprland: lightweigh
 
 ## 📦 Installation
 
-### Arch Linux (AUR)
-
-```bash
-yay -S hyprfm-git
-```
-
-The PKGBUILD pulls latest `main`, builds with Ninja + parallel jobs + tests disabled, and installs to `/usr/bin/hyprfm`.
-
-### Flatpak (self-hosted)
-
-HyprFM publishes a signed Flatpak repository at `hyprfm.soyebjim.me`. Because HyprFM depends on the KDE Platform runtime from Flathub, the Flathub remote must exist at the **same scope** you install into — for `--user` installs, that means a `--user` Flathub remote. Add both remotes once and install:
-
-```bash
-# Flathub at user scope (provides org.kde.Platform)
-flatpak remote-add --user --if-not-exists \
-    flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-
-# HyprFM repo
-flatpak remote-add --user --if-not-exists \
-    hyprfm https://flatpak.hyprfm.soyebjim.me/hyprfm.flatpakrepo
-flatpak install --user hyprfm io.github.soyeb_jim285.HyprFM
-```
-
-If you'd rather install system-wide, drop every `--user` flag and prefix with `sudo`; system Flathub is already configured on most distros.
-
-Updates arrive via the usual `flatpak update`. The repo is signed with a GPG key committed at [`public-key.asc`](https://github.com/soyeb-jim285/hyprfm-flatpak-repo/blob/main/public-key.asc); Flatpak verifies every download against it automatically.
-
-Each tagged release also attaches an `HyprFM-vX.Y.Z-x86_64.flatpak` bundle to the GitHub release for users who want a single-file install without adding a remote.
-
-### Debian / Ubuntu (.deb)
-
-Grab `hyprfm_*_amd64.deb` from the latest [release](https://github.com/soyeb-jim285/hyprfm/releases) and install:
-
-```bash
-sudo apt install ./hyprfm_*_amd64.deb
-```
-
-Tested on Ubuntu 24.04. May work on other recent Debian-based distributions.
-
-### AppImage (any distro)
-
-```bash
-wget https://github.com/soyeb-jim285/hyprfm/releases/latest/download/HyprFM-v0.4.20-x86_64.AppImage
-chmod +x HyprFM-*.AppImage
-./HyprFM-*.AppImage
-```
-
-The AppImage is fully self-contained — no system Qt installation required.
-
 ### Build from source
 
 ```bash
-git clone --recursive https://github.com/soyeb-jim285/hyprfm.git
-cd hyprfm
+git clone --recursive https://github.com/raphamzn/seraph.git
+cd seraph
 cmake -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_TESTS=OFF
 cmake --build build --parallel
-./build/src/hyprfm
+./build/src/seraph
 ```
 
-> **Note:** the `--recursive` flag is important — HyprFM uses Git submodules for the [Quill](https://github.com/soyeb-jim285/quill) component library and the [quill-icons](https://github.com/soyeb-jim285/quill-icons) icon set.
+> **Note:** the `--recursive` flag is important — Seraph uses Git submodules for the [Quill](https://github.com/soyeb-jim285/quill) component library and the [quill-icons](https://github.com/soyeb-jim285/quill-icons) icon set (both from the upstream HyprFM project).
 
 #### Dependencies
 
@@ -161,6 +112,10 @@ cmake --build build --parallel
 | **Required (build)** | `cmake`, `ninja`, `qt6-base`, `qt6-declarative`, `qt6-svg` |
 | **Required (runtime)** | `qt6-base`, `qt6-declarative`, `qt6-svg`, `qt6-wayland`, `glib2`, `fd`, `rsync`, `xdg-utils` |
 | **Optional** | `kwindowsystem` / `KF6WindowSystem` (native KDE blur), `wl-clipboard` (clipboard), `bat` (syntax highlighting), `gvfs` (remote filesystems), `gvfs-smb` (SMB), `ffmpeg` (video thumbnails), `udisks2` (device mounting), `poppler-qt6` (PDF previews) |
+
+### Packaged builds
+
+AppImage, AUR (`seraph-git`), and Flatpak packaging live in this repo (`.github/workflows/build.yml`, `PKGBUILD`, the Flatpak manifest) and are wired to build on `v*` tags. They point at `raphamzn/seraph` and will produce downloadable artifacts once the first release is tagged and the publishing infrastructure (release repo / signing keys) is configured.
 
 ---
 
@@ -212,13 +167,13 @@ cmake --build build --parallel
 | `Ctrl+Shift+N` | New folder |
 | `Ctrl+N` | New file |
 
-All shortcuts can be remapped in `~/.config/hyprfm/config.toml` under the `[shortcuts]` section.
+All shortcuts can be remapped in `~/.config/seraph/config.toml` under the `[shortcuts]` section.
 
 ---
 
 ## ⚙️ Configuration
 
-Config lives at `~/.config/hyprfm/config.toml` and is created with sensible defaults on first run.
+Config lives at `~/.config/seraph/config.toml` and is created with sensible defaults on first run. If you're migrating from HyprFM, Seraph copies your existing `~/.config/hyprfm` config automatically on first launch.
 
 ```toml
 [general]
@@ -254,7 +209,7 @@ paths = ["~/Documents", "~/Downloads", "~/Pictures", "~/Projects"]
 
 ## 🎨 Theming
 
-Themes are TOML files in `themes/`. Drop a new file there or in `~/.config/hyprfm/themes/` and reference it from config:
+Themes are TOML files in `themes/`. Drop a new file there or in `~/.config/seraph/themes/` and reference it from config:
 
 ```toml
 [colors]
@@ -278,13 +233,13 @@ Themes reload live on save.
 
 ## 🧱 Architecture
 
-HyprFM is a three-layer Qt6 application:
+Seraph is a three-layer Qt6 application:
 
 - **QML frontend** (`src/qml/`) — all rendering. `Main.qml` wires tab state, selection, and shortcuts. Views (`FileGridView`, `FileDetailedView`, `FileMillerView`) are switched by `FileViewContainer`. The [Quill](https://github.com/soyeb-jim285/quill) component library provides themed Buttons, TextFields, Cards, etc.
 - **C++ backend** (`src/models/`, `src/services/`, `src/providers/`) — `QAbstractListModel` subclasses for files, tabs, bookmarks, devices. Async services for clipboard, file operations, search, disk usage, previews. Exposed to QML via `setContextProperty`.
 - **System layer** — `rsync` / `gio` via `QProcess` for transfers, UDisks2 over DBus for devices, `wl-copy` for clipboard.
 
-See [`CLAUDE.md`](CLAUDE.md) for the full architecture notes used by AI coding assistants.
+See [`CLAUDE.md`](CLAUDE.md) for the full architecture notes.
 
 ---
 
@@ -299,8 +254,15 @@ Issues and PRs welcome! A few notes:
 
 ---
 
+## 🙏 Credits
+
+Seraph is a fork of **[HyprFM](https://github.com/soyeb-jim285/hyprfm)** created by **Soyeb Pervez Jim**, released under the MIT license. Enormous thanks to the original author for the foundation — the core architecture, the QML component set, and the icon library all originate there. The [Quill](https://github.com/soyeb-jim285/quill) component library and [quill-icons](https://github.com/soyeb-jim285/quill-icons) remain upstream projects and are used here as Git submodules.
+
+---
+
 ## 📜 License
 
-[MIT](LICENSE) © Soyeb Pervez Jim
+[MIT](LICENSE) — original work © Soyeb Pervez Jim (HyprFM), fork modifications © Raphael (Seraph).
 
 Built with [Qt 6](https://www.qt.io/) · Icons from [Lucide](https://lucide.dev/) · Inspired by macOS Finder, Nautilus, and Dolphin.
+</content>

@@ -1,4 +1,4 @@
-set(HYPRFM_SOURCES
+set(SERAPH_SOURCES
     main.cpp
     services/configmanager.cpp
     services/themeloader.cpp
@@ -27,13 +27,13 @@ set(HYPRFM_SOURCES
     providers/pdfpreviewprovider.cpp
 )
 
-qt_add_executable(hyprfm ${HYPRFM_SOURCES})
+qt_add_executable(seraph ${SERAPH_SOURCES})
 
-option(HYPRFM_ENABLE_PCH "Enable precompiled headers (faster builds)" ON)
-option(HYPRFM_ENABLE_UNITY_BUILD "Enable unity builds (faster clean builds)" ON)
+option(SERAPH_ENABLE_PCH "Enable precompiled headers (faster builds)" ON)
+option(SERAPH_ENABLE_UNITY_BUILD "Enable unity builds (faster clean builds)" ON)
 
-if(HYPRFM_ENABLE_PCH)
-    target_precompile_headers(hyprfm PRIVATE
+if(SERAPH_ENABLE_PCH)
+    target_precompile_headers(seraph PRIVATE
         <QtCore/QObject>
         <QtCore/QString>
         <QtCore/QStringList>
@@ -46,8 +46,8 @@ if(HYPRFM_ENABLE_PCH)
     )
 endif()
 
-if(HYPRFM_ENABLE_UNITY_BUILD)
-    set_target_properties(hyprfm PROPERTIES
+if(SERAPH_ENABLE_UNITY_BUILD)
+    set_target_properties(seraph PROPERTIES
         UNITY_BUILD ON
         UNITY_BUILD_BATCH_SIZE 8
     )
@@ -64,18 +64,18 @@ endif()
 
 set_source_files_properties(qml/theme/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-option(HYPRFM_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
+option(SERAPH_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
 
-set(hyprfm_qml_module_args
-    URI HyprFM
+set(seraph_qml_module_args
+    URI Seraph
     VERSION 1.0
 )
 
-if(NOT HYPRFM_ENABLE_QML_CACHEGEN)
-    list(APPEND hyprfm_qml_module_args NO_CACHEGEN)
+if(NOT SERAPH_ENABLE_QML_CACHEGEN)
+    list(APPEND seraph_qml_module_args NO_CACHEGEN)
 endif()
 
-list(APPEND hyprfm_qml_module_args
+list(APPEND seraph_qml_module_args
     QML_FILES
         qml/Main.qml
         qml/theme/Theme.qml
@@ -163,14 +163,14 @@ list(APPEND hyprfm_qml_module_args
         qml/components/SettingsPanel.qml
 )
 
-qt_add_qml_module(hyprfm ${hyprfm_qml_module_args})
+qt_add_qml_module(seraph ${seraph_qml_module_args})
 
 # Make Quill module discoverable at runtime
-set_target_properties(hyprfm PROPERTIES
+set_target_properties(seraph PROPERTIES
     QT_QML_IMPORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/qml"
 )
 
-target_link_libraries(hyprfm PRIVATE
+target_link_libraries(seraph PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -185,29 +185,29 @@ target_link_libraries(hyprfm PRIVATE
 )
 
 if(KF6WindowSystem_FOUND)
-    target_link_libraries(hyprfm PRIVATE KF6::WindowSystem)
+    target_link_libraries(seraph PRIVATE KF6::WindowSystem)
 endif()
 
-target_include_directories(hyprfm PRIVATE
+target_include_directories(seraph PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
-set(HYPRFM_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
+set(SERAPH_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
 
-target_compile_definitions(hyprfm PRIVATE
-    HYPRFM_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-    HYPRFM_DATA_DIR="${HYPRFM_DATA_DIR}"
+target_compile_definitions(seraph PRIVATE
+    SERAPH_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    SERAPH_DATA_DIR="${SERAPH_DATA_DIR}"
 )
 
 if(KF6WindowSystem_FOUND)
-    target_compile_definitions(hyprfm PRIVATE HYPRFM_HAS_KWINDOWSYSTEM=1)
+    target_compile_definitions(seraph PRIVATE SERAPH_HAS_KWINDOWSYSTEM=1)
 endif()
 
-install(TARGETS hyprfm DESTINATION bin)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.soyeb_jim285.HyprFM.desktop"
+install(TARGETS seraph DESTINATION bin)
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.desktop"
     DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.soyeb_jim285.HyprFM.svg"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.svg"
     DESTINATION share/icons/hicolor/scalable/apps)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.soyeb_jim285.HyprFM.metainfo.xml"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.metainfo.xml"
     DESTINATION share/metainfo)

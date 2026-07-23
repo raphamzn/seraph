@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import HyprFM
+import Seraph
 
 Item {
     id: root

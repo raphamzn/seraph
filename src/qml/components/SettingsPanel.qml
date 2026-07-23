@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
-import HyprFM
+import Seraph
 import Quill as Q
 
 Window {
     id: root
-    title: "HyprFM Settings"
+    title: "Seraph Settings"
     flags: Qt.Dialog | Qt.FramelessWindowHint
     color: "transparent"
 
