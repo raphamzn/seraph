@@ -783,15 +783,16 @@ GridView {
                 root.forceActiveFocus()
                 if (mouse.button === Qt.RightButton) {
                     var mapped = ma.mapToItem(null, mouse.x, mouse.y)
-                    if (delegateItem.isSelected) {
-                        root.contextMenuRequested(
-                            delegateItem.filePath,
-                            delegateItem.isDir,
-                            Qt.point(mapped.x, mapped.y)
-                        )
-                    } else {
-                        root.contextMenuRequested("", false, Qt.point(mapped.x, mapped.y))
-                    }
+                    // Right-clicking an item that isn't part of the current
+                    // selection selects just that item first, so the menu always
+                    // targets what's under the cursor (standard FM behavior).
+                    if (!delegateItem.isSelected)
+                        root.selectIndex(delegateItem.index, false, false)
+                    root.contextMenuRequested(
+                        delegateItem.filePath,
+                        delegateItem.isDir,
+                        Qt.point(mapped.x, mapped.y)
+                    )
                     return
                 }
                 root.selectIndex(

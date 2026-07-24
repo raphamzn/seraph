@@ -957,15 +957,15 @@ FocusScope {
                     onClicked: (mouse) => {
                         if (mouse.button === Qt.RightButton) {
                             var mapped = currentDelegateMa.mapToItem(null, mouse.x, mouse.y)
-                            if (currentDelegate.isSelected) {
-                                root.contextMenuRequested(
-                                    currentDelegate.filePath,
-                                    currentDelegate.isDir,
-                                    Qt.point(mapped.x, mapped.y)
-                                )
-                            } else {
-                                root.contextMenuRequested("", false, Qt.point(mapped.x, mapped.y))
-                            }
+                            // Select the item under the cursor first when it
+                            // isn't already selected, so the menu targets it.
+                            if (!currentDelegate.isSelected)
+                                currentColumn.selectIndex(currentDelegate.index, false, false)
+                            root.contextMenuRequested(
+                                currentDelegate.filePath,
+                                currentDelegate.isDir,
+                                Qt.point(mapped.x, mapped.y)
+                            )
                             return
                         }
                         currentColumn.selectIndex(

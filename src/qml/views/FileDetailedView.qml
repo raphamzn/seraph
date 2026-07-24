@@ -874,15 +874,15 @@ FocusScope {
                         onClicked: (mouse) => {
                             if (mouse.button === Qt.RightButton) {
                                 var mapped = rowMa.mapToItem(null, mouse.x, mouse.y)
-                                if (detRow.isSelected) {
-                                    root.contextMenuRequested(
-                                        detRow.filePath,
-                                        detRow.isDir,
-                                        Qt.point(mapped.x, mapped.y)
-                                    )
-                                } else {
-                                    root.contextMenuRequested("", false, Qt.point(mapped.x, mapped.y))
-                                }
+                                // Select the row under the cursor first when it
+                                // isn't already selected, so the menu targets it.
+                                if (!detRow.isSelected)
+                                    root.selectIndex(detRow.index, false, false)
+                                root.contextMenuRequested(
+                                    detRow.filePath,
+                                    detRow.isDir,
+                                    Qt.point(mapped.x, mapped.y)
+                                )
                                 return
                             }
                             root.selectIndex(
