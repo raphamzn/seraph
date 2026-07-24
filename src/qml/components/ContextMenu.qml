@@ -113,14 +113,14 @@ Item {
 
     // Submenu entries for "Open in..." - the code editors / IDEs detected on
     // the system. Each carries the editorId consumed by the "openin" action.
-    function openInSubmenuItems() {
+    function openInSubmenuItems(action) {
         var list = editorLauncher.editors
         var out = []
         for (var i = 0; i < list.length; ++i) {
             out.push({
                 text: list[i].name,
                 shortcut: "",
-                action: "openin",
+                action: action,
                 editorId: list[i].id,
                 iconName: list[i].iconName || ""
             })
@@ -615,7 +615,7 @@ Item {
                 }
             }
             if (targetIsDir && !isTrashView && !remoteContext && editorLauncher.editors.length > 0)
-                items.push({ text: "Open in…", shortcut: "", action: "openin_toggle", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems() })
+                items.push({ text: "Open in…", shortcut: "", action: "openin_toggle", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin") })
             if (targetIsDir && !isTrashView && !remoteContext)
                 items.push({ text: "Open in Terminal", shortcut: "", action: "terminal", icon: "Terminal" })
             items.push({ separator: true })
@@ -700,6 +700,8 @@ Item {
                 else
                     items.push({ text: "Close Split View", shortcut: "", action: "close_split", icon: "SquareSplitHorizontal" })
                 items.push({ separator: true })
+                if (!remoteContext && editorLauncher.editors.length > 0)
+                    items.push({ text: "Open in…", shortcut: "", action: "openin_dir", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin_dir") })
                 if (!remoteContext)
                     items.push({ text: "Open in Terminal", shortcut: "", action: "terminal", icon: "Terminal" })
                 items.push({ text: "Properties", shortcut: "", action: "properties", icon: "Info" })
@@ -732,6 +734,7 @@ Item {
         case "selectall": selectAllRequested(); break
         case "terminal": openInTerminalRequested(effectiveDir); break
         case "openin": editorLauncher.openIn(extraData, targetPath); break
+        case "openin_dir": editorLauncher.openIn(extraData, effectiveDir); break
         case "newfolder": newFolderRequested(effectiveDir); break
         case "newfile": newFileRequested(effectiveDir); break
         case "properties": propertiesRequested(targetPath); break
