@@ -549,6 +549,26 @@ ApplicationWindow {
         navigatePaneTo(activePane, path)
     }
 
+    // Quick-open (Ctrl+P): fuzzy-find any file/folder under the current dir.
+    function openQuickFind() {
+        var dir = root.panePath(root.activePane)
+        if (!dir || fileOps.isRemotePath(dir))
+            return
+        fuzzyFinderDialog.openAt(dir)
+    }
+
+    // Jump to a fuzzy-find result: enter folders, reveal files in their parent.
+    function activateFuzzyResult(path, isDir) {
+        if (!path)
+            return
+        if (isDir) {
+            root.navigateActivePaneTo(path)
+        } else {
+            root.navigateActivePaneTo(root.parentDirForPath(path))
+            Qt.callLater(function() { root.focusPathInPane(root.activePane, path, true) })
+        }
+    }
+
     function openPathInNewTab(path) {
         if (!path)
             return
@@ -1244,6 +1264,12 @@ ApplicationWindow {
 
     Components.KeyboardShortcutsDialog {
         id: shortcutsDialog
+        onClosed: root.scheduleActivePaneFocus()
+    }
+
+    Components.FuzzyFinder {
+        id: fuzzyFinderDialog
+        onActivated: (path, isDir) => root.activateFuzzyResult(path, isDir)
         onClosed: root.scheduleActivePaneFocus()
     }
 
@@ -2835,6 +2861,11 @@ ApplicationWindow {
     Shortcut {
         sequence: config.shortcutMap["new_tab"]
         onActivated: tabModel.addTab()
+    }
+
+    Shortcut {
+        sequence: config.shortcutMap["quick_open"]
+        onActivated: root.openQuickFind()
     }
 
     Shortcut {

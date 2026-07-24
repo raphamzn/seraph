@@ -22,6 +22,7 @@ set(SERAPH_SOURCES
     services/runtimefeaturesservice.cpp
     services/dependencychecker.cpp
     services/editorlauncher.cpp
+    services/fuzzyfinder.cpp
     services/gitstatusservice.cpp
     services/metadataextractor.cpp
     providers/thumbnailprovider.cpp
@@ -160,6 +161,7 @@ list(APPEND seraph_qml_module_args
         qml/components/SearchBar.qml
         qml/components/FilterPanel.qml
         qml/components/KeyboardShortcutsDialog.qml
+        qml/components/FuzzyFinder.qml
         qml/components/MissingDependenciesDialog.qml
         qml/components/SettingsPanel.qml
 )

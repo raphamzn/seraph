@@ -34,6 +34,7 @@
 #include "services/clipboardmanager.h"
 #include "services/draghelper.h"
 #include "services/editorlauncher.h"
+#include "services/fuzzyfinder.h"
 #include "models/filesystemmodel.h"
 #include "models/tablistmodel.h"
 #include "models/bookmarkmodel.h"
@@ -284,6 +285,7 @@ int main(int argc, char *argv[])
     UndoManager *undoManager = new UndoManager(fileOps, &app);
     ClipboardManager *clipboard = new ClipboardManager(&app);
     EditorLauncher *editorLauncher = new EditorLauncher(&app);
+    FuzzyFinder *fuzzyFinder = new FuzzyFinder(&app);
     // DragHelper created after IconProvider below
 
     const QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
@@ -428,6 +430,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("runtimeFeatures", runtimeFeatures);
     engine.rootContext()->setContextProperty("dependencies", dependencies);
     engine.rootContext()->setContextProperty("editorLauncher", editorLauncher);
+    engine.rootContext()->setContextProperty("fuzzyFinder", fuzzyFinder);
 
     const QString installedMainQml = dataDir.isEmpty()
         ? QString()
