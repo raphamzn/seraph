@@ -602,6 +602,14 @@ FocusScope {
                 id: detRow
                 width: listView.width
                 height: root.rowHeight
+
+                // See FileGridView: recycled delegates keep whatever opacity
+                // and scale an interrupted add/remove transition left behind,
+                // which shows up as a blank row. Reset them on reuse.
+                ListView.onReused: {
+                    detRow.opacity = 1
+                    detRow.scale = 1
+                }
                 Accessible.role: Accessible.ListItem
                 Accessible.name: fileName + (isDir ? ", folder" : ", " + fileType + ", " + fileSizeText)
                 Accessible.selected: isSelected

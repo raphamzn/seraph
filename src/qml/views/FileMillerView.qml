@@ -740,6 +740,14 @@ FocusScope {
                 width: currentColumn.width
                 height: root.rowHeight
 
+                // See FileGridView: recycled delegates keep whatever opacity
+                // and scale an interrupted add/remove transition left behind,
+                // which shows up as a blank row. Reset them on reuse.
+                ListView.onReused: {
+                    currentDelegate.opacity = 1
+                    currentDelegate.scale = 1
+                }
+
                 required property int index
                 required property string fileName
                 required property string filePath

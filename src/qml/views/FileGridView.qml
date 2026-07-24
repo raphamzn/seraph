@@ -540,6 +540,17 @@ GridView {
         required property bool hasImagePreview
         required property bool hasVideoPreview
 
+        // Delegates are recycled (reuseItems). The add/remove transitions write
+        // opacity and scale imperatively, so an item pooled while one is still
+        // running comes back with those values frozen — typically opacity 0,
+        // which reads as an empty cell where a file should be. A model reset
+        // never runs the add transition, so nothing would restore it. Reset the
+        // animated properties on every reuse.
+        GridView.onReused: {
+            delegateItem.opacity = 1
+            delegateItem.scale = 1
+        }
+
         readonly property bool isSelected: root.selectedIndices.indexOf(index) >= 0
         readonly property bool isCutPending: clipboard.isCut && clipboard.contains(delegateItem.filePath)
         readonly property bool isPastePending: fileOps.pendingTargetPaths.indexOf(delegateItem.filePath) >= 0
