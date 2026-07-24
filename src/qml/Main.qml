@@ -3652,6 +3652,14 @@ ApplicationWindow {
                     selectedCount: root.currentSelectedCount
                     selectedSize: root.currentSelectedSize
                     selectedSizePending: root.currentSelectedSizePending
+                    gitBranch: (root.activePane === "secondary" ? splitFsModel : fsModel).gitBranch
+                    onBranchClicked: {
+                        var b = (root.activePane === "secondary" ? splitFsModel : fsModel).gitBranch
+                        if (b) {
+                            fileOps.copyPathToClipboard(b)
+                            toast.show("Branch \"" + b + "\" copied", "info")
+                        }
+                    }
                 }
             }
         }

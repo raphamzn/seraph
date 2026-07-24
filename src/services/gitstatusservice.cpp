@@ -70,7 +70,11 @@ void GitStatusService::setRootPath(const QString &path)
         const QString oldIndex = m_repoRoot + QStringLiteral("/.git/index");
         if (m_indexWatcher->files().contains(oldIndex))
             m_indexWatcher->removePath(oldIndex);
+        const QString oldHead = m_repoRoot + QStringLiteral("/.git/HEAD");
+        if (m_indexWatcher->files().contains(oldHead))
+            m_indexWatcher->removePath(oldHead);
         m_repoRoot.clear();
+        m_branch.clear();
         emit statusChanged();
     }
 
@@ -105,6 +109,28 @@ QString GitStatusService::statusForPath(const QString &path) const
 bool GitStatusService::isGitRepo() const
 {
     return !m_repoRoot.isEmpty();
+}
+
+QString GitStatusService::branch() const
+{
+    return m_branch;
+}
+
+void GitStatusService::updateBranch()
+{
+    QString branch;
+    if (!m_repoRoot.isEmpty()) {
+        QFile head(m_repoRoot + QStringLiteral("/.git/HEAD"));
+        if (head.open(QIODevice::ReadOnly)) {
+            const QString content = QString::fromUtf8(head.readAll()).trimmed();
+            const QString refPrefix = QStringLiteral("ref: refs/heads/");
+            if (content.startsWith(refPrefix))
+                branch = content.mid(refPrefix.size());
+            else if (!content.isEmpty())
+                branch = content.left(7);  // detached HEAD -> short SHA
+        }
+    }
+    m_branch = branch;
 }
 
 void GitStatusService::stopProcesses()
@@ -160,6 +186,11 @@ void GitStatusService::startFindRepoRoot(const QString &path)
         const QString newIndex = m_repoRoot + QStringLiteral("/.git/index");
         if (QFileInfo::exists(newIndex) && !m_indexWatcher->files().contains(newIndex))
             m_indexWatcher->addPath(newIndex);
+        // Watch HEAD too so switching branches updates the indicator live.
+        const QString newHead = m_repoRoot + QStringLiteral("/.git/HEAD");
+        if (QFileInfo::exists(newHead) && !m_indexWatcher->files().contains(newHead))
+            m_indexWatcher->addPath(newHead);
+        updateBranch();
 
         scheduleGitStatus();
     });
@@ -176,6 +207,8 @@ void GitStatusService::queryGitStatus()
 {
     if (m_repoRoot.isEmpty())
         return;
+
+    updateBranch();
 
     // Kill any running process
     if (m_gitProcess) {

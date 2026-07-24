@@ -21,6 +21,8 @@ Rectangle {
     property string selectedSize: ""
     property bool selectedSizePending: false
     property string searchStatus: ""
+    property string gitBranch: ""
+    signal branchClicked()
 
     height: 28
     color: Theme.mantle
@@ -90,6 +92,24 @@ Rectangle {
             color: Theme.accent
             font.pointSize: Theme.fontSmall
             verticalAlignment: Text.AlignVCenter
+        }
+
+        // Git branch indicator — click to copy the branch name.
+        Text {
+            visible: statusBar.gitBranch !== ""
+            text: "⎇ " + statusBar.gitBranch
+            color: gitBranchMouse.containsMouse ? Theme.text : Theme.subtext
+            font.pointSize: Theme.fontSmall
+            verticalAlignment: Text.AlignVCenter
+            Layout.alignment: Qt.AlignVCenter
+
+            MouseArea {
+                id: gitBranchMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: statusBar.branchClicked()
+            }
         }
     }
 }

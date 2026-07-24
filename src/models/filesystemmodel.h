@@ -20,6 +20,8 @@ class FileSystemModel : public QAbstractListModel
     Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden NOTIFY showHiddenChanged)
     Q_PROPERTY(int fileCount READ fileCount NOTIFY countsChanged)
     Q_PROPERTY(int folderCount READ folderCount NOTIFY countsChanged)
+    Q_PROPERTY(QString gitBranch READ gitBranch NOTIFY gitStatusChanged)
+    Q_PROPERTY(bool isGitRepo READ isGitRepo NOTIFY gitStatusChanged)
 
 public:
     enum Roles {
@@ -81,12 +83,15 @@ public:
     void setSynchronousReload(bool on) { m_synchronousReload = on; }
 
     void setGitStatusService(GitStatusService *service);
+    QString gitBranch() const;
+    bool isGitRepo() const;
 
 signals:
     void rootPathChanged();
     void showHiddenChanged();
     void countsChanged();
     void watchedDirectoryChanged(const QString &path);
+    void gitStatusChanged();
 
 private:
     // Lazy per-row display cache. QMimeDatabase / QLocale / permission-string

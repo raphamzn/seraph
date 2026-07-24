@@ -16,12 +16,16 @@ public:
     void setRootPath(const QString &path);
     QString statusForPath(const QString &path) const;
     bool isGitRepo() const;
+    // Current branch of the active repo ("" when not in a repo). A detached
+    // HEAD resolves to the short commit SHA.
+    QString branch() const;
 
 signals:
     void statusChanged();
 
 private:
     void startFindRepoRoot(const QString &path);
+    void updateBranch();
     void queryGitStatus();
     void scheduleGitStatus();
     void stopProcesses();
@@ -32,6 +36,7 @@ private:
 
     QString m_rootPath;
     QString m_repoRoot;
+    QString m_branch;
     QHash<QString, QString> m_statusCache;
     QHash<QString, bool> m_dirtyDirs;
     QProcess *m_repoProcess = nullptr;

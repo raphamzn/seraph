@@ -596,9 +596,20 @@ void FileSystemModel::setGitStatusService(GitStatusService *service)
         connect(m_gitService, &GitStatusService::statusChanged, this, [this]() {
             if (rowCount() > 0)
                 emit dataChanged(index(0), index(rowCount() - 1), {GitStatusRole, GitStatusIconRole});
+            emit gitStatusChanged();
         });
         m_gitService->setRootPath(m_rootPath);
     }
+}
+
+QString FileSystemModel::gitBranch() const
+{
+    return m_gitService ? m_gitService->branch() : QString();
+}
+
+bool FileSystemModel::isGitRepo() const
+{
+    return m_gitService && m_gitService->isGitRepo();
 }
 
 int FileSystemModel::rowCount(const QModelIndex &parent) const
