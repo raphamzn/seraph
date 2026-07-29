@@ -1254,6 +1254,38 @@ FocusScope {
             property int pdfPageIndex: 0
             property real pdfWheelAccumulator: 0
 
+            // Folder size, computed on demand via DiskUsageService.
+            property string folderSizeText: ""
+            property bool folderSizePending: false
+            property int folderSizeRequestId: -1
+
+            function cancelFolderSizeRequest() {
+                if (folderSizeRequestId >= 0)
+                    diskUsageService.cancelRequest(folderSizeRequestId)
+                folderSizeRequestId = -1
+                folderSizePending = false
+            }
+
+            function requestFolderSize() {
+                if (folderSizePending || !previewIsDir || isRemoteUri || isTrashUri || previewFilePath === "")
+                    return
+                cancelFolderSizeRequest()
+                folderSizePending = true
+                folderSizeText = ""
+                folderSizeRequestId = diskUsageService.requestSize([previewFilePath])
+            }
+
+            Connections {
+                target: diskUsageService
+                function onRequestFinished(requestId, result) {
+                    if (requestId !== previewColumn.folderSizeRequestId)
+                        return
+                    previewColumn.folderSizeRequestId = -1
+                    previewColumn.folderSizePending = false
+                    previewColumn.folderSizeText = result.sizeTextVerbose || result.sizeText || ""
+                }
+            }
+
             readonly property string _mime: fileProps.mimeType || ""
             readonly property bool isRemoteUri: previewFilePath !== "" && fileOps.isRemotePath(previewFilePath)
             readonly property bool isTrashUri: previewFilePath.startsWith("trash:///")
@@ -1455,6 +1487,8 @@ FocusScope {
                 pdfPageIndex = 0
                 pdfWheelAccumulator = 0
                 markdownShowSource = false
+                cancelFolderSizeRequest()
+                folderSizeText = ""
                 refreshPreview()
             }
 
@@ -2097,6 +2131,49 @@ FocusScope {
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                            }
+
+                            // Folder size, on demand (a folder can hold a lot).
+                            Row {
+                                width: parent.width
+                                spacing: 6
+                                visible: previewColumn.previewIsDir && !previewColumn.isRemoteUri
+                                    && !previewColumn.isTrashUri
+
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: previewColumn.folderSizePending
+                                        ? "Size: Calculating\u2026"
+                                        : (previewColumn.folderSizeText !== ""
+                                            ? "Size: " + previewColumn.folderSizeText
+                                            : "Size:")
+                                    color: Theme.subtext
+                                    font.pointSize: Theme.fontSmall - 1
+                                }
+
+                                Rectangle {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: previewColumn.folderSizeText === "" && !previewColumn.folderSizePending
+                                    width: millerCalcSizeLabel.implicitWidth + 14
+                                    height: millerCalcSizeLabel.implicitHeight + 6
+                                    radius: height / 2
+                                    color: millerCalcSizeHover.hovered
+                                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+                                        : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                                    border.width: 1
+                                    border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                                    Text {
+                                        id: millerCalcSizeLabel
+                                        anchors.centerIn: parent
+                                        text: "Calculate"
+                                        color: Theme.subtext
+                                        font.pointSize: Theme.fontSmall - 1
+                                    }
+
+                                    HoverHandler { id: millerCalcSizeHover; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler { onTapped: previewColumn.requestFolderSize() }
+                                }
                             }
 
                             Text {

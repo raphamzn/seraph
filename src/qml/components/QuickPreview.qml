@@ -24,6 +24,11 @@ Item {
     property real pdfWheelAccumulator: 0
     property bool closing: false
 
+    // Folder size is computed on demand (folders can be huge) via DiskUsageService.
+    property string folderSizeText: ""
+    property bool folderSizePending: false
+    property int folderSizeRequestId: -1
+
     signal closed()
     signal openRequested(string path, bool isDirectory)
 
@@ -173,6 +178,33 @@ Item {
         }
     }
 
+    function cancelFolderSizeRequest() {
+        if (folderSizeRequestId >= 0)
+            diskUsageService.cancelRequest(folderSizeRequestId)
+        folderSizeRequestId = -1
+        folderSizePending = false
+    }
+
+    function requestFolderSize() {
+        if (folderSizePending || !isDirectory || isRemoteUri || isTrashUri || filePath === "")
+            return
+        cancelFolderSizeRequest()
+        folderSizePending = true
+        folderSizeText = ""
+        folderSizeRequestId = diskUsageService.requestSize([filePath])
+    }
+
+    Connections {
+        target: diskUsageService
+        function onRequestFinished(requestId, result) {
+            if (requestId !== root.folderSizeRequestId)
+                return
+            root.folderSizeRequestId = -1
+            root.folderSizePending = false
+            root.folderSizeText = result.sizeTextVerbose || result.sizeText || ""
+        }
+    }
+
     function closePreview() {
         if (!active)
             return
@@ -258,6 +290,7 @@ Item {
             openAnim.start()
             Qt.callLater(function() { root.forceActiveFocus() })
         } else if (visible) {
+            cancelFolderSizeRequest()
             openAnim.stop()
             closing = true
             closeAnim.start()
@@ -267,6 +300,8 @@ Item {
         pdfPageIndex = 0
         pdfWheelAccumulator = 0
         markdownShowSource = false
+        cancelFolderSizeRequest()
+        folderSizeText = ""
         refreshPreviewData()
     }
     onFileModelChanged: {
@@ -1134,7 +1169,55 @@ Item {
                             }
 
                             InfoBlock { label: "Kind"; value: root.detailKind; visibleWhenEmpty: true }
-                            InfoBlock { label: "Size"; value: fileProps.sizeText || "" }
+                            // Files show their size directly; folders compute it on demand below.
+                            InfoBlock { label: "Size"; value: root.isDirectory ? "" : (fileProps.sizeText || "") }
+
+                            // Folder size, computed on demand (a folder can hold a lot).
+                            Column {
+                                width: parent.width
+                                spacing: 4
+                                visible: root.isDirectory && !root.isRemoteUri && !root.isTrashUri
+
+                                Text {
+                                    width: parent.width
+                                    text: "Size"
+                                    color: Theme.muted
+                                    font.pointSize: Theme.fontSmall
+                                    font.weight: Font.DemiBold
+                                }
+
+                                Text {
+                                    width: parent.width
+                                    visible: root.folderSizeText !== "" || root.folderSizePending
+                                    text: root.folderSizePending ? "Calculating…" : root.folderSizeText
+                                    color: Theme.text
+                                    font.pointSize: Theme.fontNormal
+                                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                }
+
+                                Rectangle {
+                                    visible: root.folderSizeText === "" && !root.folderSizePending
+                                    width: calcSizeLabel.implicitWidth + 20
+                                    height: calcSizeLabel.implicitHeight + 10
+                                    radius: height / 2
+                                    color: calcSizeHover.hovered
+                                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+                                        : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                                    border.width: 1
+                                    border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                                    Text {
+                                        id: calcSizeLabel
+                                        anchors.centerIn: parent
+                                        text: "Calculate size"
+                                        color: Theme.subtext
+                                        font.pointSize: Theme.fontSmall
+                                    }
+
+                                    HoverHandler { id: calcSizeHover; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler { onTapped: root.requestFolderSize() }
+                                }
+                            }
 
                             // Dynamic metadata from MetadataExtractor
                             Repeater {
