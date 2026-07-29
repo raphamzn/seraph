@@ -104,6 +104,29 @@ Item {
     }
     // Let the user peek at the raw source of a rendered markdown file.
     property bool markdownShowSource: false
+
+    // Directory holding the markdown file — used to resolve relative image paths.
+    readonly property string markdownBaseDir: {
+        if (filePath === "")
+            return ""
+        var idx = filePath.lastIndexOf("/")
+        return idx > 0 ? filePath.substring(0, idx) : ""
+    }
+
+    // Rewrite relative image paths (![alt](rel.png)) to absolute file:// URLs so
+    // TextEdit.MarkdownText can load images stored next to the document. Absolute
+    // paths, anchors, and full URLs (http:, file:, data:) are left untouched.
+    function resolveMarkdownImages(content, baseDir) {
+        if (!content || !baseDir)
+            return content
+        return content.replace(/(!\[[^\]]*\]\()\s*([^)\s]+)([^)]*\))/g,
+            function(match, pre, url, post) {
+                if (/^([a-zA-Z][a-zA-Z0-9+.\-]*:|\/|#)/.test(url))
+                    return match
+                var rel = url.replace(/^\.\//, "")
+                return pre + "file://" + (baseDir + "/" + rel).replace(/ /g, "%20") + post
+            })
+    }
     readonly property bool pdfPreviewAvailable: previewService.pdfPreviewAvailable
     readonly property bool videoPreviewAvailable: runtimeFeatures.ffmpegAvailable
     readonly property bool textHighlightAvailable: runtimeFeatures.batAvailable
@@ -806,7 +829,7 @@ Item {
                                     : (textPreview.isBinary
                                         ? "This file looks binary and cannot be previewed as text."
                                         : (renderMarkdown
-                                            ? textPreview.content
+                                            ? root.resolveMarkdownImages(textPreview.content, root.markdownBaseDir)
                                             : (textPreview.usesBat && textPreview.html !== ""
                                                 ? textPreview.html
                                                 : textPreview.content)))
@@ -848,36 +871,75 @@ Item {
                             kineticGain: 0.68
                         }
 
-                        // Rendered/source toggle for markdown previews.
-                        Rectangle {
-                            id: mdToggle
-                            visible: root.isText && root.isMarkdown && !root.hasVisualPreview
-                                && !root.isPdf && textPreview.error === "" && !textPreview.isBinary
+                        // Copy + rendered/source pills for text/markdown previews.
+                        Row {
                             anchors.top: parent.top
                             anchors.right: parent.right
                             anchors.topMargin: 10
                             anchors.rightMargin: 14
                             z: 5
-                            width: mdToggleLabel.implicitWidth + 18
-                            height: mdToggleLabel.implicitHeight + 8
-                            radius: height / 2
-                            color: mdToggleHover.hovered
-                                ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
-                                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
-                            border.width: 1
-                            border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+                            spacing: 8
 
-                            Text {
-                                id: mdToggleLabel
-                                anchors.centerIn: parent
-                                text: root.markdownShowSource ? "Rendered" : "Source"
-                                color: Theme.subtext
-                                font.pointSize: Theme.fontSmall
+                            // Copy the raw text/source to the clipboard.
+                            Rectangle {
+                                id: copyPill
+                                visible: root.isText && !root.hasVisualPreview && !root.isPdf
+                                    && textPreview.error === "" && !textPreview.isBinary
+                                width: copyPillLabel.implicitWidth + 18
+                                height: copyPillLabel.implicitHeight + 8
+                                radius: height / 2
+                                property bool flashed: false
+                                color: copyPillHover.hovered
+                                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                                border.width: 1
+                                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                                Text {
+                                    id: copyPillLabel
+                                    anchors.centerIn: parent
+                                    text: copyPill.flashed ? "Copied ✓" : "Copy"
+                                    color: copyPill.flashed ? Theme.accent : Theme.subtext
+                                    font.pointSize: Theme.fontSmall
+                                }
+
+                                Timer { id: copyFlashTimer; interval: 1200; onTriggered: copyPill.flashed = false }
+                                HoverHandler { id: copyPillHover; cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: {
+                                        fileOps.copyTextToClipboard(textPreview.content)
+                                        copyPill.flashed = true
+                                        copyFlashTimer.restart()
+                                    }
+                                }
                             }
 
-                            HoverHandler { id: mdToggleHover; cursorShape: Qt.PointingHandCursor }
-                            TapHandler {
-                                onTapped: root.markdownShowSource = !root.markdownShowSource
+                            // Rendered/source toggle for markdown previews.
+                            Rectangle {
+                                id: mdToggle
+                                visible: root.isText && root.isMarkdown && !root.hasVisualPreview
+                                    && !root.isPdf && textPreview.error === "" && !textPreview.isBinary
+                                width: mdToggleLabel.implicitWidth + 18
+                                height: mdToggleLabel.implicitHeight + 8
+                                radius: height / 2
+                                color: mdToggleHover.hovered
+                                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                                border.width: 1
+                                border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                                Text {
+                                    id: mdToggleLabel
+                                    anchors.centerIn: parent
+                                    text: root.markdownShowSource ? "Rendered" : "Source"
+                                    color: Theme.subtext
+                                    font.pointSize: Theme.fontSmall
+                                }
+
+                                HoverHandler { id: mdToggleHover; cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: root.markdownShowSource = !root.markdownShowSource
+                                }
                             }
                         }
 

@@ -1667,6 +1667,19 @@ void FileOperations::copyPathToClipboard(const QString &path)
             proc, &QProcess::deleteLater);
 }
 
+void FileOperations::copyTextToClipboard(const QString &text)
+{
+    auto *proc = new QProcess(this);
+    const QByteArray data = text.toUtf8();
+    connect(proc, &QProcess::started, proc, [proc, data]() {
+        proc->write(data);
+        proc->closeWriteChannel();
+    });
+    connect(proc, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            proc, &QProcess::deleteLater);
+    proc->start(QStringLiteral("wl-copy"), {});
+}
+
 void FileOperations::openInTerminal(const QString &dirPath)
 {
     if (isUriPath(dirPath)) {

@@ -69,6 +69,9 @@ public:
     Q_INVOKABLE bool hasClipboardImage() const;
     Q_INVOKABLE QString pasteClipboardImage(const QString &destinationDir);
     Q_INVOKABLE void copyPathToClipboard(const QString &path);
+    // Copy arbitrary text (e.g. a preview's contents) to the clipboard. Uses
+    // wl-copy over stdin so large or dash-prefixed text is handled safely.
+    Q_INVOKABLE void copyTextToClipboard(const QString &text);
     Q_INVOKABLE void openInTerminal(const QString &dirPath);
     // Launch a command (e.g. "lazygit") inside the user's terminal, in dirPath.
     // Emits operationFinished(false, ...) if the command or terminal is missing.

@@ -1360,6 +1360,28 @@ FocusScope {
             // Let the user peek at the raw source of a rendered markdown file.
             property bool markdownShowSource: false
 
+            // Directory of the markdown file — used to resolve relative image paths.
+            readonly property string markdownBaseDir: {
+                if (previewFilePath === "")
+                    return ""
+                var idx = previewFilePath.lastIndexOf("/")
+                return idx > 0 ? previewFilePath.substring(0, idx) : ""
+            }
+
+            // Rewrite relative image paths (![alt](rel.png)) to absolute file:// URLs
+            // so TextEdit.MarkdownText can load images sitting next to the document.
+            function resolveMarkdownImages(content, baseDir) {
+                if (!content || !baseDir)
+                    return content
+                return content.replace(/(!\[[^\]]*\]\()\s*([^)\s]+)([^)]*\))/g,
+                    function(match, pre, url, post) {
+                        if (/^([a-zA-Z][a-zA-Z0-9+.\-]*:|\/|#)/.test(url))
+                            return match
+                        var rel = url.replace(/^\.\//, "")
+                        return pre + "file://" + (baseDir + "/" + rel).replace(/ /g, "%20") + post
+                    })
+            }
+
             readonly property string previewFileName: {
                 if (fileProps.name)
                     return fileProps.name
@@ -1787,7 +1809,7 @@ FocusScope {
                                 : (previewColumn.textPreview.isBinary
                                     ? "This file looks binary and cannot be previewed as text."
                                     : (renderMarkdown
-                                        ? previewColumn.textPreview.content
+                                        ? previewColumn.resolveMarkdownImages(previewColumn.textPreview.content, previewColumn.markdownBaseDir)
                                         : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
                                             ? previewColumn.textPreview.html
                                             : previewColumn.textPreview.content)))
@@ -1818,38 +1840,80 @@ FocusScope {
                         ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                     }
 
-                    // Rendered/source toggle for markdown previews.
-                    Rectangle {
-                        id: mdToggle
-                        visible: previewColumn.isText && previewColumn.isMarkdown
-                            && !previewColumn.hasVisualPreview && !previewColumn.previewIsDir
-                            && previewColumn.textPreview.error === ""
-                            && !previewColumn.textPreview.isBinary
+                    // Copy + rendered/source pills for text/markdown previews.
+                    Row {
                         anchors.top: parent.top
                         anchors.right: parent.right
                         anchors.topMargin: 10
                         anchors.rightMargin: 14
                         z: 5
-                        width: mdToggleLabel.implicitWidth + 18
-                        height: mdToggleLabel.implicitHeight + 8
-                        radius: height / 2
-                        color: mdToggleHover.hovered
-                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
-                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
-                        border.width: 1
-                        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+                        spacing: 8
 
-                        Text {
-                            id: mdToggleLabel
-                            anchors.centerIn: parent
-                            text: previewColumn.markdownShowSource ? "Rendered" : "Source"
-                            color: Theme.subtext
-                            font.pointSize: Theme.fontSmall
+                        // Copy the raw text/source to the clipboard.
+                        Rectangle {
+                            id: mdCopyPill
+                            visible: previewColumn.isText && !previewColumn.hasVisualPreview
+                                && !previewColumn.previewIsDir && !previewColumn.isPdf
+                                && !previewColumn.isArchive
+                                && previewColumn.textPreview.error === ""
+                                && !previewColumn.textPreview.isBinary
+                            width: mdCopyPillLabel.implicitWidth + 18
+                            height: mdCopyPillLabel.implicitHeight + 8
+                            radius: height / 2
+                            property bool flashed: false
+                            color: mdCopyPillHover.hovered
+                                ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                            border.width: 1
+                            border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                            Text {
+                                id: mdCopyPillLabel
+                                anchors.centerIn: parent
+                                text: mdCopyPill.flashed ? "Copied ✓" : "Copy"
+                                color: mdCopyPill.flashed ? Theme.accent : Theme.subtext
+                                font.pointSize: Theme.fontSmall
+                            }
+
+                            Timer { id: mdCopyFlashTimer; interval: 1200; onTriggered: mdCopyPill.flashed = false }
+                            HoverHandler { id: mdCopyPillHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler {
+                                onTapped: {
+                                    fileOps.copyTextToClipboard(previewColumn.textPreview.content)
+                                    mdCopyPill.flashed = true
+                                    mdCopyFlashTimer.restart()
+                                }
+                            }
                         }
 
-                        HoverHandler { id: mdToggleHover; cursorShape: Qt.PointingHandCursor }
-                        TapHandler {
-                            onTapped: previewColumn.markdownShowSource = !previewColumn.markdownShowSource
+                        // Rendered/source toggle for markdown previews.
+                        Rectangle {
+                            id: mdToggle
+                            visible: previewColumn.isText && previewColumn.isMarkdown
+                                && !previewColumn.hasVisualPreview && !previewColumn.previewIsDir
+                                && previewColumn.textPreview.error === ""
+                                && !previewColumn.textPreview.isBinary
+                            width: mdToggleLabel.implicitWidth + 18
+                            height: mdToggleLabel.implicitHeight + 8
+                            radius: height / 2
+                            color: mdToggleHover.hovered
+                                ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                            border.width: 1
+                            border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                            Text {
+                                id: mdToggleLabel
+                                anchors.centerIn: parent
+                                text: previewColumn.markdownShowSource ? "Rendered" : "Source"
+                                color: Theme.subtext
+                                font.pointSize: Theme.fontSmall
+                            }
+
+                            HoverHandler { id: mdToggleHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler {
+                                onTapped: previewColumn.markdownShowSource = !previewColumn.markdownShowSource
+                            }
                         }
                     }
 
