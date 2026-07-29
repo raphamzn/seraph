@@ -1225,6 +1225,18 @@ FocusScope {
                                "patch", "cmake", "qml", "mk", "desktop"]
                 return textExt.indexOf(ext) >= 0
             }
+            // Markdown gets rendered (headings, bold, lists) instead of shown
+            // as raw source. Qt's TextEdit renders CommonMark natively via
+            // TextEdit.MarkdownText, so no external tool is involved.
+            readonly property bool isMarkdown: {
+                if (!isText) return false
+                if (_mime === "text/markdown" || _mime === "text/x-markdown") return true
+                var ext = previewFileName.lastIndexOf(".") >= 0
+                    ? previewFileName.substring(previewFileName.lastIndexOf(".") + 1).toLowerCase() : ""
+                return ["md", "markdown", "mdown", "mkd", "mkdn", "mdwn"].indexOf(ext) >= 0
+            }
+            // Let the user peek at the raw source of a rendered markdown file.
+            property bool markdownShowSource: false
 
             readonly property string previewFileName: {
                 if (fileProps.name)
@@ -1352,6 +1364,7 @@ FocusScope {
             onPreviewFilePathChanged: {
                 pdfPageIndex = 0
                 pdfWheelAccumulator = 0
+                markdownShowSource = false
                 refreshPreview()
             }
 
@@ -1628,24 +1641,36 @@ FocusScope {
 
                         TextEdit {
                             id: textArea
+                            // Rendered markdown when it's a .md file and the user
+                            // hasn't flipped to "view source".
+                            readonly property bool renderMarkdown: previewColumn.isMarkdown
+                                && !previewColumn.markdownShowSource
                             readOnly: true
                             selectByMouse: true
-                            width: Math.max(implicitWidth, textPreviewFlick.width)
+                            // Rendered markdown wraps to the column; source/code
+                            // keeps its natural width and scrolls horizontally.
+                            width: renderMarkdown
+                                ? textPreviewFlick.width
+                                : Math.max(implicitWidth, textPreviewFlick.width)
                             height: Math.max(implicitHeight, textPreviewFlick.height)
-                            textFormat: previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
-                                ? TextEdit.RichText
-                                : TextEdit.PlainText
+                            textFormat: renderMarkdown
+                                ? TextEdit.MarkdownText
+                                : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
+                                    ? TextEdit.RichText
+                                    : TextEdit.PlainText)
                             text: previewColumn.textPreview.error !== ""
                                 ? previewColumn.textPreview.error
                                 : (previewColumn.textPreview.isBinary
                                     ? "This file looks binary and cannot be previewed as text."
-                                    : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
-                                        ? previewColumn.textPreview.html
-                                        : previewColumn.textPreview.content))
+                                    : (renderMarkdown
+                                        ? previewColumn.textPreview.content
+                                        : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
+                                            ? previewColumn.textPreview.html
+                                            : previewColumn.textPreview.content)))
                             color: Theme.text
-                            wrapMode: TextEdit.NoWrap
-                            font.family: "monospace"
-                            font.pointSize: Theme.fontSmall - 1
+                            wrapMode: renderMarkdown ? TextEdit.Wrap : TextEdit.NoWrap
+                            font.family: renderMarkdown ? Qt.application.font.family : "monospace"
+                            font.pointSize: renderMarkdown ? Theme.fontNormal : Theme.fontSmall - 1
 
                             onCursorRectangleChanged: {
                                 var r = cursorRectangle
@@ -1669,6 +1694,41 @@ FocusScope {
                         ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                     }
 
+                    // Rendered/source toggle for markdown previews.
+                    Rectangle {
+                        id: mdToggle
+                        visible: previewColumn.isText && previewColumn.isMarkdown
+                            && !previewColumn.hasVisualPreview && !previewColumn.previewIsDir
+                            && previewColumn.textPreview.error === ""
+                            && !previewColumn.textPreview.isBinary
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.topMargin: 10
+                        anchors.rightMargin: 14
+                        z: 5
+                        width: mdToggleLabel.implicitWidth + 18
+                        height: mdToggleLabel.implicitHeight + 8
+                        radius: height / 2
+                        color: mdToggleHover.hovered
+                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                        border.width: 1
+                        border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                        Text {
+                            id: mdToggleLabel
+                            anchors.centerIn: parent
+                            text: previewColumn.markdownShowSource ? "Rendered" : "Source"
+                            color: Theme.subtext
+                            font.pointSize: Theme.fontSmall
+                        }
+
+                        HoverHandler { id: mdToggleHover; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: previewColumn.markdownShowSource = !previewColumn.markdownShowSource
+                        }
+                    }
+
                     Text {
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -1679,6 +1739,7 @@ FocusScope {
                             && !previewColumn.textPreview.isBinary
                             && !previewColumn.textPreview.usesBat
                             && !previewColumn.textHighlightAvailable
+                            && !textArea.renderMarkdown
                         text: runtimeFeatures.installHint("textHighlight")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
