@@ -155,10 +155,17 @@ FocusScope {
     }
 
     function updatePreview() {
+        // NOTE: always set previewIsDir *before* previewFilePath. Assigning
+        // previewFilePath fires onPreviewFilePathChanged -> refreshPreview()
+        // synchronously, and refreshPreview reads previewIsDir (via isText).
+        // If previewIsDir were still the previous item's value, switching from
+        // a folder to a file would evaluate isText against a stale "is a dir"
+        // and skip loading the text/markdown preview, leaving it blank until
+        // the next selection.
         if (!visible) {
             millerPreviewModel.setRootPath("")
-            previewColumn.previewFilePath = ""
             previewColumn.previewIsDir = false
+            previewColumn.previewFilePath = ""
             return
         }
 
@@ -166,14 +173,14 @@ FocusScope {
             : (currentColumn.selectedIndices.length > 0 ? currentColumn.selectedIndices[currentColumn.selectedIndices.length - 1] : -1)
         if (idx < 0 || !fileModel) {
             millerPreviewModel.setRootPath("")
-            previewColumn.previewFilePath = ""
             previewColumn.previewIsDir = false
+            previewColumn.previewFilePath = ""
             return
         }
         var fp = currentColumn.pathForRow(idx)
         var isDir = currentColumn.isDirForRow(idx)
-        previewColumn.previewFilePath = fp
         previewColumn.previewIsDir = isDir
+        previewColumn.previewFilePath = fp
         if (isDir) {
             millerPreviewModel.setRootPath(fp)
         } else {
