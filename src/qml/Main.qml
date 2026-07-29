@@ -3690,12 +3690,14 @@ ApplicationWindow {
                     selectedSize: root.currentSelectedSize
                     selectedSizePending: root.currentSelectedSizePending
                     gitBranch: (root.activePane === "secondary" ? splitFsModel : fsModel).gitBranch
+                    // Click the branch pill to jump straight into lazygit at the
+                    // current repo. If lazygit isn't installed, openInTerminalWith
+                    // surfaces a "not installed" toast instead of failing silently.
                     onBranchClicked: {
-                        var b = (root.activePane === "secondary" ? splitFsModel : fsModel).gitBranch
-                        if (b) {
-                            fileOps.copyPathToClipboard(b)
-                            toast.show("Branch \"" + b + "\" copied", "info")
-                        }
+                        var model = (root.activePane === "secondary" ? splitFsModel : fsModel)
+                        var dir = model.rootPath
+                        if (dir)
+                            fileOps.openInTerminalWith(dir, "lazygit")
                     }
                 }
             }

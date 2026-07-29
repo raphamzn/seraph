@@ -70,6 +70,9 @@ public:
     Q_INVOKABLE QString pasteClipboardImage(const QString &destinationDir);
     Q_INVOKABLE void copyPathToClipboard(const QString &path);
     Q_INVOKABLE void openInTerminal(const QString &dirPath);
+    // Launch a command (e.g. "lazygit") inside the user's terminal, in dirPath.
+    // Emits operationFinished(false, ...) if the command or terminal is missing.
+    Q_INVOKABLE void openInTerminalWith(const QString &dirPath, const QString &command);
     Q_INVOKABLE void compressFiles(const QStringList &paths, const QString &format);
     Q_INVOKABLE void extractArchive(const QString &archivePath, const QString &destination);
     Q_INVOKABLE static bool isArchive(const QString &path);

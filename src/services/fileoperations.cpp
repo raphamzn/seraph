@@ -1682,6 +1682,37 @@ void FileOperations::openInTerminal(const QString &dirPath)
             proc, &QProcess::deleteLater);
 }
 
+void FileOperations::openInTerminalWith(const QString &dirPath, const QString &command)
+{
+    if (isUriPath(dirPath)) {
+        emit operationFinished(false, QStringLiteral("Only available for local folders"));
+        return;
+    }
+
+    // The command's program must exist on PATH, otherwise the terminal would
+    // just flash open and close with a "command not found".
+    const QString program = command.section(QLatin1Char(' '), 0, 0);
+    if (QStandardPaths::findExecutable(program).isEmpty()) {
+        emit operationFinished(false, QStringLiteral("%1 is not installed").arg(program));
+        return;
+    }
+
+    const QString terminal = qEnvironmentVariable("TERMINAL", "kitty");
+    if (QStandardPaths::findExecutable(terminal).isEmpty()) {
+        emit operationFinished(false, QStringLiteral("Terminal \"%1\" not found").arg(terminal));
+        return;
+    }
+
+    // `-e sh -c <command>` is understood by kitty, alacritty, wezterm, xterm,
+    // konsole and most others; running through sh keeps arg-splitting sane.
+    auto *proc = new QProcess(this);
+    proc->setWorkingDirectory(dirPath);
+    proc->start(terminal, {QStringLiteral("-e"), QStringLiteral("sh"),
+                           QStringLiteral("-c"), command});
+    connect(proc, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            proc, &QProcess::deleteLater);
+}
+
 void FileOperations::compressFiles(const QStringList &paths, const QString &format)
 {
     if (paths.isEmpty()) return;

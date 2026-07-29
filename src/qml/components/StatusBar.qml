@@ -94,7 +94,7 @@ Rectangle {
             verticalAlignment: Text.AlignVCenter
         }
 
-        // Git branch indicator — click to copy the branch name.
+        // Git branch indicator — click to open lazygit at the current repo.
         Text {
             visible: statusBar.gitBranch !== ""
             text: "⎇ " + statusBar.gitBranch
