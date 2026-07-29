@@ -228,6 +228,62 @@ private slots:
         QCOMPARE(mgr2.windowButtonLayout(), QString("close:minimize"));
     }
 
+    // --- Default view mode persistence ---
+
+    void testSaveDefaultView()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        ConfigManager mgr(path);
+        mgr.saveSettings(QVariantMap{{"defaultView", "miller"}});
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.defaultView(), QString("miller"));
+
+        // An unknown mode is rejected, leaving the previous value intact.
+        mgr2.saveSettings(QVariantMap{{"defaultView", "bogus"}});
+        ConfigManager mgr3(path);
+        QCOMPARE(mgr3.defaultView(), QString("miller"));
+    }
+
+    // --- Miller column widths persistence ---
+
+    void testMillerColumnDefaults()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        QCOMPARE(mgr.millerParentFraction(), 0.2);
+        QCOMPARE(mgr.millerCurrentFraction(), 0.5);
+    }
+
+    void testSaveMillerColumns()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        ConfigManager mgr(path);
+        mgr.saveMillerColumns(0.15, 0.45);
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.millerParentFraction(), 0.15);
+        QCOMPARE(mgr2.millerCurrentFraction(), 0.45);
+    }
+
+    void testMillerColumnsClamped()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        // Out-of-range values are clamped to the allowed span on save.
+        ConfigManager mgr(path);
+        mgr.saveMillerColumns(0.9, 0.9);
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.millerParentFraction(), 0.6);
+        QCOMPARE(mgr2.millerCurrentFraction(), 0.7);
+    }
+
     // --- Animation config ---
 
     void testAnimationDefaults()

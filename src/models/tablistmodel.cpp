@@ -119,12 +119,19 @@ void TabListModel::addTab()
 {
     beginInsertRows(QModelIndex(), m_tabs.size(), m_tabs.size());
     auto *tab = new TabModel(this);
+    tab->setViewMode(m_defaultViewMode);
     m_tabs.append(tab);
     connectTab(m_tabs.size() - 1, tab);
     endInsertRows();
     setActiveIndex(m_tabs.size() - 1);
     emit countChanged();
     emit sessionChanged();
+}
+
+void TabListModel::setDefaultViewMode(const QString &mode)
+{
+    if (!mode.isEmpty())
+        m_defaultViewMode = mode;
 }
 
 void TabListModel::closeTab(int index)

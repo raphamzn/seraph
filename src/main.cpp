@@ -252,6 +252,12 @@ int main(int argc, char *argv[])
     mark("ThemeLoader loaded");
 
     TabListModel *tabModel = new TabListModel(&app);
+    // New tabs open in the persisted default view mode, kept in sync as the
+    // user switches views (Main.qml writes config.defaultView on change).
+    tabModel->setDefaultViewMode(config->defaultView());
+    QObject::connect(config, &ConfigManager::configChanged, tabModel, [config, tabModel]() {
+        tabModel->setDefaultViewMode(config->defaultView());
+    });
 
     // Restore session (tabs + window geometry)
     const QString sessionPath = configDir + "/session.json";
@@ -269,9 +275,14 @@ int main(int argc, char *argv[])
     // (TabListModel already seeds one), so we simply skip restoring the saved
     // tabs. "last" (the default) restores the previous session. Window geometry
     // is restored below regardless of this setting.
-    if (config->startupLocation() != QStringLiteral("home") && sessionData.contains("tabs"))
+    if (config->startupLocation() != QStringLiteral("home") && sessionData.contains("tabs")) {
         tabModel->restoreSession(sessionData.value("tabs").toArray(),
                                  sessionData.value("activeTab").toInt(0));
+    } else if (auto *seededTab = tabModel->activeTab()) {
+        // Not restoring a session: the constructor-seeded tab still carries the
+        // hard-coded "grid" default, so apply the persisted view mode to it.
+        seededTab->setViewMode(config->defaultView());
+    }
 
     BookmarkModel *bookmarks = new BookmarkModel(&app);
     bookmarks->setBookmarks(config->bookmarks());

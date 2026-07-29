@@ -93,8 +93,14 @@ ApplicationWindow {
             root.applyActiveTabSort()
         }
         function onViewModeChanged() {
-            if (tabModel.activeTab)
+            if (tabModel.activeTab) {
                 root.syncMillerParentModel(tabModel.activeTab.currentPath)
+                // Persist as the global default so the next launch (and new
+                // tabs) open in this view. The guard skips a redundant write
+                // when the mode was just seeded from the saved default.
+                if (config.defaultView !== tabModel.activeTab.viewMode)
+                    config.saveSettings({ "defaultView": tabModel.activeTab.viewMode })
+            }
             root.scheduleActivePaneFocus()
         }
         function onSplitViewEnabledChanged() {

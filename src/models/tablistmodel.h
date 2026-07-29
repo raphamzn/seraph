@@ -35,6 +35,10 @@ public:
     Q_INVOKABLE void closeTab(int index);
     Q_INVOKABLE void reopenClosedTab();
 
+    // View mode newly-created tabs open in. Kept in sync with the persisted
+    // ConfigManager::defaultView so a fresh tab matches the last used view.
+    void setDefaultViewMode(const QString &mode);
+
     QJsonArray saveSession() const;
     void restoreSession(const QJsonArray &tabs, int activeIdx);
 
@@ -48,6 +52,7 @@ private:
     void connectTab(int row, TabModel *tab);
     QList<TabModel *> m_tabs;
     int m_activeIndex = 0;
+    QString m_defaultViewMode = QStringLiteral("grid");
 
     struct ClosedTabInfo {
         QString path;

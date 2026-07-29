@@ -11,6 +11,25 @@ FocusScope {
     property var fileModel: null
     property string currentPath: ""
 
+    // ── Resizable columns ────────────────────────────────────────────────
+    // Parent/current column widths as a fraction of the total; the preview
+    // column takes whatever is left. Seeded from the persisted config and
+    // updated live while dragging a divider (which breaks the binding).
+    property real parentFraction: config.millerParentFraction
+    property real currentFraction: config.millerCurrentFraction
+    readonly property int dividerWidth: 1
+    readonly property int minColumnWidth: 140
+    // Two 1px dividers sit between the three columns.
+    readonly property int columnsWidth: Math.max(0, width - 2 * dividerWidth)
+    readonly property int parentColumnWidth: Math.round(columnsWidth * parentFraction)
+    readonly property int currentColumnWidth: Math.round(columnsWidth * currentFraction)
+    readonly property int previewColumnWidth: Math.max(0,
+        columnsWidth - parentColumnWidth - currentColumnWidth)
+
+    function persistColumnFractions() {
+        config.saveMillerColumns(parentFraction, currentFraction)
+    }
+
     property var selectedIndices: currentColumn.selectedIndices
     property int lastSelectedIndex: currentColumn.lastSelectedIndex
     property int cursorIndex: currentColumn.cursorIndex
@@ -168,7 +187,7 @@ FocusScope {
         // ── Parent column (20%) ───────────────────────────────────────────
         ListView {
             id: parentColumn
-            width: Math.floor(root.width * 0.2)
+            width: root.parentColumnWidth
             height: root.height
             clip: true
             reuseItems: true
@@ -338,16 +357,49 @@ FocusScope {
             }
         }
 
-        Rectangle {
-            width: 1
+        // Divider between parent and current columns. Dragging trades width
+        // between the two while the preview column keeps its size.
+        Item {
+            id: divider1
+            width: root.dividerWidth
             height: root.height
-            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+            z: 10
+            property real dragSumPC: 0
+
+            Rectangle {
+                anchors.fill: parent
+                color: (divider1Drag.containsMouse || divider1Drag.pressed)
+                    ? Theme.accent
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+            }
+
+            MouseArea {
+                id: divider1Drag
+                anchors.fill: parent
+                anchors.leftMargin: -4
+                anchors.rightMargin: -4
+                hoverEnabled: true
+                cursorShape: Qt.SplitHCursor
+                preventStealing: true
+                onPressed: divider1.dragSumPC = root.parentFraction + root.currentFraction
+                onPositionChanged: (mouse) => {
+                    if (!pressed || root.columnsWidth <= 0)
+                        return
+                    var px = mapToItem(root, mouse.x, 0).x
+                    var minF = root.minColumnWidth / root.columnsWidth
+                    var np = px / root.columnsWidth
+                    np = Math.max(minF, Math.min(np, divider1.dragSumPC - minF))
+                    root.parentFraction = np
+                    root.currentFraction = divider1.dragSumPC - np
+                }
+                onReleased: root.persistColumnFractions()
+            }
         }
 
         // ── Current column (50%) ─────────────────────────────────────────
         ListView {
             id: currentColumn
-            width: Math.floor(root.width * 0.5) - 1
+            width: root.currentColumnWidth
             height: root.height
             clip: true
             reuseItems: true
@@ -1137,16 +1189,47 @@ FocusScope {
             }
         }
 
-        Rectangle {
-            width: 1
+        // Divider between current and preview columns. Dragging trades width
+        // between the two while the parent column keeps its size.
+        Item {
+            id: divider2
+            width: root.dividerWidth
             height: root.height
-            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+            z: 10
+
+            Rectangle {
+                anchors.fill: parent
+                color: (divider2Drag.containsMouse || divider2Drag.pressed)
+                    ? Theme.accent
+                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+            }
+
+            MouseArea {
+                id: divider2Drag
+                anchors.fill: parent
+                anchors.leftMargin: -4
+                anchors.rightMargin: -4
+                hoverEnabled: true
+                cursorShape: Qt.SplitHCursor
+                preventStealing: true
+                onPositionChanged: (mouse) => {
+                    if (!pressed || root.columnsWidth <= 0)
+                        return
+                    var px = mapToItem(root, mouse.x, 0).x - root.dividerWidth
+                    var minF = root.minColumnWidth / root.columnsWidth
+                    var boundary = px / root.columnsWidth   // parent + current
+                    var nc = boundary - root.parentFraction
+                    nc = Math.max(minF, Math.min(nc, 1 - root.parentFraction - minF))
+                    root.currentFraction = nc
+                }
+                onReleased: root.persistColumnFractions()
+            }
         }
 
         // ── Preview column (30%) ─────────────────────────────────────────
         Item {
             id: previewColumn
-            width: root.width - Math.floor(root.width * 0.2) - Math.floor(root.width * 0.5) - 1
+            width: root.previewColumnWidth
             height: root.height
             clip: true
 

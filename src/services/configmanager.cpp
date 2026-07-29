@@ -231,6 +231,8 @@ void ConfigManager::setDefaults()
     m_sidebarPosition = "left";
     m_sidebarWidth = 200;
     m_sidebarVisible = true;
+    m_millerParentFraction = 0.2;
+    m_millerCurrentFraction = 0.5;
     m_bookmarks = defaultBookmarkPaths();
     m_radiusSmall = 4;
     m_radiusMedium = 8;
@@ -298,6 +300,11 @@ void ConfigManager::loadConfig()
             m_sidebarWidth = static_cast<int>(*v);
         if (auto v = config["sidebar"]["visible"].value<bool>())
             m_sidebarVisible = *v;
+
+        if (auto v = config["miller"]["parent_fraction"].value<double>())
+            m_millerParentFraction = qBound(0.1, *v, 0.6);
+        if (auto v = config["miller"]["current_fraction"].value<double>())
+            m_millerCurrentFraction = qBound(0.15, *v, 0.7);
 
         // Appearance
         if (auto v = config["appearance"]["radius_small"].value<int64_t>())
@@ -395,6 +402,8 @@ bool ConfigManager::rememberSortPerFolder() const { return m_rememberSortPerFold
 QString ConfigManager::sidebarPosition() const { return m_sidebarPosition; }
 int ConfigManager::sidebarWidth() const { return m_sidebarWidth; }
 bool ConfigManager::sidebarVisible() const { return m_sidebarVisible; }
+double ConfigManager::millerParentFraction() const { return m_millerParentFraction; }
+double ConfigManager::millerCurrentFraction() const { return m_millerCurrentFraction; }
 QStringList ConfigManager::bookmarks() const { return m_bookmarks; }
 int ConfigManager::radiusSmall() const { return m_radiusSmall; }
 int ConfigManager::radiusMedium() const { return m_radiusMedium; }
@@ -512,6 +521,14 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         }
     }
 
+    if (settings.contains("defaultView")) {
+        const QString view = settings.value("defaultView").toString().trimmed();
+        if (view == "grid" || view == "detailed" || view == "miller") {
+            m_defaultView = view;
+            general.insert_or_assign("default_view", view.toStdString());
+        }
+    }
+
     if (settings.contains("sortBy")) {
         const QString sortBy = settings.value("sortBy").toString().trimmed();
         if (!sortBy.isEmpty()) {
@@ -557,6 +574,24 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
 
     if (!sidebar.empty())
         config.insert_or_assign("sidebar", std::move(sidebar));
+
+    if (settings.contains("millerParentFraction") || settings.contains("millerCurrentFraction")) {
+        toml::table miller;
+        if (auto existingMiller = config["miller"].as_table())
+            miller = *existingMiller;
+
+        if (settings.contains("millerParentFraction")) {
+            m_millerParentFraction = qBound(0.1, settings.value("millerParentFraction").toDouble(), 0.6);
+            miller.insert_or_assign("parent_fraction", m_millerParentFraction);
+        }
+        if (settings.contains("millerCurrentFraction")) {
+            m_millerCurrentFraction = qBound(0.15, settings.value("millerCurrentFraction").toDouble(), 0.7);
+            miller.insert_or_assign("current_fraction", m_millerCurrentFraction);
+        }
+
+        if (!miller.empty())
+            config.insert_or_assign("miller", std::move(miller));
+    }
 
     const bool updatesAppearance = settings.contains("radiusSmall")
         || settings.contains("radiusMedium")
@@ -827,4 +862,12 @@ void ConfigManager::saveBookmarks(const QStringList &paths)
 void ConfigManager::saveSidebarWidth(int width)
 {
     saveSettings(QVariantMap{{"sidebarWidth", width}});
+}
+
+void ConfigManager::saveMillerColumns(double parentFraction, double currentFraction)
+{
+    saveSettings(QVariantMap{
+        {"millerParentFraction", parentFraction},
+        {"millerCurrentFraction", currentFraction},
+    });
 }

@@ -27,6 +27,8 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString sidebarPosition READ sidebarPosition NOTIFY configChanged)
     Q_PROPERTY(int sidebarWidth READ sidebarWidth NOTIFY configChanged)
     Q_PROPERTY(bool sidebarVisible READ sidebarVisible NOTIFY configChanged)
+    Q_PROPERTY(double millerParentFraction READ millerParentFraction NOTIFY configChanged)
+    Q_PROPERTY(double millerCurrentFraction READ millerCurrentFraction NOTIFY configChanged)
     Q_PROPERTY(QStringList bookmarks READ bookmarks NOTIFY configChanged)
     Q_PROPERTY(int radiusSmall READ radiusSmall NOTIFY configChanged)
     Q_PROPERTY(int radiusMedium READ radiusMedium NOTIFY configChanged)
@@ -68,6 +70,10 @@ public:
     QString sidebarPosition() const;
     int sidebarWidth() const;
     bool sidebarVisible() const;
+    // Miller-columns view: width of the parent and current columns as a
+    // fraction of the total; the preview column takes the remainder.
+    double millerParentFraction() const;
+    double millerCurrentFraction() const;
     QStringList bookmarks() const;
     int radiusSmall() const;
     int radiusMedium() const;
@@ -99,6 +105,7 @@ public:
     Q_INVOKABLE void saveShortcuts(const QVariantMap &shortcuts);
     Q_INVOKABLE void saveBookmarks(const QStringList &paths);
     Q_INVOKABLE void saveSidebarWidth(int width);
+    Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
 
 signals:
     void configChanged();
@@ -131,6 +138,8 @@ private:
     QString m_sidebarPosition;
     int m_sidebarWidth;
     bool m_sidebarVisible;
+    double m_millerParentFraction;
+    double m_millerCurrentFraction;
     QStringList m_bookmarks;
     int m_radiusSmall;
     int m_radiusMedium;
