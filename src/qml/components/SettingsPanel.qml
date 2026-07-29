@@ -1142,12 +1142,21 @@ Window {
         id: resetConfirmDialog
         anchors.fill: parent
         title: "Reset to Defaults?"
-        subtitle: "This restores every appearance, layout, and behavior setting to its default. Bookmarks and files are not affected."
         dialogWidth: 400
         z: 1200
         initialFocusItem: resetCancelButton
 
         onAccepted: root.resetToDefaults()
+
+        // Kept as wrapping content (not the Card subtitle, which doesn't wrap and
+        // would overflow the dialog, pushing the buttons outside it).
+        Text {
+            Layout.fillWidth: true
+            text: "This restores every appearance, layout, and behavior setting to its default. Bookmarks and files are not affected."
+            color: Theme.subtext
+            font.pointSize: Theme.fontSmall
+            wrapMode: Text.WordWrap
+        }
 
         RowLayout {
             Layout.fillWidth: true
