@@ -1069,7 +1069,7 @@ Window {
                                 Layout.topMargin: 8
                                 text: "Reset to Defaults"
                                 variant: "ghost"
-                                onClicked: root.resetToDefaults()
+                                onClicked: resetConfirmDialog.open()
                             }
                         }
                     }
@@ -1132,6 +1132,41 @@ Window {
                     }
                 }
 
+            }
+        }
+    }
+
+    // Guard the destructive reset behind an explicit confirmation so it can't be
+    // triggered by an accidental click.
+    Q.Dialog {
+        id: resetConfirmDialog
+        anchors.fill: parent
+        title: "Reset to Defaults?"
+        subtitle: "This restores every appearance, layout, and behavior setting to its default. Bookmarks and files are not affected."
+        dialogWidth: 400
+        z: 1200
+        initialFocusItem: resetCancelButton
+
+        onAccepted: root.resetToDefaults()
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            spacing: 10
+
+            Item { Layout.fillWidth: true }
+
+            Q.Button {
+                id: resetCancelButton
+                text: "Cancel"
+                variant: "ghost"
+                onClicked: resetConfirmDialog.reject()
+            }
+
+            Q.Button {
+                text: "Reset"
+                variant: "danger"
+                onClicked: resetConfirmDialog.accept()
             }
         }
     }
