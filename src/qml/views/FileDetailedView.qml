@@ -696,19 +696,21 @@ FocusScope {
 
                                 Image {
                                     anchors.fill: parent
-                                    visible: !parent.hasThumbnail
+                                    visible: !detThumb.visible
                                     source: "image://icon/" + detRow.fileIconName + Theme.iconQuery
                                     sourceSize: Qt.size(root.detailIconSize, root.detailIconSize)
                                     asynchronous: true
                                 }
 
                                 Image {
+                                    id: detThumb
                                     anchors.fill: parent
-                                    visible: parent.hasThumbnail
+                                    // Falls back to the type icon rather than
+                                    // leaving the row's icon slot empty.
+                                    visible: parent.hasThumbnail && detThumb.status !== Image.Error
                                     fillMode: Image.PreserveAspectFit
                                     source: parent.hasThumbnail
-                                        ? ("image://thumbnail/" + detRow.filePath
-                                           + "?mtime=" + new Date(detRow.fileModified).getTime())
+                                        ? MediaUrl.thumbnail(detRow.filePath, detRow.fileModified)
                                         : ""
                                     sourceSize: Qt.size(64 * Screen.devicePixelRatio, 64 * Screen.devicePixelRatio)
                                     asynchronous: true

@@ -37,6 +37,7 @@ QML action → Q_INVOKABLE C++ method → model property change → QML property
 ### Key conventions
 
 - `IconProvider` resolves an icon through the theme's own `Inherits=` chain, then `hicolor`, then the MIME type's generic icon. It deliberately does NOT consult a hardcoded list of popular themes: that made an unrelated package install silently repaint the app
+- Provider URLs carrying a file path go through the `MediaUrl` QML singleton (`src/qml/theme/MediaUrl.qml`), which percent-encodes each path segment. A raw path pasted into a source string breaks on any filename containing `?` or `%` — the image just never appears, with no error
 - Every `image://icon/` URL is built from `Theme.iconQuery` (in `src/qml/theme/Theme.qml`), which carries the icon pack and the folder tint. The query doubles as the cache key — QML caches provider images by URL, so it changing is what repaints icons
 - Models expose data via `roleNames()` mapping enums to QML-accessible names (e.g., `FileNameRole` → `"fileName"`)
 - QML components communicate upward via signals (fileActivated, contextMenuRequested), downward via property bindings

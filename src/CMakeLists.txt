@@ -66,6 +66,7 @@ if(SERAPH_ENABLE_UNITY_BUILD)
 endif()
 
 set_source_files_properties(qml/theme/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/theme/MediaUrl.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 option(SERAPH_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
 
@@ -82,6 +83,7 @@ list(APPEND seraph_qml_module_args
     QML_FILES
         qml/Main.qml
         qml/theme/Theme.qml
+        qml/theme/MediaUrl.qml
         qml/components/StatusBar.qml
         qml/components/OperationsBar.qml
         qml/components/Sidebar.qml

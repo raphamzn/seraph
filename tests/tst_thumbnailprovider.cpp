@@ -6,6 +6,7 @@
 #include <QImage>
 #include <QQuickTextureFactory>
 #include <QStandardPaths>
+#include <QUrl>
 #include <QUuid>
 #include "providers/thumbnailprovider.h"
 #include "testdir.h"
@@ -107,6 +108,33 @@ private slots:
         QVERIFY(result.height() <= 80);
 
         delete factory;
+    }
+
+    // A path is data, not URL syntax. "?" in a filename used to end the path
+    // as far as the id parser was concerned, and the thumbnail came back blank
+    // with no error anywhere — so the QML side percent-encodes it now.
+    void testLoadsPathWithQuestionMarkAndPercent()
+    {
+        TestDir dir;
+        const QString name = QStringLiteral("e verdade? 100% sim.png");
+        const QString path = createTestImage(dir, name, 120, 120);
+        QVERIFY(QFile::exists(path));
+
+        const QString encodedId =
+            QString::fromUtf8(QUrl::toPercentEncoding(path, "/")) + "?mtime=123";
+        QVERIFY2(encodedId.contains("%3F"), "the question mark must be encoded");
+
+        ThumbnailResponse response(encodedId, QSize(80, 80));
+        QSignalSpy spy(&response, &QQuickImageResponse::finished);
+        if (spy.isEmpty())
+            spy.wait(5000);
+
+        QQuickTextureFactory *factory = response.textureFactory();
+        QVERIFY(factory != nullptr);
+        const QImage result = factory->image();
+        delete factory;
+
+        QVERIFY2(!result.isNull(), "the encoded path must resolve back to the file");
     }
 
     void testDefaultSize()

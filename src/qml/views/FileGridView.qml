@@ -580,7 +580,9 @@ GridView {
 
         Image {
             id: thumbImg
-            visible: delegateItem.hasThumbnail
+            // A thumbnail that fails to decode would otherwise leave an empty
+            // cell with just the filename under it, reading as a broken file.
+            visible: delegateItem.hasThumbnail && thumbImg.status !== Image.Error
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: 8
@@ -588,8 +590,7 @@ GridView {
             height: root.iconSize
             fillMode: Image.PreserveAspectFit
             source: delegateItem.hasThumbnail
-                ? ("image://thumbnail/" + delegateItem.filePath
-                   + "?mtime=" + new Date(delegateItem.fileModified).getTime())
+                ? MediaUrl.thumbnail(delegateItem.filePath, delegateItem.fileModified)
                 : ""
             sourceSize: Qt.size(root.thumbnailRequestSize,
                                 root.thumbnailRequestSize)
@@ -598,7 +599,7 @@ GridView {
 
         Image {
             id: iconImg
-            visible: !delegateItem.hasThumbnail
+            visible: !thumbImg.visible
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: 8

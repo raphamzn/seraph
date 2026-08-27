@@ -133,8 +133,7 @@ Item {
     readonly property string pdfImageSource: {
         if (!isPdf || !pdfPreview.localPath || pdfPreview.error !== "")
             return ""
-        return "image://pdfpreview/" + encodeURIComponent(pdfPreview.localPath)
-            + "?page=" + pdfPageIndex
+        return MediaUrl.pdfPreview(pdfPreview.localPath, pdfPageIndex)
     }
     readonly property string pdfPageLabel: {
         if (!isPdf || pdfPreview.pageCount <= 0)
@@ -146,8 +145,8 @@ Item {
         if (!hasVisualPreview || filePath === "")
             return ""
         if (isVideo || isTrashUri || isSvg)
-            return "image://thumbnail/" + filePath
-        return "file://" + filePath
+            return MediaUrl.thumbnail(filePath, 0)
+        return MediaUrl.file(filePath)
     }
     readonly property string visualStatusText: {
         if (isVideo)

@@ -25,12 +25,16 @@ static bool isTrashUri(const QString &path)
     return QUrl(path).scheme() == "trash";
 }
 
+// The QML side percent-encodes the path before appending "?mtime=", the same
+// way PdfPreviewProvider's ids are built. Without that a file whose own name
+// contains "?" lost everything after it here and the thumbnail silently came
+// back blank; "%" fared no better.
 static QString sourcePathFromId(QString id)
 {
     const int queryIndex = id.indexOf(QLatin1Char('?'));
     if (queryIndex >= 0)
         id.truncate(queryIndex);
-    return id;
+    return QUrl::fromPercentEncoding(id.toUtf8());
 }
 
 static bool runningInFlatpak()

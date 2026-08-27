@@ -878,19 +878,21 @@ FocusScope {
 
                             Image {
                                 anchors.fill: parent
-                                visible: !parent.hasThumbnail
+                                visible: !millerThumb.visible
                                 source: "image://icon/" + currentDelegate.fileIconName + Theme.iconQuery
                                 sourceSize: Qt.size(root.millerIconSize + 2, root.millerIconSize + 2)
                                 asynchronous: true
                             }
 
                             Image {
+                                id: millerThumb
                                 anchors.fill: parent
-                                visible: parent.hasThumbnail
+                                // Falls back to the type icon rather than
+                                // leaving the row's icon slot empty.
+                                visible: parent.hasThumbnail && millerThumb.status !== Image.Error
                                 fillMode: Image.PreserveAspectFit
                                 source: parent.hasThumbnail
-                                    ? ("image://thumbnail/" + currentDelegate.filePath
-                                       + "?mtime=" + new Date(currentDelegate.fileModified).getTime())
+                                    ? MediaUrl.thumbnail(currentDelegate.filePath, currentDelegate.fileModified)
                                     : ""
                                 sourceSize: Qt.size(64 * Screen.devicePixelRatio, 64 * Screen.devicePixelRatio)
                                 asynchronous: true
@@ -1301,14 +1303,13 @@ FocusScope {
             readonly property bool hasVisualPreview: isImage || (isVideo && videoPreviewAvailable)
             readonly property string visualSource: {
                 if (!hasVisualPreview || previewFilePath === "") return ""
-                if (isVideo || isTrashUri || isSvg) return "image://thumbnail/" + previewFilePath
-                return "file://" + previewFilePath
+                if (isVideo || isTrashUri || isSvg) return MediaUrl.thumbnail(previewFilePath, 0)
+                return MediaUrl.file(previewFilePath)
             }
             readonly property string pdfImageSource: {
                 if (!isPdf || !pdfPreview.localPath || pdfPreview.error !== "")
                     return ""
-                return "image://pdfpreview/" + encodeURIComponent(pdfPreview.localPath)
-                    + "?page=" + pdfPageIndex
+                return MediaUrl.pdfPreview(pdfPreview.localPath, pdfPageIndex)
             }
             readonly property string pdfPageLabel: {
                 if (!isPdf || pdfPreview.pageCount <= 0)
