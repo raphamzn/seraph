@@ -243,6 +243,27 @@ Seraph is a three-layer Qt6 application:
 
 See [`CLAUDE.md`](CLAUDE.md) for the full architecture notes.
 
+### Languages
+
+Line counts over the project's own source — Git submodules (`Quill`, `quill-icons`) and the vendored `third_party/toml.hpp` are excluded, since neither is written here.
+
+| Language | Lines | Share |
+|---|---:|---:|
+| **C++** | 21,253 | **51.5%** |
+| **QML** | 17,545 | **42.5%** |
+| YAML (CI + Flatpak manifest) | 590 | 1.4% |
+| Markdown (docs) | 589 | 1.4% |
+| CMake | 438 | 1.1% |
+| Shell (packaging scripts) | 410 | 1.0% |
+| XML, TOML, SVG, desktop entry | 445 | 1.1% |
+| **Total** | **41,270** | |
+
+The C++ half splits into **15,316** lines of application code (`src/models`, `src/services`, `src/providers`, `main.cpp`) and **5,937** lines of Qt Test suites (`tests/tst_*.cpp`).
+
+**Where Qt fits:** Qt is the framework, not a language, so it has no row of its own — but it underlies both of the big ones. QML *is* Qt's declarative UI language, and essentially all the C++ is Qt-based (`QObject`, `QAbstractListModel`, `QProcess`, QtDBus, Qt Quick's `QQuickImageProvider`). In practice ~94% of the codebase is Qt 6 code in one of its two dialects.
+
+For reference, the excluded third-party code adds 17,888 lines of C++ (`toml.hpp`) and 5,902 lines of QML (the two submodules). Counting those, C++ rises to ~66% and QML falls to ~30% — which is roughly what GitHub's language bar reports, since it counts vendored headers.
+
 ---
 
 ## 🤝 Contributing
