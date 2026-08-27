@@ -116,7 +116,9 @@ cmake --build build --parallel
 
 ### Packaged builds
 
-AppImage, AUR (`seraph-git`), and Flatpak packaging live in this repo (`.github/workflows/build.yml`, `PKGBUILD`, the Flatpak manifest) and are wired to build on `v*` tags. They point at `raphamzn/seraph` and will produce downloadable artifacts once the first release is tagged and the publishing infrastructure (release repo / signing keys) is configured.
+On Arch, `makepkg -si` from the repo root builds and installs the `seraph-git` package. It clones `main` from GitHub rather than packaging your working tree, so push first if you are packaging your own changes. Nothing is published to the AUR yet, so `paru`/`yay` will not find `seraph-git`.
+
+AppImage and Flatpak packaging live in this repo (`.github/workflows/build.yml`, the Flatpak manifest) and are wired to build on `v*` tags. They point at `raphamzn/seraph` and will produce downloadable artifacts once the first release is tagged and the publishing infrastructure (release repo / signing keys) is configured.
 
 ---
 

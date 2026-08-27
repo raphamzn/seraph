@@ -55,13 +55,17 @@ Quill's `Theme.qml` singleton is bridged from Seraph's theme in `Main.qml` `Comp
 
 ## Packaging & Distribution
 
-- **AUR**: `PKGBUILD` in repo root, also maintained at `~/seraph-aur/` (ssh://aur@aur.archlinux.org/seraph-git.git)
+- **Arch package**: `PKGBUILD` in the repo root, built locally with `makepkg -si`. This is the only packaging in use today.
 - **AppImage**: GitHub Actions builds on `v*` tags (`.github/workflows/build.yml`)
 - **Desktop entry + icon**: `dist/seraph.desktop`, `dist/seraph.svg`
 
-### AUR vs GitHub repo
+### Installing a local build
 
-The AUR repo (`~/seraph-aur/`) only contains `PKGBUILD` + `.SRCINFO` — build instructions, not source code. The PKGBUILD clones from GitHub at build time, so `yay -S seraph-git` always gets the latest `main`. Only update the AUR repo when dependencies, build steps, or install paths change — not for code changes.
+`makepkg -si` from the repo root produces and installs `seraph-git`. The PKGBUILD **clones `main` from GitHub** rather than using the working tree, so it packages what has been pushed — commit and push before building, or the package will not contain the change under test.
+
+### Not on the AUR yet
+
+`seraph-git` is not published on the AUR: `paru`/`yay` cannot resolve it, and there is no `~/seraph-aur/` clone. An installed `seraph-git` came from a local `makepkg`. Once published, the AUR repo will hold only `PKGBUILD` + `.SRCINFO` — build instructions, not source code — and because the PKGBUILD clones `main` at build time it will only need updating when dependencies, build steps, or install paths change, not for code changes.
 
 ### SERAPH_DATA_DIR
 
