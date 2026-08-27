@@ -1,12 +1,36 @@
 #include <QTest>
 #include <QColor>
+#include <QDir>
+#include <QFile>
 #include <QImage>
 #include <QSize>
+#include <QTemporaryDir>
 #include "providers/iconprovider.h"
 
 class TestIconProvider : public QObject
 {
     Q_OBJECT
+
+private:
+    static void writeThemeIndex(const QString &path, const QString &inherits)
+    {
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        QByteArray body = "[Icon Theme]\nName=test\nDirectories=scalable/mimetypes\n";
+        if (!inherits.isEmpty())
+            body += "Inherits=" + inherits.toUtf8() + "\n";
+        f.write(body);
+    }
+
+    static void writeSquare(const QString &path, const QString &color)
+    {
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write(QStringLiteral("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\">"
+                               "<rect width=\"32\" height=\"32\" fill=\"%1\"/></svg>")
+                    .arg(color)
+                    .toUtf8());
+    }
 
 private slots:
     void testConstruction()
@@ -151,6 +175,56 @@ private slots:
             provider.requestImage("text-x-generic?folder_tint=%2300ff00", &s2, QSize(48, 48));
 
         QCOMPARE(tinted, plain);
+    }
+
+    // A theme's Inherits= chain decides what fills its gaps. The provider used
+    // to consult a hardcoded list of popular themes instead, which silently
+    // repainted the app whenever one of them happened to get installed.
+    void testFollowsInheritsChain()
+    {
+        QTemporaryDir home;
+        const QString icons = home.path() + "/.icons";
+        QVERIFY(QDir().mkpath(icons + "/child/scalable/mimetypes"));
+        QVERIFY(QDir().mkpath(icons + "/parent/scalable/mimetypes"));
+        QVERIFY(QDir().mkpath(icons + "/stranger/scalable/mimetypes"));
+        writeThemeIndex(icons + "/child/index.theme", "parent");
+        writeThemeIndex(icons + "/parent/index.theme", QString());
+        writeThemeIndex(icons + "/stranger/index.theme", QString());
+        writeSquare(icons + "/parent/scalable/mimetypes/application-pdf.svg", "#ff0000");
+        writeSquare(icons + "/stranger/scalable/mimetypes/application-zip.svg", "#00ff00");
+
+        const QByteArray realHome = qgetenv("HOME");
+        qputenv("HOME", home.path().toUtf8());
+        IconProvider provider("child");
+        QSize size;
+        const QImage inherited = provider.requestImage("application-pdf", &size, QSize(32, 32));
+        const QImage unrelated = provider.requestImage("application-zip", &size, QSize(32, 32));
+        qputenv("HOME", realHome);
+
+        QCOMPARE(inherited.pixelColor(16, 16), QColor("#ff0000"));
+        QVERIFY2(unrelated.pixelColor(16, 16) != QColor("#00ff00"),
+                 "a theme outside the chain must not be consulted");
+    }
+
+    // Falling back to the MIME type's generic icon is what keeps a thin theme
+    // from dropping every office format onto the same plain text page.
+    void testFallsBackToGenericMimeIcon()
+    {
+        QTemporaryDir home;
+        const QString icons = home.path() + "/.icons";
+        QVERIFY(QDir().mkpath(icons + "/thin/scalable/mimetypes"));
+        writeThemeIndex(icons + "/thin/index.theme", QString());
+        // No application-pdf; only the generic icon it maps to.
+        writeSquare(icons + "/thin/scalable/mimetypes/x-office-document.svg", "#0000ff");
+
+        const QByteArray realHome = qgetenv("HOME");
+        qputenv("HOME", home.path().toUtf8());
+        IconProvider provider("thin");
+        QSize size;
+        const QImage img = provider.requestImage("application-pdf", &size, QSize(32, 32));
+        qputenv("HOME", realHome);
+
+        QCOMPARE(img.pixelColor(16, 16), QColor("#0000ff"));
     }
 
     void testMultipleQueryParams()

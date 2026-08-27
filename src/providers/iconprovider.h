@@ -8,6 +8,8 @@
 #include <QHash>
 #include <QImage>
 #include <QIcon>
+#include <QMimeDatabase>
+#include <QMimeType>
 #include <QUrl>
 #include <QMutex>
 #include <QMutexLocker>
@@ -45,8 +47,15 @@ public:
                 m_primaryDirs.append(path);
         }
 
-        const QStringList fallbacks = {"breeze", "Papirus", "Adwaita", "hicolor"};
-        for (const auto &theme : fallbacks) {
+        // Follow the theme's own Inherits= chain (freedesktop icon theme spec)
+        // rather than a hardcoded list of popular themes. A hardcoded list
+        // silently repaints the whole app the day one of those packages gets
+        // installed for an unrelated reason, which is not something the user
+        // asked for and cannot be traced back to any setting they changed.
+        QStringList chain;
+        collectThemeChain(themeName, chain);
+        chain.append(QStringLiteral("hicolor"));  // the spec's mandatory last resort
+        for (const auto &theme : chain) {
             if (theme == themeName)
                 continue;
 
@@ -122,8 +131,19 @@ public:
                 remember(cacheKey, empty);
                 return empty;
             }
-            // File icon: try fallback themes
+            // File icon: the inherited chain, then the MIME type's own generic
+            // icon — what /usr/share/mime/generic-icons exists for — then a
+            // plain document. Without the generic step a thin theme drops every
+            // office format onto the same text icon.
             svgPath = findIconIn(iconName, sz, fallbackDirs);
+            if (svgPath.isEmpty()) {
+                const QString generic = genericIconFor(iconName);
+                if (!generic.isEmpty()) {
+                    svgPath = findIconIn(generic, sz, primaryDirs);
+                    if (svgPath.isEmpty())
+                        svgPath = findIconIn(generic, sz, fallbackDirs);
+                }
+            }
             if (svgPath.isEmpty())
                 svgPath = findIconIn("text-x-generic", sz, primaryDirs);
             if (svgPath.isEmpty())
@@ -175,6 +195,58 @@ public:
     }
 
 private:
+    // Themes named by Inherits=, depth-first and deduplicated. Cycles between
+    // themes are legal to write and would otherwise hang startup.
+    void collectThemeChain(const QString &themeName, QStringList &chain) const
+    {
+        if (chain.contains(themeName))
+            return;
+
+        chain.append(themeName);
+        for (const auto &parent : themeInherits(themeName))
+            collectThemeChain(parent, chain);
+    }
+
+    QStringList themeInherits(const QString &themeName) const
+    {
+        for (const auto &dir : m_searchDirs) {
+            const QString indexPath = dir + "/" + themeName + "/index.theme";
+            if (!QFile::exists(indexPath))
+                continue;
+
+            QSettings index(indexPath, QSettings::IniFormat);
+            // QSettings splits an unquoted comma-separated value into a list,
+            // so a single-parent theme arrives as one string to split by hand.
+            QStringList parents = index.value("Icon Theme/Inherits").toStringList();
+            if (parents.size() == 1)
+                parents = parents.first().split(QLatin1Char(','), Qt::SkipEmptyParts);
+            for (auto &parent : parents)
+                parent = parent.trimmed();
+            parents.removeAll(QString());
+            return parents;
+        }
+        return {};
+    }
+
+    // "application-pdf" -> "application/pdf" -> its generic icon,
+    // "x-office-document". Icon names for MIME types are the type with the
+    // slash written as a dash, so the mapping inverts cleanly.
+    static QString genericIconFor(const QString &iconName)
+    {
+        const int dash = iconName.indexOf(QLatin1Char('-'));
+        if (dash <= 0)
+            return {};
+
+        QString mimeName = iconName;
+        mimeName[dash] = QLatin1Char('/');
+        const QMimeType mime = QMimeDatabase().mimeTypeForName(mimeName);
+        if (!mime.isValid())
+            return {};
+
+        const QString generic = mime.genericIconName();
+        return generic == iconName ? QString() : generic;
+    }
+
     static bool isFolderIcon(const QString &name)
     {
         return name == QLatin1String("folder") || name.startsWith(QLatin1String("folder-"))

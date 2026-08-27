@@ -183,7 +183,7 @@ Config lives at `~/.config/seraph/config.toml` and is created with sensible defa
 theme = "catppuccin-mocha"     # filename in themes/ without .toml, or "auto"
 light_theme = "catppuccin-latte"  # used when theme = "auto" and the system is light
 dark_theme = "catppuccin-mocha"   # used when theme = "auto" and the system is dark
-icon_theme = "Adwaita"         # system icon theme fallback
+icon_theme = "Adwaita"         # icon pack; its Inherits= chain fills any gaps
 builtin_icons = true           # use bundled SVG icons
 folder_icon_tint = "off"       # off | accent | any colour, e.g. "#fabd2f"
 default_view = "grid"          # grid | detailed | miller
