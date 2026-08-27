@@ -119,7 +119,7 @@ Rectangle {
                             Image {
                                 width: 16
                                 height: 16
-                                source: "image://icon/folder?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0")
+                                source: "image://icon/folder" + Theme.iconQuery
                                 sourceSize: Qt.size(16, 16)
                                 anchors.verticalCenter: parent.verticalCenter
                             }

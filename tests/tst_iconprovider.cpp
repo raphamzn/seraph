@@ -1,4 +1,5 @@
 #include <QTest>
+#include <QColor>
 #include <QImage>
 #include <QSize>
 #include "providers/iconprovider.h"
@@ -98,6 +99,58 @@ private slots:
         QVERIFY(!img.isNull());
         QCOMPARE(img.width(), 48);
         QCOMPARE(img.height(), 48);
+    }
+
+    // The tint takes the theme's hue but must leave lightness alone, or the
+    // folder's own shading — tab vs body, emblem vs background — flattens out.
+    void testFolderTintRehuesWithoutFlattening()
+    {
+        IconProvider provider("Adwaita");
+        QSize s1, s2;
+        const QImage plain = provider.requestImage("folder", &s1, QSize(64, 64));
+        const QImage tinted =
+            provider.requestImage("folder?folder_tint=%2300ff00", &s2, QSize(64, 64));
+
+        int compared = 0;
+        int distinctLightness = 0;
+        float firstLightness = -1;
+        for (int y = 0; y < tinted.height(); ++y) {
+            for (int x = 0; x < tinted.width(); ++x) {
+                const QColor before = plain.pixelColor(x, y);
+                const QColor after = tinted.pixelColor(x, y);
+                if (before.alpha() < 255)
+                    continue;
+
+                float bh = 0, bs = 0, bl = 0, ah = 0, as = 0, al = 0;
+                before.getHslF(&bh, &bs, &bl);
+                after.getHslF(&ah, &as, &al);
+                if (bs < 0.34f)  // neutral pixels keep their own hue by design
+                    continue;
+
+                ++compared;
+                QVERIFY2(qAbs(ah - 1.0f / 3.0f) < 0.02f, "coloured pixels take the tint hue");
+                QVERIFY2(qAbs(al - bl) < 0.02f, "lightness is preserved");
+                if (firstLightness < 0)
+                    firstLightness = al;
+                else if (qAbs(al - firstLightness) > 0.05f)
+                    ++distinctLightness;
+            }
+        }
+
+        if (compared == 0)
+            QSKIP("Adwaita folder icon not installed");
+        QVERIFY2(distinctLightness > 0, "the icon still has more than one shade");
+    }
+
+    void testFolderTintLeavesOtherIconsAlone()
+    {
+        IconProvider provider("Adwaita");
+        QSize s1, s2;
+        const QImage plain = provider.requestImage("text-x-generic", &s1, QSize(48, 48));
+        const QImage tinted =
+            provider.requestImage("text-x-generic?folder_tint=%2300ff00", &s2, QSize(48, 48));
+
+        QCOMPARE(tinted, plain);
     }
 
     void testMultipleQueryParams()

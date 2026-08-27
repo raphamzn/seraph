@@ -89,6 +89,7 @@ Window {
     property string draftDarkTheme: config.darkTheme
     property string draftFontFamily: config.fontFamily
     property string draftIconTheme: config.iconTheme
+    property bool draftTintFolderIcons: (config.folderIconTint || "off").toLowerCase() !== "off"
     property bool draftDarkMode: true
     property bool draftShowHidden: currentShowHidden
     property bool draftSidebarVisible: currentSidebarVisible
@@ -280,6 +281,7 @@ Window {
         setDraftTheme(defaultThemeName)
         draftFontFamily = ""
         draftIconTheme = defaultIconThemeName
+        draftTintFolderIcons = false
         draftShowHidden = false
         draftSidebarVisible = true
         draftSidebarPosition = defaultSidebarPosition
@@ -321,6 +323,7 @@ Window {
             fontOptions = buildFontOptions()
 
             draftIconTheme = config.iconTheme
+            draftTintFolderIcons = (config.folderIconTint || "off").toLowerCase() !== "off"
             iconThemeOptions = buildOptions(availableIconThemeValues, draftIconTheme, "Adwaita")
 
             draftShowHidden = currentShowHidden
@@ -387,6 +390,7 @@ Window {
             darkTheme: draftDarkTheme,
             fontFamily: draftFontFamily,
             iconTheme: draftIconTheme,
+            folderIconTint: draftTintFolderIcons ? "accent" : "off",
             showHidden: draftShowHidden,
             sidebarVisible: draftSidebarVisible,
             sidebarPosition: draftSidebarPosition,
@@ -575,6 +579,39 @@ Window {
                 onSelected: (_, value) => {
                     root.draftIconTheme = value
                     root.applySettingsNow()
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                spacing: 12
+
+                ColumnLayout {
+                    spacing: 2
+
+                    Text {
+                        text: "Tint Folder Icons"
+                        color: Theme.text
+                        font.pointSize: Theme.fontNormal
+                    }
+
+                    Text {
+                        text: "Re-hue folders to the accent, keeping the pack's shading"
+                        color: Theme.muted
+                        font.pointSize: Theme.fontSmall
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Q.Toggle {
+                    label: ""
+                    checked: root.draftTintFolderIcons
+                    onToggled: (value) => {
+                        root.draftTintFolderIcons = value
+                        root.applySettingsNow()
+                    }
                 }
             }
 

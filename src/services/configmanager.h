@@ -20,6 +20,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(bool followSystemTheme READ followSystemTheme NOTIFY configChanged)
     Q_PROPERTY(QString iconTheme READ iconTheme NOTIFY configChanged)
     Q_PROPERTY(bool builtinIcons READ builtinIcons NOTIFY configChanged)
+    Q_PROPERTY(QString folderIconTint READ folderIconTint NOTIFY configChanged)
     Q_PROPERTY(QString fontFamily READ fontFamily NOTIFY configChanged)
     Q_PROPERTY(QString defaultView READ defaultView NOTIFY configChanged)
     Q_PROPERTY(QString startupLocation READ startupLocation NOTIFY configChanged)
@@ -66,6 +67,9 @@ public:
     bool followSystemTheme() const;
     QString iconTheme() const;
     bool builtinIcons() const;
+    // "off", "accent" (resolved against the active theme in QML), or a colour
+    // literal. Drives the folder-icon re-hue in IconProvider.
+    QString folderIconTint() const;
     QString fontFamily() const;
     QString defaultView() const;
     // "last" (restore the previous session's tabs) or "home" (always open a
@@ -138,6 +142,7 @@ private:
     QString m_darkTheme;
     QString m_iconTheme;
     bool m_builtinIcons;
+    QString m_folderIconTint;
     QString m_fontFamily;
     QString m_defaultView;
     QString m_startupLocation;

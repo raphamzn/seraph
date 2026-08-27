@@ -36,6 +36,7 @@ QML action → Q_INVOKABLE C++ method → model property change → QML property
 
 ### Key conventions
 
+- Every `image://icon/` URL is built from `Theme.iconQuery` (in `src/qml/theme/Theme.qml`), which carries the icon pack and the folder tint. The query doubles as the cache key — QML caches provider images by URL, so it changing is what repaints icons
 - Models expose data via `roleNames()` mapping enums to QML-accessible names (e.g., `FileNameRole` → `"fileName"`)
 - QML components communicate upward via signals (fileActivated, contextMenuRequested), downward via property bindings
 - Config lives at `~/.config/seraph/config.toml` (TOML format); theme files in `~/.config/seraph/themes/` (user, wins) then `themes/` (bundled). ThemeLoader watches the active theme file, so rewriting it recolors the running app

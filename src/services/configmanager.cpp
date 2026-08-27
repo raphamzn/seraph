@@ -230,6 +230,7 @@ void ConfigManager::setDefaults()
     m_darkTheme = QStringLiteral("catppuccin-mocha");
     m_iconTheme = "Adwaita";
     m_builtinIcons = true;
+    m_folderIconTint = QStringLiteral("off");
     m_fontFamily.clear();
     m_defaultView = "grid";
     m_startupLocation = "last";
@@ -292,6 +293,8 @@ void ConfigManager::loadConfig()
             m_iconTheme = QString::fromStdString(*v);
         if (auto v = config["general"]["builtin_icons"].value<bool>())
             m_builtinIcons = *v;
+        if (auto v = config["general"]["folder_icon_tint"].value<std::string>())
+            m_folderIconTint = QString::fromStdString(*v);
         if (auto v = config["general"]["font_family"].value<std::string>())
             m_fontFamily = QString::fromStdString(*v);
         if (auto v = config["general"]["default_view"].value<std::string>())
@@ -408,6 +411,7 @@ QString ConfigManager::darkTheme() const { return m_darkTheme; }
 bool ConfigManager::followSystemTheme() const { return m_theme.compare(QLatin1String("auto"), Qt::CaseInsensitive) == 0; }
 QString ConfigManager::iconTheme() const { return m_iconTheme; }
 bool ConfigManager::builtinIcons() const { return m_builtinIcons; }
+QString ConfigManager::folderIconTint() const { return m_folderIconTint; }
 QString ConfigManager::fontFamily() const { return m_fontFamily; }
 QString ConfigManager::defaultView() const { return m_defaultView; }
 QString ConfigManager::startupLocation() const { return m_startupLocation; }
@@ -533,6 +537,14 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     if (settings.contains("builtinIcons")) {
         m_builtinIcons = settings.value("builtinIcons").toBool();
         general.insert_or_assign("builtin_icons", m_builtinIcons);
+    }
+
+    if (settings.contains("folderIconTint")) {
+        const QString tint = settings.value("folderIconTint").toString().trimmed();
+        if (!tint.isEmpty()) {
+            m_folderIconTint = tint;
+            general.insert_or_assign("folder_icon_tint", tint.toStdString());
+        }
     }
 
     if (settings.contains("fontFamily")) {

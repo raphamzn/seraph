@@ -902,7 +902,7 @@ Item {
                 spacing: 8
                 Image {
                     source: subItemData && subItemData.iconName
-                        ? ("image://icon/" + subItemData.iconName + "?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0"))
+                        ? ("image://icon/" + subItemData.iconName + Theme.iconQuery)
                         : ""
                     sourceSize: Qt.size(18, 18)
                     Layout.preferredWidth: visible ? 18 : 0

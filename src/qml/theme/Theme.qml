@@ -17,6 +17,23 @@ QtObject {
     property color warning: theme.warning
     property color error: theme.error
 
+    // Folder icons are re-hued to this colour by IconProvider; "" leaves the
+    // icon pack alone. Resolved here because it mixes config (the setting) with
+    // the theme (the accent it usually points at).
+    readonly property string folderTint: {
+        var t = (config.folderIconTint || "off").toLowerCase()
+        if (t === "" || t === "off")
+            return ""
+        return t === "accent" ? root.accent.toString() : t
+    }
+
+    // Query appended to every image://icon/ URL. It carries the icon pack and
+    // the folder tint, and doubles as the cache key — QML caches provider
+    // images by URL, so this changing is what repaints icons after a switch.
+    readonly property string iconQuery: "?theme=" + config.iconTheme
+        + "&builtin=" + (config.builtinIcons ? "1" : "0")
+        + (root.folderTint !== "" ? "&folder_tint=" + encodeURIComponent(root.folderTint) : "")
+
     property int radiusSmall: config.radiusSmall
     property int radiusMedium: config.radiusMedium
     property int radiusLarge: config.radiusLarge

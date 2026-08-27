@@ -1879,7 +1879,7 @@ ApplicationWindow {
                         Image {
                             id: appChooserIcon
                             source: modelData.iconName
-                                ? ("image://icon/" + modelData.iconName + "?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0"))
+                                ? ("image://icon/" + modelData.iconName + Theme.iconQuery)
                                 : ""
                             sourceSize: Qt.size(22, 22)
                             Layout.preferredWidth: 22
@@ -2105,7 +2105,7 @@ ApplicationWindow {
                         Image {
                             anchors.centerIn: parent; width: 32; height: 32
                             source: propertiesDialog.props.iconName
-                                ? ("image://icon/" + propertiesDialog.props.iconName + "?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0"))
+                                ? ("image://icon/" + propertiesDialog.props.iconName + Theme.iconQuery)
                                 : ""
                             sourceSize: Qt.size(32, 32); smooth: true
                         }
@@ -2304,7 +2304,7 @@ ApplicationWindow {
                                 Image {
                                     id: owAppIcon
                                     source: modelData.iconName
-                                        ? ("image://icon/" + modelData.iconName + "?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0"))
+                                        ? ("image://icon/" + modelData.iconName + Theme.iconQuery)
                                         : ""
                                     sourceSize: Qt.size(18, 18)
                                     width: 18; height: 18

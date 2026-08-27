@@ -8,11 +8,13 @@
 #include <QHash>
 #include <QImage>
 #include <QIcon>
+#include <QUrl>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QDebug>
+#include <algorithm>
 
 class IconProvider : public QQuickImageProvider
 {
@@ -61,9 +63,12 @@ public:
         int sz = (requestedSize.width() > 0) ? requestedSize.width() : 48;
         QSize iconSize(sz, sz);
 
-        // Parse optional color: "icon-name?color=#rrggbb"
+        // Parse optional colors: "icon-name?color=#rrggbb&folder_tint=%23rrggbb".
+        // color= flattens the icon to one colour (symbolic icons); folder_tint=
+        // re-hues a folder icon to the theme, keeping its shading.
         QString iconName = id;
         QColor tintColor;
+        QColor folderTint;
         int qmark = id.indexOf('?');
         if (qmark >= 0) {
             iconName = id.left(qmark);
@@ -71,12 +76,18 @@ public:
             for (const auto &param : params.split('&')) {
                 if (param.startsWith("color="))
                     tintColor = QColor(param.mid(6));
+                else if (param.startsWith("folder_tint="))
+                    folderTint = QColor(QUrl::fromPercentEncoding(param.mid(12).toUtf8()));
             }
         }
 
         bool isSymbolic = iconName.endsWith("-symbolic");
+        if (!isFolderIcon(iconName))
+            folderTint = QColor();
 
-        const QString tintKey = tintColor.isValid() ? tintColor.name(QColor::HexArgb) : QString();
+        const QString tintKey = (tintColor.isValid() ? tintColor.name(QColor::HexArgb) : QString())
+            + (folderTint.isValid() ? QLatin1Char('f') + folderTint.name(QColor::HexArgb)
+                                    : QString());
         QStringList primaryDirs;
         QStringList fallbackDirs;
         QString cacheKey;
@@ -154,6 +165,9 @@ public:
             }
         }
 
+        if (folderTint.isValid())
+            recolorToTheme(img, folderTint);
+
         if (size)
             *size = iconSize;
         remember(cacheKey, img);
@@ -161,6 +175,44 @@ public:
     }
 
 private:
+    static bool isFolderIcon(const QString &name)
+    {
+        return name == QLatin1String("folder") || name.startsWith(QLatin1String("folder-"))
+            || name.startsWith(QLatin1String("inode-directory"));
+    }
+
+    // Re-hues an icon to the theme colour while keeping its own shading: every
+    // pixel keeps its lightness, so the tab stays darker than the body and an
+    // emblem stays readable against it. Saturation ramps in from zero, which
+    // leaves true neutrals — a white paper strip, a black glyph — untouched;
+    // forcing those to the theme hue is what makes a tinted icon look flat.
+    static void recolorToTheme(QImage &img, const QColor &tint)
+    {
+        float th = 0, ts = 0, tl = 0;
+        tint.getHslF(&th, &ts, &tl);
+        if (th < 0)  // achromatic tint has no hue to lend
+            return;
+
+        // Recolour unpremultiplied, or the maths brightens antialiased edges.
+        const QImage::Format original = img.format();
+        img = img.convertToFormat(QImage::Format_ARGB32);
+        for (int y = 0; y < img.height(); ++y) {
+            QRgb *line = reinterpret_cast<QRgb *>(img.scanLine(y));
+            for (int x = 0; x < img.width(); ++x) {
+                const int a = qAlpha(line[x]);
+                if (a == 0)
+                    continue;
+
+                float h = 0, s = 0, l = 0;
+                QColor::fromRgb(qRed(line[x]), qGreen(line[x]), qBlue(line[x])).getHslF(&h, &s, &l);
+                const float ns = ts * std::min(1.0f, s * 3.0f);
+                const QColor out = QColor::fromHslF(th, ns, l);
+                line[x] = qRgba(out.red(), out.green(), out.blue(), a);
+            }
+        }
+        img = img.convertToFormat(original);
+    }
+
     void remember(const QString &key, const QImage &image)
     {
         QMutexLocker locker(&m_cacheMutex);

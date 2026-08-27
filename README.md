@@ -183,6 +183,7 @@ light_theme = "catppuccin-latte"  # used when theme = "auto" and the system is l
 dark_theme = "catppuccin-mocha"   # used when theme = "auto" and the system is dark
 icon_theme = "Adwaita"         # system icon theme fallback
 builtin_icons = true           # use bundled SVG icons
+folder_icon_tint = "off"       # off | accent | any colour, e.g. "#fabd2f"
 default_view = "grid"          # grid | detailed | miller
 startup_location = "last"      # last (restore session) | home (always open Home)
 show_hidden = false
@@ -237,6 +238,17 @@ error   = "#f38ba8"
 The active theme file is watched, so saving it recolors the running app — which
 also means a system themer can drive Seraph by rewriting a theme in
 `~/.config/seraph/themes/`.
+
+### Tinting folder icons
+
+`folder_icon_tint = "accent"` (or the **Tint Folder Icons** toggle in Settings →
+Look & Feel) re-hues folder icons to the theme, so they stop fighting whatever
+palette the icon pack ships with. It is a re-hue, not a flat fill: every pixel
+keeps its own lightness, so the folder's tab stays darker than its body and a
+download arrow or picture glyph stays readable. Saturation ramps in from zero,
+which leaves true neutrals — a white paper strip, a black glyph — alone; forcing
+those to the theme hue is what makes a tinted icon look like a sticker. Any
+colour literal works in place of `accent`.
 
 ### Following the system light/dark preference
 

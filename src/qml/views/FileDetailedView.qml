@@ -697,7 +697,7 @@ FocusScope {
                                 Image {
                                     anchors.fill: parent
                                     visible: !parent.hasThumbnail
-                                    source: "image://icon/" + detRow.fileIconName + "?theme=" + config.iconTheme + "&builtin=" + (config.builtinIcons ? "1" : "0")
+                                    source: "image://icon/" + detRow.fileIconName + Theme.iconQuery
                                     sourceSize: Qt.size(root.detailIconSize, root.detailIconSize)
                                     asynchronous: true
                                 }
