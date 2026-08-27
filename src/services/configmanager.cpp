@@ -149,11 +149,11 @@ QMap<QString, QString> ConfigManager::s_defaultShortcuts = {
     {"keyboard_shortcuts", "Ctrl+?"},
 };
 
-ConfigManager::ConfigManager(const QString &configPath, QObject *parent, const QString &themesDir,
-                             const QString &defaultTheme)
+ConfigManager::ConfigManager(const QString &configPath, QObject *parent,
+                             const QStringList &themeDirs, const QString &defaultTheme)
     : QObject(parent)
     , m_configPath(configPath)
-    , m_themesDir(themesDir)
+    , m_themeDirs(themeDirs)
     , m_defaultThemeName(defaultTheme)
 {
     setDefaults();
@@ -173,16 +173,23 @@ ConfigManager::ConfigManager(const QString &configPath, QObject *parent, const Q
 
 QStringList ConfigManager::availableThemes() const
 {
-    if (m_themesDir.isEmpty())
-        return {};
-
-    QDir dir(m_themesDir);
-    const QStringList files = dir.entryList({"*.toml"}, QDir::Files, QDir::Name | QDir::IgnoreCase);
-
+    // Same name in two directories is one theme: ThemeLoader resolves it from
+    // the first search path that has it, so listing it twice would be a lie.
     QStringList themes;
-    themes.reserve(files.size());
-    for (const QString &fileName : files)
-        themes.append(QFileInfo(fileName).completeBaseName());
+    for (const QString &themeDir : m_themeDirs) {
+        if (themeDir.isEmpty())
+            continue;
+
+        QDir dir(themeDir);
+        const QStringList files =
+            dir.entryList({"*.toml"}, QDir::Files, QDir::Name | QDir::IgnoreCase);
+        for (const QString &fileName : files) {
+            const QString name = QFileInfo(fileName).completeBaseName();
+            if (!themes.contains(name))
+                themes.append(name);
+        }
+    }
+    themes.sort(Qt::CaseInsensitive);
     return themes;
 }
 
@@ -219,6 +226,8 @@ void ConfigManager::setDefaults()
     m_theme = m_defaultThemeName.trimmed().isEmpty()
         ? QStringLiteral("catppuccin-mocha")
         : m_defaultThemeName.trimmed();
+    m_lightTheme = QStringLiteral("catppuccin-latte");
+    m_darkTheme = QStringLiteral("catppuccin-mocha");
     m_iconTheme = "Adwaita";
     m_builtinIcons = true;
     m_fontFamily.clear();
@@ -275,6 +284,10 @@ void ConfigManager::loadConfig()
 
         if (auto v = config["general"]["theme"].value<std::string>())
             m_theme = QString::fromStdString(*v);
+        if (auto v = config["general"]["light_theme"].value<std::string>())
+            m_lightTheme = QString::fromStdString(*v);
+        if (auto v = config["general"]["dark_theme"].value<std::string>())
+            m_darkTheme = QString::fromStdString(*v);
         if (auto v = config["general"]["icon_theme"].value<std::string>())
             m_iconTheme = QString::fromStdString(*v);
         if (auto v = config["general"]["builtin_icons"].value<bool>())
@@ -390,6 +403,9 @@ void ConfigManager::loadConfig()
 }
 
 QString ConfigManager::theme() const { return m_theme; }
+QString ConfigManager::lightTheme() const { return m_lightTheme; }
+QString ConfigManager::darkTheme() const { return m_darkTheme; }
+bool ConfigManager::followSystemTheme() const { return m_theme.compare(QLatin1String("auto"), Qt::CaseInsensitive) == 0; }
 QString ConfigManager::iconTheme() const { return m_iconTheme; }
 bool ConfigManager::builtinIcons() const { return m_builtinIcons; }
 QString ConfigManager::fontFamily() const { return m_fontFamily; }
@@ -487,6 +503,22 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         if (!theme.isEmpty()) {
             m_theme = theme;
             general.insert_or_assign("theme", theme.toStdString());
+        }
+    }
+
+    if (settings.contains("lightTheme")) {
+        const QString lightTheme = settings.value("lightTheme").toString().trimmed();
+        if (!lightTheme.isEmpty()) {
+            m_lightTheme = lightTheme;
+            general.insert_or_assign("light_theme", lightTheme.toStdString());
+        }
+    }
+
+    if (settings.contains("darkTheme")) {
+        const QString darkTheme = settings.value("darkTheme").toString().trimmed();
+        if (!darkTheme.isEmpty()) {
+            m_darkTheme = darkTheme;
+            general.insert_or_assign("dark_theme", darkTheme.toStdString());
         }
     }
 

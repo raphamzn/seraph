@@ -42,7 +42,7 @@ private slots:
     void testCustomDefaultTheme()
     {
         QTemporaryDir dir;
-        ConfigManager mgr(dir.path() + "/config.toml", nullptr, QString(), "catppuccin-latte");
+        ConfigManager mgr(dir.path() + "/config.toml", nullptr, QStringList(), "catppuccin-latte");
 
         QCOMPARE(mgr.theme(), QString("catppuccin-latte"));
     }
@@ -62,8 +62,59 @@ private slots:
         lightTheme.write("[colors]\ntext = \"#111111\"\n");
         lightTheme.close();
 
-        ConfigManager mgr(dir.path() + "/config.toml", nullptr, dir.path() + "/themes");
+        ConfigManager mgr(dir.path() + "/config.toml", nullptr, {dir.path() + "/themes"});
         QCOMPARE(mgr.availableThemes(), QStringList({"dark", "light"}));
+    }
+
+    void testAvailableThemesMergesDirsWithoutDuplicates()
+    {
+        QTemporaryDir dir;
+        QDir().mkpath(dir.path() + "/user");
+        QDir().mkpath(dir.path() + "/bundled");
+
+        for (const QString &path : {dir.path() + "/user/shared.toml",
+                                    dir.path() + "/bundled/shared.toml",
+                                    dir.path() + "/bundled/only-bundled.toml"}) {
+            QFile f(path);
+            QVERIFY(f.open(QIODevice::WriteOnly));
+            f.write("[colors]\ntext = \"#ffffff\"\n");
+            f.close();
+        }
+
+        ConfigManager mgr(dir.path() + "/config.toml", nullptr,
+                          {dir.path() + "/user", dir.path() + "/bundled"});
+        QCOMPARE(mgr.availableThemes(), QStringList({"only-bundled", "shared"}));
+    }
+
+    void testAutoThemeAndPairDefaults()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml", nullptr, QStringList(),
+                          QStringLiteral("auto"));
+
+        QCOMPARE(mgr.theme(), QString("auto"));
+        QCOMPARE(mgr.followSystemTheme(), true);
+        QCOMPARE(mgr.lightTheme(), QString("catppuccin-latte"));
+        QCOMPARE(mgr.darkTheme(), QString("catppuccin-mocha"));
+    }
+
+    void testThemePairRoundTrip()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/config.toml";
+        {
+            ConfigManager mgr(path);
+            QCOMPARE(mgr.followSystemTheme(), false);
+            mgr.saveSettings({{"theme", "auto"},
+                              {"lightTheme", "my-light"},
+                              {"darkTheme", "my-dark"}});
+        }
+
+        ConfigManager reloaded(path);
+        QCOMPARE(reloaded.theme(), QString("auto"));
+        QCOMPARE(reloaded.followSystemTheme(), true);
+        QCOMPARE(reloaded.lightTheme(), QString("my-light"));
+        QCOMPARE(reloaded.darkTheme(), QString("my-dark"));
     }
 
     void testDefaultRadius()

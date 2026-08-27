@@ -157,6 +157,131 @@ private slots:
         QCOMPARE(loader.color("base"), QColor("#1e1e2e"));
     }
 
+    // "auto" resolves against the system color scheme and re-resolves whenever
+    // it flips. setSystemColorScheme() stands in for the desktop portal here;
+    // in the app it is driven by QStyleHints::colorSchemeChanged.
+    void testAutoFollowsLightColorScheme()
+    {
+        ThemeLoader loader;
+        loader.setSystemColorScheme(Qt::ColorScheme::Light);
+        loader.setThemeSearchPaths({THEMES_DIR});
+        loader.setTheme(ThemeLoader::AutoTheme, "catppuccin-latte", "catppuccin-mocha");
+
+        QVERIFY(loader.followSystem());
+        QCOMPARE(loader.systemColorScheme(), QStringLiteral("light"));
+        QCOMPARE(loader.activeTheme(), QStringLiteral("catppuccin-latte"));
+        QCOMPARE(loader.color("base"), QColor("#eff1f5"));
+    }
+
+    void testAutoReloadsWhenColorSchemeFlips()
+    {
+        ThemeLoader loader;
+        loader.setSystemColorScheme(Qt::ColorScheme::Light);
+        loader.setThemeSearchPaths({THEMES_DIR});
+        loader.setTheme(ThemeLoader::AutoTheme, "catppuccin-latte", "catppuccin-mocha");
+        QSignalSpy spy(&loader, &ThemeLoader::themeChanged);
+
+        loader.setSystemColorScheme(Qt::ColorScheme::Dark);
+
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(loader.activeTheme(), QStringLiteral("catppuccin-mocha"));
+        QCOMPARE(loader.color("base"), QColor("#1e1e2e"));
+    }
+
+    void testExplicitThemeIgnoresColorScheme()
+    {
+        ThemeLoader loader;
+        loader.setSystemColorScheme(Qt::ColorScheme::Light);
+        loader.setThemeSearchPaths({THEMES_DIR});
+        loader.setTheme("catppuccin-mocha", "catppuccin-latte", "catppuccin-mocha");
+        QSignalSpy spy(&loader, &ThemeLoader::themeChanged);
+
+        loader.setSystemColorScheme(Qt::ColorScheme::Dark);
+
+        QVERIFY(!loader.followSystem());
+        QCOMPARE(spy.count(), 0);
+        QCOMPARE(loader.color("base"), QColor("#1e1e2e"));
+    }
+
+    void testAutoUsesConfiguredThemePair()
+    {
+        QTemporaryDir dir;
+        QFile light(dir.path() + "/my-light.toml");
+        light.open(QIODevice::WriteOnly);
+        light.write("[colors]\nbase = \"#ffffff\"\n");
+        light.close();
+
+        ThemeLoader loader;
+        loader.setSystemColorScheme(Qt::ColorScheme::Light);
+        loader.setThemeSearchPaths({dir.path()});
+        loader.setTheme(ThemeLoader::AutoTheme, "my-light", "my-dark");
+
+        QCOMPARE(loader.activeTheme(), QStringLiteral("my-light"));
+        QCOMPARE(loader.color("base"), QColor("#ffffff"));
+    }
+
+    void testUnknownColorSchemeFallsBackToDark()
+    {
+        ThemeLoader loader;
+        loader.setSystemColorScheme(Qt::ColorScheme::Unknown);
+        loader.setThemeSearchPaths({THEMES_DIR});
+        loader.setTheme(ThemeLoader::AutoTheme, "catppuccin-latte", "catppuccin-mocha");
+
+        QCOMPARE(loader.systemColorScheme(), QStringLiteral("unknown"));
+        QCOMPARE(loader.activeTheme(), QStringLiteral("catppuccin-mocha"));
+    }
+
+    void testSearchPathOrderShadowsBundledTheme()
+    {
+        QTemporaryDir userDir;
+        QFile shadow(userDir.path() + "/catppuccin-mocha.toml");
+        QVERIFY(shadow.open(QIODevice::WriteOnly));
+        shadow.write("[colors]\nbase = \"#010203\"\n");
+        shadow.close();
+
+        ThemeLoader loader;
+        loader.setThemeSearchPaths({userDir.path(), THEMES_DIR});
+        loader.setTheme("catppuccin-mocha", "catppuccin-latte", "catppuccin-mocha");
+
+        QCOMPARE(loader.color("base"), QColor("#010203"));
+    }
+
+    void testFallsThroughToLaterSearchPath()
+    {
+        QTemporaryDir emptyDir;
+
+        ThemeLoader loader;
+        loader.setThemeSearchPaths({emptyDir.path(), THEMES_DIR});
+        loader.setTheme("catppuccin-latte", "catppuccin-latte", "catppuccin-mocha");
+
+        QCOMPARE(loader.color("base"), QColor("#eff1f5"));
+    }
+
+    // A system themer rewriting the active theme file must recolor the running
+    // app, not wait for a restart.
+    void testReloadsWhenThemeFileChanges()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/live.toml";
+        QFile theme(path);
+        QVERIFY(theme.open(QIODevice::WriteOnly));
+        theme.write("[colors]\nbase = \"#111111\"\n");
+        theme.close();
+
+        ThemeLoader loader;
+        loader.setThemeSearchPaths({dir.path()});
+        loader.setTheme("live", "live", "live");
+        QCOMPARE(loader.color("base"), QColor("#111111"));
+
+        QSignalSpy spy(&loader, &ThemeLoader::themeChanged);
+        QVERIFY(theme.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        theme.write("[colors]\nbase = \"#222222\"\n");
+        theme.close();
+
+        QVERIFY(spy.wait(3000));
+        QCOMPARE(loader.color("base"), QColor("#222222"));
+    }
+
     void testColorsSectionMissing()
     {
         QTemporaryDir dir;

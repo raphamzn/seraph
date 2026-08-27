@@ -26,7 +26,7 @@ Seraph is a Qt6/QML file manager with three layers:
 
 **QML Frontend** (`src/qml/`) — All rendering. `Main.qml` is the root that wires tab state, selection, and keyboard shortcuts. `FileViewContainer.qml` switches between grid/list/detailed views. `Theme.qml` is a QML singleton providing colors from the active TOML theme.
 
-**C++ Backend** (`src/models/`, `src/services/`, `src/providers/`) — Exposed to QML as context properties set in `main.cpp`. Models (FileSystemModel, TabListModel, BookmarkModel, DeviceModel) are all QAbstractListModel subclasses with custom roles. Services (ConfigManager, ThemeLoader, FileOperations, ClipboardManager) manage state and async operations.
+**C++ Backend** (`src/models/`, `src/services/`, `src/providers/`) — Exposed to QML as context properties set in `main.cpp`. Models (FileSystemModel, TabListModel, BookmarkModel, DeviceModel) are all QAbstractListModel subclasses with custom roles. Services (ConfigManager, ThemeLoader, FileOperations, ClipboardManager) manage state and async operations. SystemAppearance reports the desktop light/dark preference (xdg-desktop-portal `org.freedesktop.appearance`, with QStyleHints as fallback) and drives ThemeLoader when `theme = "auto"`.
 
 **System Layer** — FileOperations spawns rsync/gio/xdg-open via QProcess. DeviceModel monitors UDisks2 over DBus. Assumes Wayland (wl-copy for clipboard).
 
@@ -38,7 +38,7 @@ QML action → Q_INVOKABLE C++ method → model property change → QML property
 
 - Models expose data via `roleNames()` mapping enums to QML-accessible names (e.g., `FileNameRole` → `"fileName"`)
 - QML components communicate upward via signals (fileActivated, contextMenuRequested), downward via property bindings
-- Config lives at `~/.config/seraph/config.toml` (TOML format); theme files in `themes/`
+- Config lives at `~/.config/seraph/config.toml` (TOML format); theme files in `~/.config/seraph/themes/` (user, wins) then `themes/` (bundled). ThemeLoader watches the active theme file, so rewriting it recolors the running app
 - All async file I/O through QProcess to avoid blocking the GUI thread
 
 ## Commit Rules

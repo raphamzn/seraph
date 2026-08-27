@@ -29,7 +29,15 @@ Window {
     }
 
     readonly property color sectionBorderColor: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
-    readonly property string defaultThemeName: "catppuccin-mocha"
+    // "auto" tracks the system light/dark preference; only offered as the
+    // default where the system actually reports one.
+    readonly property string autoThemeValue: "auto"
+    readonly property string autoThemeLabel: "Follow System"
+    readonly property string defaultThemeName: autoThemeValue
+    readonly property string defaultLightThemeName: "catppuccin-latte"
+    readonly property string defaultDarkThemeName: "catppuccin-mocha"
+    readonly property bool followSystemTheme: draftTheme === autoThemeValue
+    readonly property bool systemIsDark: theme.systemColorScheme !== "light"
     readonly property string defaultIconThemeName: "Adwaita"
     readonly property string defaultSidebarPosition: "left"
     readonly property int defaultSidebarWidth: 200
@@ -65,6 +73,8 @@ Window {
     property int currentSidebarWidth: 200
 
     property var themeOptions: []
+    property var lightThemeOptions: []
+    property var darkThemeOptions: []
     property var fontOptions: []
     property var iconThemeOptions: []
     property var availableThemeValues: []
@@ -75,6 +85,8 @@ Window {
     property bool pendingSettingsDirty: false
 
     property string draftTheme: config.theme
+    property string draftLightTheme: config.lightTheme
+    property string draftDarkTheme: config.darkTheme
     property string draftFontFamily: config.fontFamily
     property string draftIconTheme: config.iconTheme
     property bool draftDarkMode: true
@@ -209,13 +221,36 @@ Window {
         return index >= 0 ? index : fallbackIndex
     }
 
+    function themeLabelForValue(value) {
+        return value === autoThemeValue ? autoThemeLabel : value
+    }
+
+    function themeValueForLabel(label) {
+        return label === autoThemeLabel ? autoThemeValue : label
+    }
+
+    function buildThemeOptions() {
+        var concrete = buildOptions(availableThemeValues,
+                                    draftTheme === autoThemeValue ? "" : draftTheme,
+                                    defaultDarkThemeName)
+        return [autoThemeLabel].concat(concrete)
+    }
+
     function isDarkTheme(themeName) {
-        return themeName !== "catppuccin-latte"
+        if (themeName === autoThemeValue)
+            return systemIsDark
+        return themeName !== defaultLightThemeName && themeName !== draftLightTheme
     }
 
     function setDraftTheme(themeName) {
         draftTheme = themeName
         draftDarkMode = isDarkTheme(themeName)
+    }
+
+    // While following the system, the Dark Mode toggle mirrors it live.
+    onSystemIsDarkChanged: {
+        if (followSystemTheme)
+            draftDarkMode = systemIsDark
     }
 
     function bindAppearancePreview() {
@@ -240,6 +275,8 @@ Window {
     }
 
     function resetToDefaults() {
+        draftLightTheme = defaultLightThemeName
+        draftDarkTheme = defaultDarkThemeName
         setDraftTheme(defaultThemeName)
         draftFontFamily = ""
         draftIconTheme = defaultIconThemeName
@@ -273,8 +310,12 @@ Window {
         syncingFromConfig = true
         try {
             draftTheme = config.theme
+            draftLightTheme = config.lightTheme
+            draftDarkTheme = config.darkTheme
             draftDarkMode = isDarkTheme(draftTheme)
-            themeOptions = buildOptions(availableThemeValues, draftTheme, "catppuccin-mocha")
+            themeOptions = buildThemeOptions()
+            lightThemeOptions = buildOptions(availableThemeValues, draftLightTheme, defaultLightThemeName)
+            darkThemeOptions = buildOptions(availableThemeValues, draftDarkTheme, defaultDarkThemeName)
 
             draftFontFamily = config.fontFamily
             fontOptions = buildFontOptions()
@@ -342,6 +383,8 @@ Window {
     function currentSettings() {
         return {
             theme: draftTheme,
+            lightTheme: draftLightTheme,
+            darkTheme: draftDarkTheme,
             fontFamily: draftFontFamily,
             iconTheme: draftIconTheme,
             showHidden: draftShowHidden,
@@ -433,20 +476,36 @@ Window {
                 Layout.bottomMargin: 8
                 spacing: 12
 
-                Text {
-                    text: "Dark Mode"
-                    color: Theme.text
-                    font.pointSize: Theme.fontNormal + 2
-                    font.bold: true
+                ColumnLayout {
+                    spacing: 2
+
+                    Text {
+                        text: "Dark Mode"
+                        color: Theme.text
+                        font.pointSize: Theme.fontNormal + 2
+                        font.bold: true
+                    }
+
+                    Text {
+                        visible: root.followSystemTheme
+                        text: theme.systemColorScheme === "unknown"
+                            ? "Following the system — no preference reported"
+                            : "Following the system"
+                        color: Theme.muted
+                        font.pointSize: Theme.fontSmall
+                    }
                 }
 
                 Item { Layout.fillWidth: true }
 
                 Q.Toggle {
                     label: ""
+                    // Locked while the theme tracks the system; pick a concrete
+                    // theme below to drive it manually again.
+                    enabled: !root.followSystemTheme
                     checked: root.draftDarkMode
                     onToggled: (value) => {
-                        root.setDraftTheme(value ? "catppuccin-mocha" : "catppuccin-latte")
+                        root.setDraftTheme(value ? root.draftDarkTheme : root.draftLightTheme)
                         root.applySettingsNow()
                     }
                 }
@@ -466,9 +525,33 @@ Window {
                 Layout.fillWidth: true
                 label: "Theme"
                 model: root.themeOptions
-                currentIndex: root.optionIndex(root.themeOptions, root.draftTheme, 0)
+                currentIndex: root.optionIndex(root.themeOptions, root.themeLabelForValue(root.draftTheme), 0)
                 onSelected: (_, value) => {
-                    root.setDraftTheme(value)
+                    root.setDraftTheme(root.themeValueForLabel(value))
+                    root.applySettingsNow()
+                }
+            }
+
+            Q.Dropdown {
+                visible: root.followSystemTheme
+                Layout.fillWidth: true
+                label: "Light Theme"
+                model: root.lightThemeOptions
+                currentIndex: root.optionIndex(root.lightThemeOptions, root.draftLightTheme, 0)
+                onSelected: (_, value) => {
+                    root.draftLightTheme = value
+                    root.applySettingsNow()
+                }
+            }
+
+            Q.Dropdown {
+                visible: root.followSystemTheme
+                Layout.fillWidth: true
+                label: "Dark Theme"
+                model: root.darkThemeOptions
+                currentIndex: root.optionIndex(root.darkThemeOptions, root.draftDarkTheme, 0)
+                onSelected: (_, value) => {
+                    root.draftDarkTheme = value
                     root.applySettingsNow()
                 }
             }

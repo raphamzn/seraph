@@ -15,6 +15,9 @@ class ConfigManager : public QObject
     Q_PROPERTY(QStringList availableIconThemes READ availableIconThemes CONSTANT)
     Q_PROPERTY(QStringList availableThemes READ availableThemes CONSTANT)
     Q_PROPERTY(QString theme READ theme NOTIFY configChanged)
+    Q_PROPERTY(QString lightTheme READ lightTheme NOTIFY configChanged)
+    Q_PROPERTY(QString darkTheme READ darkTheme NOTIFY configChanged)
+    Q_PROPERTY(bool followSystemTheme READ followSystemTheme NOTIFY configChanged)
     Q_PROPERTY(QString iconTheme READ iconTheme NOTIFY configChanged)
     Q_PROPERTY(bool builtinIcons READ builtinIcons NOTIFY configChanged)
     Q_PROPERTY(QString fontFamily READ fontFamily NOTIFY configChanged)
@@ -49,13 +52,18 @@ class ConfigManager : public QObject
 
 public:
     explicit ConfigManager(const QString &configPath, QObject *parent = nullptr,
-                           const QString &themesDir = QString(),
+                           const QStringList &themeDirs = QStringList(),
                            const QString &defaultTheme = QStringLiteral("catppuccin-mocha"));
 
     QStringList availableFonts() const;
     QStringList availableIconThemes() const;
     QStringList availableThemes() const;
+    // May be "auto", meaning lightTheme()/darkTheme() are picked according to
+    // the system color scheme (resolved by ThemeLoader).
     QString theme() const;
+    QString lightTheme() const;
+    QString darkTheme() const;
+    bool followSystemTheme() const;
     QString iconTheme() const;
     bool builtinIcons() const;
     QString fontFamily() const;
@@ -121,11 +129,13 @@ private:
     QMap<QString, QVariantMap> m_folderSort;
 
     QString m_configPath;
-    QString m_themesDir;
+    QStringList m_themeDirs;
     QString m_defaultThemeName;
     QFileSystemWatcher m_watcher;
 
     QString m_theme;
+    QString m_lightTheme;
+    QString m_darkTheme;
     QString m_iconTheme;
     bool m_builtinIcons;
     QString m_fontFamily;

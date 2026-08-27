@@ -2,6 +2,7 @@ set(SERAPH_SOURCES
     main.cpp
     services/configmanager.cpp
     services/themeloader.cpp
+    services/systemappearance.cpp
     services/clipboardmanager.cpp
     services/fileoperations.cpp
     services/giotransferworker.cpp

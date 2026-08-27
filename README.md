@@ -65,7 +65,7 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland: lightweigh
 
 ### Look & feel
 
-- **TOML themes** with live reload (Catppuccin Mocha by default)
+- **TOML themes** with live reload, and an `auto` mode that follows the system light/dark preference
 - **Built-in SVG icon set** (60+ Lucide-style icons rendered via Qt Shapes)
 - **Configurable corner radius**, fonts, animation duration
 - **Wayland compositor blur** on Hyprland plus native KWin blur on KDE Plasma
@@ -178,7 +178,9 @@ Config lives at `~/.config/seraph/config.toml` and is created with sensible defa
 
 ```toml
 [general]
-theme = "catppuccin-mocha"     # filename in themes/ without .toml
+theme = "catppuccin-mocha"     # filename in themes/ without .toml, or "auto"
+light_theme = "catppuccin-latte"  # used when theme = "auto" and the system is light
+dark_theme = "catppuccin-mocha"   # used when theme = "auto" and the system is dark
 icon_theme = "Adwaita"         # system icon theme fallback
 builtin_icons = true           # use bundled SVG icons
 default_view = "grid"          # grid | detailed | miller
@@ -211,7 +213,10 @@ paths = ["~/Documents", "~/Downloads", "~/Pictures", "~/Projects"]
 
 ## 🎨 Theming
 
-Themes are TOML files in `themes/`. Drop a new file there or in `~/.config/seraph/themes/` and reference it from config:
+Themes are TOML files. Seraph looks in `~/.config/seraph/themes/` first, then in
+the bundled `themes/` — a user theme shadows a bundled one of the same name, and
+both show up in the theme picker. Drop a file in either and reference it from
+config:
 
 ```toml
 [colors]
@@ -229,7 +234,18 @@ warning = "#f9e2af"
 error   = "#f38ba8"
 ```
 
-Themes reload live on save.
+The active theme file is watched, so saving it recolors the running app — which
+also means a system themer can drive Seraph by rewriting a theme in
+`~/.config/seraph/themes/`.
+
+### Following the system light/dark preference
+
+Set `theme = "auto"` (or pick **Follow System** in Settings → Look & Feel) and
+Seraph switches between `light_theme` and `dark_theme` as the desktop's
+preference changes — no restart, the colors cross-fade in place. The preference
+comes from `xdg-desktop-portal` (`org.freedesktop.appearance` `color-scheme`),
+the same source GTK and Qt apps use. New installs default to `auto`; where no
+portal reports a preference, Seraph keeps `dark_theme`.
 
 ---
 

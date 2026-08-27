@@ -18,7 +18,6 @@
 #include <QSaveFile>
 #include <QTimer>
 #include <QFontDatabase>
-#include <QStyleHints>
 #include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -30,6 +29,7 @@
 
 #include "services/configmanager.h"
 #include "services/themeloader.h"
+#include "services/systemappearance.h"
 #include "services/fileoperations.h"
 #include "services/clipboardmanager.h"
 #include "services/draghelper.h"
@@ -233,22 +233,36 @@ int main(int argc, char *argv[])
     if (!dataDir.isEmpty())
         themeSearchPaths.prepend(QDir(dataDir).filePath("themes"));
 
-    const QString themesDir = firstExistingDir(themeSearchPaths);
+    const QString bundledThemesDir = firstExistingDir(themeSearchPaths);
     if (dataDir.isEmpty())
         qWarning() << "Seraph: unable to locate data directory";
-    if (themesDir.isEmpty())
+    if (bundledThemesDir.isEmpty())
         qWarning() << "Seraph: unable to locate themes directory";
 
-    const QString systemDefaultTheme = app.styleHints()->colorScheme() == Qt::ColorScheme::Light
-        ? QStringLiteral("catppuccin-latte")
-        : QStringLiteral("catppuccin-mocha");
+    // The user's own themes dir comes first so a theme dropped there shadows a
+    // bundled one of the same name — and so a system themer can generate one.
+    // Listed unconditionally: a themer may create it while Seraph is running,
+    // and lookups check each candidate file anyway.
+    QStringList themeDirs{configDir + "/themes"};
+    if (!bundledThemesDir.isEmpty())
+        themeDirs.append(bundledThemesDir);
+
+    // Fresh installs follow the system light/dark preference. Where nothing
+    // reports one, "auto" resolves to the dark theme anyway.
+    const QString systemDefaultTheme = ThemeLoader::AutoTheme;
 
     // Create backend instances
-    ConfigManager *config = new ConfigManager(configPath, &app, themesDir, systemDefaultTheme);
+    ConfigManager *config = new ConfigManager(configPath, &app, themeDirs, systemDefaultTheme);
     mark("ConfigManager loaded");
     app.setFont(resolveUiFont(config->fontFamily()));
+    SystemAppearance *appearance = new SystemAppearance(&app);
+    mark("SystemAppearance probed");
     ThemeLoader *theme = new ThemeLoader(&app);
-    theme->loadTheme(config->theme(), themesDir);
+    theme->setThemeSearchPaths(themeDirs);
+    theme->setSystemColorScheme(appearance->colorScheme());
+    QObject::connect(appearance, &SystemAppearance::colorSchemeChanged,
+                     theme, &ThemeLoader::setSystemColorScheme);
+    theme->setTheme(config->theme(), config->lightTheme(), config->darkTheme());
     mark("ThemeLoader loaded");
 
     TabListModel *tabModel = new TabListModel(&app);
@@ -354,7 +368,7 @@ int main(int argc, char *argv[])
 
     // Keep the live UI in sync with persisted config values.
     QObject::connect(config, &ConfigManager::configChanged, [=, &app, &resolveUiFont]() {
-        theme->loadTheme(config->theme(), themesDir);
+        theme->setTheme(config->theme(), config->lightTheme(), config->darkTheme());
         bookmarks->setBookmarks(config->bookmarks());
         fsModel->setShowHidden(config->showHidden());
         splitFsModel->setShowHidden(config->showHidden());
