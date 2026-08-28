@@ -114,14 +114,6 @@ Item {
     height: 28
     clip: false
 
-    // Background MouseArea: double-click empty space enters edit mode
-    MouseArea {
-        anchors.fill: parent
-        visible: !root.editMode
-        z: -1
-        onDoubleClicked: root.startEditing()
-    }
-
     // Clickable path segments (display mode)
     Flickable {
         id: segmentsFlickable
@@ -131,6 +123,17 @@ Item {
         contentHeight: height
         flickableDirection: Flickable.HorizontalFlick
         clip: true
+
+        // Sits under the segments, so a double-click that misses a segment
+        // button still opens the editable path: empty space, the separators,
+        // the leading icon, and the current folder (whose button is disabled).
+        // It has to live inside the Flickable — a sibling never sees the press.
+        MouseArea {
+            id: pathEditArea
+            width: Math.max(segmentsFlickable.width, segmentsRow.width)
+            height: segmentsFlickable.height
+            onDoubleClicked: root.startEditing()
+        }
 
         Row {
             id: segmentsRow
