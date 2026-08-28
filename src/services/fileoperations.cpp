@@ -583,7 +583,14 @@ QStringList trashRootCandidatesForPath(const QString &path)
     if (!cleanPath.isEmpty()) {
         const QString lookupPath = existingLookupPathFor(cleanPath);
         const QString storageRoot = QDir::cleanPath(QStorageInfo(lookupPath).rootPath());
-        if (!storageRoot.isEmpty() && storageRoot != "/") {
+        // The spec puts a file that shares $HOME's filesystem in the home
+        // trash. Testing only against "/" is not enough: /home is very often a
+        // mount of its own — a separate partition, or a btrfs @home subvolume
+        // as on the default Arch layout — and then every file the user owns was
+        // routed to a /home/.Trash-$uid that nothing ever creates.
+        static const QString homeRoot =
+            QDir::cleanPath(QStorageInfo(QDir::homePath()).rootPath());
+        if (!storageRoot.isEmpty() && storageRoot != "/" && storageRoot != homeRoot) {
             const QString uid = currentUidString();
             roots.append(QDir(storageRoot).filePath(".Trash-" + uid));
             roots.append(QDir(storageRoot).filePath(".Trash/" + uid));
