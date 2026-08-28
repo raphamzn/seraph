@@ -123,8 +123,11 @@ Item {
             function(match, pre, url, post) {
                 if (/^([a-zA-Z][a-zA-Z0-9+.\-]*:|\/|#)/.test(url))
                     return match
+                // Only baseDir is a filesystem path and needs encoding;
+                // rel comes from the document and is already URL syntax,
+                // so re-encoding it would double any escape the author wrote.
                 var rel = url.replace(/^\.\//, "")
-                return pre + "file://" + (baseDir + "/" + rel).replace(/ /g, "%20") + post
+                return pre + MediaUrl.file(baseDir) + "/" + rel + post
             })
     }
     readonly property bool pdfPreviewAvailable: previewService.pdfPreviewAvailable
