@@ -270,8 +270,18 @@ bool gioPathExists(const QString &path)
 
 bool deleteGFileRecursive(GFile *file, QString *error, GCancellable *cancellable = nullptr)
 {
-    const GFileType type = g_file_query_file_type(
-        file, G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, cancellable);
+    // The gvfs trash backend refuses every write below a trashed item
+    // ("Trash items cannot be modified"), so recursing into a trashed
+    // folder fails on its first child and the folder itself is never
+    // removed. g_file_delete() on the top-level trash entry already
+    // erases the whole tree, so never recurse under trash://.
+    char *scheme = g_file_get_uri_scheme(file);
+    const bool inTrash = scheme && g_strcmp0(scheme, "trash") == 0;
+    g_free(scheme);
+
+    const GFileType type = inTrash
+        ? G_FILE_TYPE_REGULAR
+        : g_file_query_file_type(file, G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, cancellable);
     if (type != G_FILE_TYPE_DIRECTORY) {
         GError *delErr = nullptr;
         const bool ok = g_file_delete(file, cancellable, &delErr);

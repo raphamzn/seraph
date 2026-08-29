@@ -753,6 +753,50 @@ private slots:
         QDir(testPath).removeRecursively();
     }
 
+    // A folder in the trash used to be undeletable: deleting recursed into
+    // it, and the gvfs trash backend refuses every write below a trashed
+    // item ("Trash items cannot be modified"), so the folder stayed put.
+    void testDeleteTrashedFolderPermanently()
+    {
+        if (QStandardPaths::findExecutable("gio").isEmpty())
+            QSKIP("gio not found in PATH");
+
+        const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const QString folderPath = QDir::homePath() + "/.cache/seraph-test-trash-dir-" + uniqueId;
+        QVERIFY(QDir().mkpath(folderPath + "/nested"));
+
+        const QString innerFile = folderPath + "/nested/inner.txt";
+        {
+            QFile f(innerFile);
+            QVERIFY(f.open(QIODevice::WriteOnly));
+            f.write("delete me for good");
+            f.close();
+        }
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::operationFinished);
+
+        ops.trashFiles({folderPath});
+        if (!spy.wait(5000))
+            QSKIP("gio trash timed out (may not be supported in this environment)");
+        if (!spy.at(0).at(0).toBool())
+            QSKIP("gio trash failed (may not be supported for this path)");
+
+        const QString trashUri = findTrashEntryUri(folderPath);
+        const QString trashedPath = findTrashEntryPath(folderPath);
+        if (trashUri.isEmpty() || trashedPath.isEmpty())
+            QSKIP("Could not locate trashed folder");
+
+        spy.clear();
+        ops.deleteFiles({trashUri});
+        QVERIFY(spy.wait(10000));
+
+        QVERIFY2(spy.at(0).at(0).toBool(),
+                 qPrintable(spy.at(0).at(1).toString()));
+        QVERIFY(!QFileInfo::exists(trashedPath));
+        QVERIFY(findTrashEntryUri(folderPath).isEmpty());
+    }
+
     void testTrashHelpersForHomePath()
     {
         FileOperations ops;
