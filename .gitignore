@@ -9,3 +9,13 @@ CLAUDE.md
 .claude/
 docs/*
 !docs/screenshots/
+
+# makepkg scratch dirs, if BUILDDIR is left at its default (the repo root)
+/pkg/
+/src/seraph-git/
+/src/quill/
+/src/quill-icons/
+/seraph-git/
+/quill/
+/quill-icons/
+*.pkg.tar.zst
