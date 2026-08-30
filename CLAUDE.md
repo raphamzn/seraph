@@ -28,7 +28,7 @@ Seraph is a Qt6/QML file manager with three layers:
 
 **C++ Backend** (`src/models/`, `src/services/`, `src/providers/`) — Exposed to QML as context properties set in `main.cpp`. Models (FileSystemModel, TabListModel, BookmarkModel, DeviceModel) are all QAbstractListModel subclasses with custom roles. Services (ConfigManager, ThemeLoader, FileOperations, ClipboardManager) manage state and async operations. SystemAppearance reports the desktop light/dark preference (xdg-desktop-portal `org.freedesktop.appearance`, with QStyleHints as fallback) and drives ThemeLoader when `theme = "auto"`.
 
-**System Layer** — FileOperations spawns rsync/gio/xdg-open via QProcess. DeviceModel monitors UDisks2 over DBus. Assumes Wayland (wl-copy for clipboard).
+**System Layer** — FileOperations spawns gio/xdg-open via QProcess. DeviceModel monitors UDisks2 over DBus. Assumes Wayland (wl-copy for clipboard).
 
 ### Data flow
 
@@ -75,4 +75,4 @@ Quill's `Theme.qml` singleton is bridged from Seraph's theme in `Main.qml` `Comp
 
 ## Dependencies
 
-Qt6 modules: Core, Gui, Qml, Quick, QuickControls2, DBus, Widgets, Svg, SvgWidgets. TOML parsing via header-only `third_party/toml.hpp`. Runtime CLI tools: rsync, gio, xdg-open, wl-copy (optional; warns if missing).
+Qt6 modules: Core, Gui, Qml, Quick, QuickControls2, DBus, Widgets, Svg, SvgWidgets. TOML parsing via header-only `third_party/toml.hpp`. Runtime CLI tools: gio, xdg-open, wl-copy (optional; warns if missing).
