@@ -57,7 +57,7 @@ Quill's `Theme.qml` singleton is bridged from Seraph's theme in `Main.qml` `Comp
 
 ## Packaging & Distribution
 
-- **Arch package**: `PKGBUILD` in the repo root, built locally with `makepkg -si`. This is the only packaging in use today.
+- **Arch package**: `PKGBUILD` in the repo root. Published on the AUR as `seraph-git`, and built locally with `makepkg -si`.
 - **AppImage**: GitHub Actions builds on `v*` tags (`.github/workflows/build.yml`)
 - **Desktop entry + icon**: `dist/seraph.desktop`, `dist/seraph.svg`
 
@@ -65,9 +65,13 @@ Quill's `Theme.qml` singleton is bridged from Seraph's theme in `Main.qml` `Comp
 
 `makepkg -si` from the repo root produces and installs `seraph-git`. The PKGBUILD **clones `main` from GitHub** rather than using the working tree, so it packages what has been pushed — commit and push before building, or the package will not contain the change under test.
 
-### Not on the AUR yet
+### The AUR package
 
-`seraph-git` is not published on the AUR: `paru`/`yay` cannot resolve it, and there is no `~/seraph-aur/` clone. An installed `seraph-git` came from a local `makepkg`. Once published, the AUR repo will hold only `PKGBUILD` + `.SRCINFO` — build instructions, not source code — and because the PKGBUILD clones `main` at build time it will only need updating when dependencies, build steps, or install paths change, not for code changes.
+`seraph-git` is on the AUR (published 2026-08-29), so `paru -S seraph-git` works. Its repo is a separate git repo holding only `PKGBUILD` + `.SRCINFO` — build instructions, not source code. There is no local clone of it and you should not need one: `.github/workflows/aur.yml` publishes on its own, after a green `Build` of `main` and on a 6-hourly schedule. Because the PKGBUILD clones `main` at build time, a code change needs nothing done to the AUR at all; only dependency, build-step or install-path changes require touching the PKGBUILD.
+
+`.SRCINFO` is the metadata the AUR and `paru`/`yay` actually read, and fields in it are derived from `pkgver` (`provides=`), so the workflow regenerates it with `makepkg --printsrcinfo` in an Arch container rather than patching lines. Keep the copy in this repo regenerated whenever the PKGBUILD changes — the workflow does not read it, but it is what a reader sees.
+
+Two of the three `source=` entries point at soyeb-jim285's quill and quill-icons. If either is renamed or archived, the AUR build breaks for everyone with no change on this side.
 
 ### SERAPH_DATA_DIR
 
