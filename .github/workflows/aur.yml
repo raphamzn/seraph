@@ -1,12 +1,24 @@
 name: Update AUR
 
 on:
-  push:
+  # After a green Build of main, never on the push itself: a commit that
+  # fails to build must not reach the AUR.
+  workflow_run:
+    workflows: ["Build"]
+    types: [completed]
     branches:
       - main
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: aur-update
+  cancel-in-progress: false
 
 jobs:
   aur:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -26,9 +38,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "$AUR_SSH_KEY" > ~/.ssh/aur
           chmod 600 ~/.ssh/aur
-          echo "Host aur.archlinux.org" >> ~/.ssh/config
-          echo "  IdentityFile ~/.ssh/aur" >> ~/.ssh/config
-          echo "  User aur" >> ~/.ssh/config
+          {
+            echo "Host aur.archlinux.org"
+            echo "  IdentityFile ~/.ssh/aur"
+            echo "  User aur"
+          } >> ~/.ssh/config
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
         env:
           AUR_SSH_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -36,12 +50,19 @@ jobs:
       - name: Clone AUR repo
         run: git clone ssh://aur@aur.archlinux.org/seraph-git.git aur-repo
 
-      - name: Sync PKGBUILD from repo and update pkgver
+      # .SRCINFO is the metadata the AUR and paru/yay actually read, and
+      # several of its fields are derived from pkgver (provides=, among
+      # others), so it is regenerated rather than patched line by line.
+      # makepkg refuses to run as root; the builder uid is matched to the
+      # bind-mounted directory so nothing in the workspace changes owner.
+      - name: Sync package metadata
         run: |
           cp PKGBUILD aur-repo/PKGBUILD
-          cd aur-repo
-          sed -i "s/^pkgver=.*/pkgver=$PKGVER/" PKGBUILD
-          sed -i "s/pkgver = .*/pkgver = $PKGVER/" .SRCINFO
+          sed -i "s/^pkgver=.*/pkgver=$PKGVER/" aur-repo/PKGBUILD
+          docker run --rm --volume "$PWD/aur-repo:/pkg" archlinux:base-devel \
+            bash -c 'useradd --uid "$(stat --format=%u /pkg)" --create-home builder && cd /pkg && runuser -u builder -- makepkg --printsrcinfo' \
+            > aur-repo/.SRCINFO
+          grep -q "pkgver = $PKGVER" aur-repo/.SRCINFO
         env:
           PKGVER: ${{ steps.pkgver.outputs.pkgver }}
 
@@ -50,12 +71,19 @@ jobs:
           cd aur-repo
           git config user.name "Raphael"
           git config user.email "raphamzn@gmail.com"
-          if git diff --quiet; then
+          # The AUR serves an empty repo for a package that does not exist
+          # yet, where HEAD is unborn on whatever init.defaultBranch happens
+          # to be. Name the branch explicitly so the first publish lands.
+          git checkout -B master
+          git add PKGBUILD .SRCINFO
+          # Staged, not worktree: on that first publish both files are
+          # untracked, and `git diff` ignores untracked files -- it would
+          # report "no changes" and skip the push that creates the package.
+          if git diff --cached --quiet; then
             echo "No changes to push"
             exit 0
           fi
-          git add PKGBUILD .SRCINFO
           git commit -m "bump pkgver to $PKGVER"
-          git push
+          git push origin master
         env:
           PKGVER: ${{ steps.pkgver.outputs.pkgver }}

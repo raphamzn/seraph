@@ -1,6 +1,6 @@
 # Maintainer: Raphael <raphamzn@gmail.com>
 pkgname=seraph-git
-pkgver=r315.gd13e5fb
+pkgver=r316.g7d0e94d
 pkgrel=1
 pkgdesc="A lightweight Qt6/QML file manager for Hyprland"
 arch=('x86_64' 'aarch64')
@@ -20,10 +20,6 @@ makedepends=(
     'cmake'
     'ninja'
     'git'
-    'kwindowsystem'
-    'qt6-base'
-    'qt6-declarative'
-    'qt6-svg'
 )
 optdepends=(
     'wl-clipboard: clipboard support via wl-copy and wl-paste'
@@ -35,7 +31,7 @@ optdepends=(
     'perl-image-exiftool: EXIF metadata for images (via exiftool)'
     'udisks2: mount/unmount devices from sidebar'
 )
-provides=('seraph')
+provides=("seraph=${pkgver}")
 conflicts=('seraph')
 source=(
     "${pkgname}::git+https://github.com/raphamzn/seraph.git"
@@ -84,6 +80,12 @@ package() {
     # Install QML sources for Quill module
     install -dm755 "${pkgdir}/usr/share/seraph/src"
     cp -r "${pkgname}/src/qml" "${pkgdir}/usr/share/seraph/src/qml"
+
+    # Quill's standalone demo imports Quickshell, which Seraph does not use and
+    # does not depend on. It is not registered in Quill's qmldir, so dropping it
+    # keeps namcap from reporting a missing quickshell dependency.
+    rm -rf "${pkgdir}/usr/share/seraph/src/qml/Quill/Showcase.qml" \
+           "${pkgdir}/usr/share/seraph/src/qml/Quill/showcase"
 
     # Install desktop entry, icon and AppStream metainfo
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.desktop" \
