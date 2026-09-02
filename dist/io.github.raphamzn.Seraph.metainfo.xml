@@ -5,13 +5,13 @@
   <project_license>MIT</project_license>
 
   <name>Seraph</name>
-  <summary>Lightweight Qt6/QML file manager for Hyprland</summary>
+  <summary>Lightweight Qt6/QML file manager for Hyprland and niri</summary>
 
   <description>
     <p>
       Seraph is a fast, keyboard-driven file manager built with Qt6 and QML.
-      It is designed for tiling Wayland compositors like Hyprland but works on
-      any Wayland desktop session.
+      It is designed for tiling Wayland compositors such as Hyprland and niri,
+      but works on any Wayland desktop session.
     </p>
     <p>Features:</p>
     <ul>

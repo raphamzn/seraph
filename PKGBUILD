@@ -2,7 +2,7 @@
 pkgname=seraph-git
 pkgver=r316.g7d0e94d
 pkgrel=1
-pkgdesc="A lightweight Qt6/QML file manager for Hyprland"
+pkgdesc="A lightweight Qt6/QML file manager for Hyprland and niri"
 arch=('x86_64' 'aarch64')
 url="https://github.com/raphamzn/seraph"
 license=('MIT')

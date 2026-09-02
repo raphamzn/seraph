@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Seraph
-Comment=File manager for Hyprland
+Comment=File manager for Hyprland and niri
 Exec=seraph %U
 Icon=system-file-manager
 Terminal=false

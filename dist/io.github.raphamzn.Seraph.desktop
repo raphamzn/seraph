@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Seraph
 GenericName=File Manager
-Comment=A lightweight Qt6/QML file manager for Hyprland
+Comment=A lightweight Qt6/QML file manager for Hyprland and niri
 Exec=seraph %F
 Icon=io.github.raphamzn.Seraph
 Terminal=false

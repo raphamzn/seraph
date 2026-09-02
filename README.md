@@ -4,7 +4,7 @@
 
 # Seraph
 
-**A fast, keyboard-friendly file manager for Hyprland and Wayland desktops.**
+**A fast, keyboard-friendly file manager for Hyprland, niri and Wayland desktops.**
 
 [![License](https://img.shields.io/github/license/raphamzn/seraph?style=flat-square)](LICENSE)
 [![Build](https://img.shields.io/github/actions/workflow/status/raphamzn/seraph/build.yml?style=flat-square)](https://github.com/raphamzn/seraph/actions)
@@ -13,7 +13,7 @@
 
 ---
 
-Seraph is a Qt6/QML file manager designed to feel native on Hyprland: lightweight, themeable, and built around fast keyboard navigation. It pairs a polished UI with the practical features power users expect — Miller column view, kinetic scrolling, drag & drop, async operations, rich previews, and a TOML-based theme system.
+Seraph is a Qt6/QML file manager designed to feel native on Hyprland and niri: lightweight, themeable, and built around fast keyboard navigation. It pairs a polished UI with the practical features power users expect — Miller column view, kinetic scrolling, drag & drop, async operations, rich previews, and a TOML-based theme system.
 
 > **Seraph is a fork of [HyprFM](https://github.com/soyeb-jim285/hyprfm) by Soyeb Pervez Jim** (MIT). It carries the original work forward under a new name with an independent roadmap. See [Credits](#-credits).
 
