@@ -116,7 +116,15 @@ MouseArea {
             ? wheel.pixelDelta.y * touchpadMultiplier
             : (wheel.angleDelta.y / 120.0) * wheelStep * mouseWheelMultiplier
 
-        return wheel.inverted ? rawDelta : -rawDelta
+        // Negate so a positive angleDelta (wheel away from the user) decreases contentY.
+        //
+        // Do NOT branch on wheel.inverted here. That flag does not mean "the user asked for
+        // inverted scrolling"; it means the compositor already flipped these values before
+        // delivering them, which is precisely what natural scrolling is. Flipping a second
+        // time cancels the setting, so on a compositor with natural scroll enabled every view
+        // scrolled backwards while the rest of the desktop obeyed it. Qt's own Flickable and
+        // the PDF wheel handlers in this codebase use the delta exactly as delivered.
+        return -rawDelta
     }
 
     function shouldUseKinetic(wheel, gap) {
