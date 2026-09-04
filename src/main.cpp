@@ -45,6 +45,7 @@
 #include "services/searchservice.h"
 #include "services/undomanager.h"
 #include "services/previewservice.h"
+#include "services/markdownrenderer.h"
 #include "services/metadataextractor.h"
 #include "services/diskusageservice.h"
 #include "services/remoteaccessservice.h"
@@ -356,6 +357,7 @@ int main(int argc, char *argv[])
     splitSearchService->setResultsModel(splitSearchResults);
 
     PreviewService *previewService = new PreviewService(&app);
+    MarkdownRenderer *markdownRenderer = new MarkdownRenderer(&app);
     MetadataExtractor *metadataExtractor = new MetadataExtractor(&app);
     DiskUsageService *diskUsageService = new DiskUsageService(&app);
     RemoteAccessService *remoteAccessService = new RemoteAccessService(&app);
@@ -449,6 +451,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("splitSearchResults", splitSearchResults);
     engine.rootContext()->setContextProperty("splitSearchService", splitSearchService);
     engine.rootContext()->setContextProperty("previewService", previewService);
+    engine.rootContext()->setContextProperty("markdownRenderer", markdownRenderer);
     engine.rootContext()->setContextProperty("metadataExtractor", metadataExtractor);
     engine.rootContext()->setContextProperty("diskUsageService", diskUsageService);
     engine.rootContext()->setContextProperty("remoteAccessService", remoteAccessService);

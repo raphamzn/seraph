@@ -105,6 +105,35 @@ Item {
     // Let the user peek at the raw source of a rendered markdown file.
     property bool markdownShowSource: false
 
+    // The file-information panel beside the content: resizable by dragging
+    // the splitter, hidden with the header button or the I key. Both stick
+    // across sessions through config.toml's [preview] table.
+    property int infoPanelWidth: config.previewInfoWidth
+    property bool infoPanelVisible: config.previewInfoVisible
+    readonly property int infoPanelMinWidth: 220
+    readonly property int infoPanelMaxWidth: 520
+
+    function clampInfoPanelWidth(width) {
+        // Never squeeze the content below a usable width.
+        var roomLimit = paneRow.width - Math.round(320 * Theme.uiScale)
+        return Math.max(infoPanelMinWidth, Math.min(infoPanelMaxWidth, roomLimit, Math.round(width)))
+    }
+
+    function toggleInfoPanel() {
+        infoPanelVisible = !infoPanelVisible
+        config.savePreviewInfoPanel(infoPanelWidth, infoPanelVisible)
+    }
+
+    Connections {
+        target: config
+        function onConfigChanged() {
+            root.infoPanelWidth = config.previewInfoWidth
+            root.infoPanelVisible = config.previewInfoVisible
+        }
+    }
+    readonly property bool markdownRendered: isText && isMarkdown && !markdownShowSource
+        && !hasVisualPreview && !isPdf && textPreview.error === "" && !textPreview.isBinary
+
     // Directory holding the markdown file — used to resolve relative image paths.
     readonly property string markdownBaseDir: {
         if (filePath === "")
@@ -113,23 +142,6 @@ Item {
         return idx > 0 ? filePath.substring(0, idx) : ""
     }
 
-    // Rewrite relative image paths (![alt](rel.png)) to absolute file:// URLs so
-    // TextEdit.MarkdownText can load images stored next to the document. Absolute
-    // paths, anchors, and full URLs (http:, file:, data:) are left untouched.
-    function resolveMarkdownImages(content, baseDir) {
-        if (!content || !baseDir)
-            return content
-        return content.replace(/(!\[[^\]]*\]\()\s*([^)\s]+)([^)]*\))/g,
-            function(match, pre, url, post) {
-                if (/^([a-zA-Z][a-zA-Z0-9+.\-]*:|\/|#)/.test(url))
-                    return match
-                // Only baseDir is a filesystem path and needs encoding;
-                // rel comes from the document and is already URL syntax,
-                // so re-encoding it would double any escape the author wrote.
-                var rel = url.replace(/^\.\//, "")
-                return pre + MediaUrl.file(baseDir) + "/" + rel + post
-            })
-    }
     readonly property bool pdfPreviewAvailable: previewService.pdfPreviewAvailable
     readonly property bool videoPreviewAvailable: runtimeFeatures.ffmpegAvailable
     readonly property bool textHighlightAvailable: runtimeFeatures.batAvailable
@@ -379,18 +391,50 @@ Item {
         cycleFile(1)
     }
     Keys.onUpPressed: (event) => {
+        if (markdownRendered) {
+            event.accepted = true
+            markdownView.scrollByLines(-3)
+            return
+        }
         if (!isPdf)
             return
         event.accepted = true
         changePdfPage(-1)
     }
     Keys.onDownPressed: (event) => {
+        if (markdownRendered) {
+            event.accepted = true
+            markdownView.scrollByLines(3)
+            return
+        }
         if (!isPdf)
             return
         event.accepted = true
         changePdfPage(1)
     }
     Keys.onPressed: (event) => {
+        if (event.key === Qt.Key_I && event.modifiers === Qt.NoModifier) {
+            event.accepted = true
+            toggleInfoPanel()
+            return
+        }
+        // The markdown reader scrolls from the keyboard like a document viewer.
+        if (markdownRendered) {
+            if (event.key === Qt.Key_PageUp) {
+                event.accepted = true
+                markdownView.scrollByPages(-1)
+            } else if (event.key === Qt.Key_PageDown) {
+                event.accepted = true
+                markdownView.scrollByPages(1)
+            } else if (event.key === Qt.Key_Home) {
+                event.accepted = true
+                markdownView.scrollToEdge(true)
+            } else if (event.key === Qt.Key_End) {
+                event.accepted = true
+                markdownView.scrollToEdge(false)
+            }
+            return
+        }
         if (!isPdf)
             return
         if (event.key === Qt.Key_PageUp) {
@@ -624,6 +668,33 @@ Item {
                     }
                 }
 
+                // Show/hide the file-information panel.
+                Rectangle {
+                    width: 34
+                    height: 34
+                    radius: 17
+                    color: infoToggleMouse.containsMouse
+                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+                        : (root.infoPanelVisible
+                            ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.10)
+                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08))
+                    Accessible.role: Accessible.Button
+                    Accessible.name: root.infoPanelVisible ? "Hide file information" : "Show file information"
+
+                    IconInfo {
+                        anchors.centerIn: parent
+                        size: 16
+                        color: root.infoPanelVisible ? Theme.accent : Theme.subtext
+                    }
+
+                    MouseArea {
+                        id: infoToggleMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.toggleInfoPanel()
+                    }
+                }
+
                 Row {
                     spacing: 8
                     visible: root.directoryFiles.length > 1
@@ -703,9 +774,10 @@ Item {
             }
 
             RowLayout {
+                id: paneRow
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 16
+                spacing: 0
 
                 Rectangle {
                     Layout.fillWidth: true
@@ -796,10 +868,24 @@ Item {
                             }
                         }
 
+                        MarkdownView {
+                            id: markdownView
+                            anchors.fill: parent
+                            visible: root.markdownRendered
+                            source: root.markdownRendered ? textPreview.content : ""
+                            baseDir: root.markdownBaseDir
+                            fileName: root.fileName
+                            // Keep the outline and the meta strip clear of the
+                            // pills overlaid top-right.
+                            outlineTopInset: Math.round(44 * Theme.uiScale)
+                            headerRightInset: previewPills.width + previewPills.anchors.rightMargin + 12
+                            onCopyRequested: (text) => fileOps.copyTextToClipboard(text)
+                        }
+
                         Flickable {
                             id: textPreviewFlick
                             anchors.fill: parent
-                            visible: root.isText && !root.hasVisualPreview && !root.isPdf
+                            visible: root.isText && !root.hasVisualPreview && !root.isPdf && !root.markdownRendered
                             clip: true
                             interactive: true
                             boundsMovement: Flickable.StopAtBounds
@@ -809,36 +895,26 @@ Item {
 
                             TextEdit {
                                 id: textArea
-                                // Rendered markdown when it's a .md file and the user
-                                // hasn't flipped to "view source".
-                                readonly property bool renderMarkdown: root.isMarkdown
-                                    && !root.markdownShowSource
                                 readOnly: true
                                 selectByMouse: true
-                                // Rendered markdown wraps to the column; source/code
-                                // keeps its natural width and scrolls horizontally.
-                                width: renderMarkdown
-                                    ? textPreviewFlick.width
-                                    : Math.max(implicitWidth, textPreviewFlick.width)
+                                // Source/code keeps its natural width and scrolls
+                                // horizontally. Rendered markdown lives in MarkdownView.
+                                width: Math.max(implicitWidth, textPreviewFlick.width)
                                 height: Math.max(implicitHeight, textPreviewFlick.height)
-                                textFormat: renderMarkdown
-                                    ? TextEdit.MarkdownText
-                                    : (textPreview.usesBat && textPreview.html !== ""
-                                        ? TextEdit.RichText
-                                        : TextEdit.PlainText)
+                                textFormat: textPreview.usesBat && textPreview.html !== ""
+                                    ? TextEdit.RichText
+                                    : TextEdit.PlainText
                                 text: textPreview.error !== ""
                                     ? textPreview.error
                                     : (textPreview.isBinary
                                         ? "This file looks binary and cannot be previewed as text."
-                                        : (renderMarkdown
-                                            ? root.resolveMarkdownImages(textPreview.content, root.markdownBaseDir)
-                                            : (textPreview.usesBat && textPreview.html !== ""
-                                                ? textPreview.html
-                                                : textPreview.content)))
+                                        : (textPreview.usesBat && textPreview.html !== ""
+                                            ? textPreview.html
+                                            : textPreview.content))
                                 color: Theme.text
-                                wrapMode: renderMarkdown ? TextEdit.Wrap : TextEdit.NoWrap
-                                font.family: renderMarkdown ? Qt.application.font.family : "monospace"
-                                font.pointSize: renderMarkdown ? Theme.fontNormal : Theme.fontSmall
+                                wrapMode: TextEdit.NoWrap
+                                font.family: "monospace"
+                                font.pointSize: Theme.fontSmall
 
                                 onCursorRectangleChanged: {
                                     var r = cursorRectangle
@@ -875,6 +951,7 @@ Item {
 
                         // Copy + rendered/source pills for text/markdown previews.
                         Row {
+                            id: previewPills
                             anchors.top: parent.top
                             anchors.right: parent.right
                             anchors.topMargin: 10
@@ -943,6 +1020,35 @@ Item {
                                     onTapped: root.markdownShowSource = !root.markdownShowSource
                                 }
                             }
+
+                            // Show/hide the heading outline of a rendered markdown file.
+                            Rectangle {
+                                id: outlineToggle
+                                visible: root.markdownRendered && markdownView.outlineAvailable
+                                width: outlineToggleLabel.implicitWidth + 18
+                                height: outlineToggleLabel.implicitHeight + 8
+                                radius: height / 2
+                                color: outlineToggleHover.hovered
+                                    ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+                                border.width: 1
+                                border.color: markdownView.showOutline
+                                    ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.5)
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+
+                                Text {
+                                    id: outlineToggleLabel
+                                    anchors.centerIn: parent
+                                    text: "Outline"
+                                    color: markdownView.showOutline ? Theme.accent : Theme.subtext
+                                    font.pointSize: Theme.fontSmall
+                                }
+
+                                HoverHandler { id: outlineToggleHover; cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: markdownView.showOutline = !markdownView.showOutline
+                                }
+                            }
                         }
 
                         Text {
@@ -950,7 +1056,7 @@ Item {
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 8
-                            visible: root.isText && textPreview.error === "" && !textPreview.isBinary && !textPreview.usesBat && !root.textHighlightAvailable && !textArea.renderMarkdown
+                            visible: root.isText && textPreview.error === "" && !textPreview.isBinary && !textPreview.usesBat && !root.textHighlightAvailable && !root.markdownRendered
                             text: runtimeFeatures.installHint("textHighlight")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
@@ -1198,9 +1304,60 @@ Item {
                     }
                 }
 
+                // Drag handle between the content and the info panel.
+                Item {
+                    id: infoSplitter
+                    visible: root.infoPanelVisible
+                    Layout.preferredWidth: 16
+                    Layout.minimumWidth: 16
+                    Layout.maximumWidth: 16
+                    Layout.fillHeight: true
+
+                    property real pressSceneX: 0
+                    property int pressWidth: 0
+                    readonly property bool dragging: splitterMouse.pressed
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 3
+                        height: Math.round(36 * Theme.uiScale)
+                        radius: 1.5
+                        color: infoSplitter.dragging || splitterMouse.containsMouse
+                            ? Theme.accent
+                            : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.18)
+                        Behavior on color { ColorAnimation { duration: Theme.animDurationFast } }
+                    }
+
+                    MouseArea {
+                        id: splitterMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.SplitHCursor
+                        preventStealing: true
+                        onPressed: (mouse) => {
+                            infoSplitter.pressSceneX = mapToItem(null, mouse.x, mouse.y).x
+                            infoSplitter.pressWidth = root.infoPanelWidth
+                        }
+                        onPositionChanged: (mouse) => {
+                            if (!pressed)
+                                return
+                            var dx = mapToItem(null, mouse.x, mouse.y).x - infoSplitter.pressSceneX
+                            root.infoPanelWidth = root.clampInfoPanelWidth(infoSplitter.pressWidth - dx)
+                        }
+                        onReleased: config.savePreviewInfoPanel(root.infoPanelWidth, root.infoPanelVisible)
+                        onDoubleClicked: {
+                            root.infoPanelWidth = root.clampInfoPanelWidth(300)
+                            config.savePreviewInfoPanel(root.infoPanelWidth, root.infoPanelVisible)
+                        }
+                    }
+                }
+
                 Rectangle {
-                    Layout.preferredWidth: 300
-                    Layout.minimumWidth: 280
+                    id: infoPanel
+                    visible: root.infoPanelVisible
+                    Layout.preferredWidth: root.infoPanelWidth
+                    Layout.minimumWidth: root.infoPanelWidth
+                    Layout.maximumWidth: root.infoPanelWidth
                     Layout.fillHeight: true
                     radius: Theme.radiusMedium
                     color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.7)
@@ -1352,8 +1509,8 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: root.directoryFiles.length > 1
-                    ? "Use Space or Esc to close, Return to open, and Left/Right to browse nearby items"
-                    : "Use Space or Esc to close, and Return to open externally"
+                    ? "Space or Esc to close, Return to open, Left/Right to browse nearby items, I to toggle file info"
+                    : "Space or Esc to close, Return to open externally, I to toggle file info"
                 color: Theme.muted
                 font.pointSize: Theme.fontSmall
                 horizontalAlignment: Text.AlignRight

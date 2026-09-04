@@ -18,6 +18,8 @@ set(SERAPH_SOURCES
     services/searchservice.cpp
     services/undomanager.cpp
     services/previewservice.cpp
+    services/bathighlighter.cpp
+    services/markdownrenderer.cpp
     services/diskusageservice.cpp
     services/remoteaccessservice.cpp
     services/runtimefeaturesservice.cpp
@@ -100,6 +102,8 @@ list(APPEND seraph_qml_module_args
         qml/components/BulkRenameDialog.qml
         qml/components/RemoteConnectDialog.qml
         qml/components/QuickPreview.qml
+        qml/components/MarkdownView.qml
+        qml/components/MarkdownBlock.qml
         qml/components/Toast.qml
         qml/components/RubberBand.qml
         qml/icons/IconCheck.qml

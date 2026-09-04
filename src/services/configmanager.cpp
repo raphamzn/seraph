@@ -241,6 +241,8 @@ void ConfigManager::setDefaults()
     m_sidebarPosition = "left";
     m_sidebarWidth = 200;
     m_sidebarVisible = true;
+    m_previewInfoWidth = 300;
+    m_previewInfoVisible = true;
     m_millerParentFraction = 0.2;
     m_millerCurrentFraction = 0.5;
     m_bookmarks = defaultBookmarkPaths();
@@ -316,6 +318,11 @@ void ConfigManager::loadConfig()
             m_sidebarWidth = static_cast<int>(*v);
         if (auto v = config["sidebar"]["visible"].value<bool>())
             m_sidebarVisible = *v;
+
+        if (auto v = config["preview"]["info_width"].value<int64_t>())
+            m_previewInfoWidth = qBound(220, static_cast<int>(*v), 520);
+        if (auto v = config["preview"]["info_visible"].value<bool>())
+            m_previewInfoVisible = *v;
 
         if (auto v = config["miller"]["parent_fraction"].value<double>())
             m_millerParentFraction = qBound(0.1, *v, 0.6);
@@ -422,6 +429,8 @@ bool ConfigManager::rememberSortPerFolder() const { return m_rememberSortPerFold
 QString ConfigManager::sidebarPosition() const { return m_sidebarPosition; }
 int ConfigManager::sidebarWidth() const { return m_sidebarWidth; }
 bool ConfigManager::sidebarVisible() const { return m_sidebarVisible; }
+int ConfigManager::previewInfoWidth() const { return m_previewInfoWidth; }
+bool ConfigManager::previewInfoVisible() const { return m_previewInfoVisible; }
 double ConfigManager::millerParentFraction() const { return m_millerParentFraction; }
 double ConfigManager::millerCurrentFraction() const { return m_millerCurrentFraction; }
 QStringList ConfigManager::bookmarks() const { return m_bookmarks; }
@@ -618,6 +627,22 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
 
     if (!sidebar.empty())
         config.insert_or_assign("sidebar", std::move(sidebar));
+
+    if (settings.contains("previewInfoWidth") || settings.contains("previewInfoVisible")) {
+        toml::table preview;
+        if (auto existingPreview = config["preview"].as_table())
+            preview = *existingPreview;
+
+        if (settings.contains("previewInfoWidth")) {
+            m_previewInfoWidth = qBound(220, settings.value("previewInfoWidth").toInt(), 520);
+            preview.insert_or_assign("info_width", m_previewInfoWidth);
+        }
+        if (settings.contains("previewInfoVisible")) {
+            m_previewInfoVisible = settings.value("previewInfoVisible").toBool();
+            preview.insert_or_assign("info_visible", m_previewInfoVisible);
+        }
+        config.insert_or_assign("preview", std::move(preview));
+    }
 
     if (settings.contains("millerParentFraction") || settings.contains("millerCurrentFraction")) {
         toml::table miller;
@@ -906,6 +931,11 @@ void ConfigManager::saveBookmarks(const QStringList &paths)
 void ConfigManager::saveSidebarWidth(int width)
 {
     saveSettings(QVariantMap{{"sidebarWidth", width}});
+}
+
+void ConfigManager::savePreviewInfoPanel(int width, bool visible)
+{
+    saveSettings(QVariantMap{{"previewInfoWidth", width}, {"previewInfoVisible", visible}});
 }
 
 void ConfigManager::saveMillerColumns(double parentFraction, double currentFraction)

@@ -43,6 +43,7 @@ QML action → Q_INVOKABLE C++ method → model property change → QML property
 - QML components communicate upward via signals (fileActivated, contextMenuRequested), downward via property bindings
 - Config lives at `~/.config/seraph/config.toml` (TOML format); theme files in `~/.config/seraph/themes/` (user, wins) then `themes/` (bundled). ThemeLoader watches the active theme file, so rewriting it recolors the running app
 - All async file I/O through QProcess to avoid blocking the GUI thread
+- Markdown in the quick preview is parsed by `MarkdownRenderer` (`src/services/markdownrenderer.cpp`) with Qt's own CommonMark parser into typed blocks, then drawn by `MarkdownView.qml`/`MarkdownBlock.qml` with native delegates. Qt reports every fenced line, hard line break, and list item as an identical-looking block, so the renderer re-splits fences and marks hard breaks by scanning the source text first. Fenced code goes through `bat` (shared helper `BatHighlighter`) when installed; remote images are never fetched
 
 ## Commit Rules
 

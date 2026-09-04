@@ -434,6 +434,51 @@ private slots:
         QCOMPARE(mgr.sidebarVisible(), false);
     }
 
+    void testPreviewInfoPanelDefaults()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+
+        QCOMPARE(mgr.previewInfoWidth(), 300);
+        QCOMPARE(mgr.previewInfoVisible(), true);
+    }
+
+    void testParsePreviewSection()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[preview]\ninfo_width = 360\ninfo_visible = false\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        QCOMPARE(mgr.previewInfoWidth(), 360);
+        QCOMPARE(mgr.previewInfoVisible(), false);
+    }
+
+    void testSavePreviewInfoPanelPersistsAndClamps()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        QSignalSpy spy(&mgr, &ConfigManager::configChanged);
+
+        mgr.savePreviewInfoPanel(900, false);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(mgr.previewInfoWidth(), 520);
+        QCOMPARE(mgr.previewInfoVisible(), false);
+
+        mgr.savePreviewInfoPanel(100, true);
+        QCOMPARE(mgr.previewInfoWidth(), 220);
+        QCOMPARE(mgr.previewInfoVisible(), true);
+
+        mgr.savePreviewInfoPanel(340, false);
+        ConfigManager reloaded(path);
+        QCOMPARE(reloaded.previewInfoWidth(), 340);
+        QCOMPARE(reloaded.previewInfoVisible(), false);
+    }
+
     void testParseAppearanceSection()
     {
         QTemporaryDir dir;

@@ -69,6 +69,7 @@ add_test(NAME tst_undomanager COMMAND tst_undomanager)
 
 add_executable(tst_previewservice tst_previewservice.cpp
     ${CMAKE_SOURCE_DIR}/src/services/previewservice.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/bathighlighter.cpp
 )
 target_include_directories(tst_previewservice PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_previewservice PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
@@ -166,3 +167,11 @@ set_tests_properties(tst_giotransferworker PROPERTIES
     RUN_SERIAL TRUE
     TIMEOUT 120
 )
+
+add_executable(tst_markdownrenderer tst_markdownrenderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/markdownrenderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/bathighlighter.cpp
+)
+target_include_directories(tst_markdownrenderer PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(tst_markdownrenderer PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
+add_test(NAME tst_markdownrenderer COMMAND tst_markdownrenderer)

@@ -31,6 +31,8 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString sidebarPosition READ sidebarPosition NOTIFY configChanged)
     Q_PROPERTY(int sidebarWidth READ sidebarWidth NOTIFY configChanged)
     Q_PROPERTY(bool sidebarVisible READ sidebarVisible NOTIFY configChanged)
+    Q_PROPERTY(int previewInfoWidth READ previewInfoWidth NOTIFY configChanged)
+    Q_PROPERTY(bool previewInfoVisible READ previewInfoVisible NOTIFY configChanged)
     Q_PROPERTY(double millerParentFraction READ millerParentFraction NOTIFY configChanged)
     Q_PROPERTY(double millerCurrentFraction READ millerCurrentFraction NOTIFY configChanged)
     Q_PROPERTY(QStringList bookmarks READ bookmarks NOTIFY configChanged)
@@ -82,6 +84,10 @@ public:
     QString sidebarPosition() const;
     int sidebarWidth() const;
     bool sidebarVisible() const;
+    // Quick preview: width of the file-information panel beside the content,
+    // and whether it is shown at all.
+    int previewInfoWidth() const;
+    bool previewInfoVisible() const;
     // Miller-columns view: width of the parent and current columns as a
     // fraction of the total; the preview column takes the remainder.
     double millerParentFraction() const;
@@ -117,6 +123,7 @@ public:
     Q_INVOKABLE void saveShortcuts(const QVariantMap &shortcuts);
     Q_INVOKABLE void saveBookmarks(const QStringList &paths);
     Q_INVOKABLE void saveSidebarWidth(int width);
+    Q_INVOKABLE void savePreviewInfoPanel(int width, bool visible);
     Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
 
 signals:
@@ -153,6 +160,8 @@ private:
     QString m_sidebarPosition;
     int m_sidebarWidth;
     bool m_sidebarVisible;
+    int m_previewInfoWidth;
+    bool m_previewInfoVisible;
     double m_millerParentFraction;
     double m_millerCurrentFraction;
     QStringList m_bookmarks;
