@@ -68,7 +68,7 @@ Quill's `Theme.qml` singleton is bridged from Seraph's theme in `Main.qml` `Comp
 
 ### The AUR package
 
-`seraph-git` is on the AUR (published 2026-08-29), so `paru -S seraph-git` works. Its repo is a separate git repo holding only `PKGBUILD` + `.SRCINFO` — build instructions, not source code. There is no local clone of it and you should not need one: `.github/workflows/aur.yml` publishes on its own, after a green `Build` of `main` and on a 6-hourly schedule. Because the PKGBUILD clones `main` at build time, a code change needs nothing done to the AUR at all; only dependency, build-step or install-path changes require touching the PKGBUILD.
+`seraph-git` is on the AUR (published 2026-08-29), so `paru -S seraph-git` works. Its repo is a separate git repo holding only `PKGBUILD` + `.SRCINFO` — build instructions, not source code. There is no local clone of it and you should not need one: `.github/workflows/aur.yml` publishes on its own, after a green `Build` of `main` (or when run by hand from the Actions tab). Because the PKGBUILD clones `main` at build time, a code change needs nothing done to the AUR at all; only dependency, build-step or install-path changes require touching the PKGBUILD.
 
 `.SRCINFO` is the metadata the AUR and `paru`/`yay` actually read, and fields in it are derived from `pkgver` (`provides=`), so the workflow regenerates it with `makepkg --printsrcinfo` in an Arch container rather than patching lines. Keep the copy in this repo regenerated whenever the PKGBUILD changes — the workflow does not read it, but it is what a reader sees.
 

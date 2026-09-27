@@ -8,8 +8,6 @@ on:
     types: [completed]
     branches:
       - main
-  schedule:
-    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -43,7 +41,17 @@ jobs:
             echo "  IdentityFile ~/.ssh/aur"
             echo "  User aur"
           } >> ~/.ssh/config
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
+          # The AUR is often briefly unreachable; retry before giving up,
+          # and keep stderr so a failure says why instead of a bare exit 1.
+          for attempt in 1 2 3; do
+            if ssh-keyscan -T 15 aur.archlinux.org > /tmp/aur_hostkeys && [ -s /tmp/aur_hostkeys ]; then
+              cat /tmp/aur_hostkeys >> ~/.ssh/known_hosts
+              exit 0
+            fi
+            echo "ssh-keyscan attempt $attempt failed" >&2
+            sleep 20
+          done
+          exit 1
         env:
           AUR_SSH_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
 
