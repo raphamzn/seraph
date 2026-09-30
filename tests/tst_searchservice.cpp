@@ -148,6 +148,30 @@ private slots:
         QVERIFY(paths.contains(dir.path() + "/iasa/nested"));
         QVERIFY(paths.contains(dir.path() + "/iasa/nested/file.txt"));
     }
+
+    void testSearchFindsGitIgnoredFiles()
+    {
+        // fd skips whatever .gitignore lists unless told otherwise, so a
+        // report kept out of a repo's history was invisible to search.
+        TestDir dir;
+        dir.createFile(".git/HEAD");
+        dir.createFile(".gitignore", "reports/\n");
+        dir.createFile("reports/zqxreport.md");
+
+        SearchResultsModel model;
+        SearchService service;
+        service.setResultsModel(&model);
+
+        QSignalSpy finishedSpy(&service, &SearchService::searchFinished);
+        service.startSearch(dir.path(), "zqxreport.md", false);
+        QVERIFY(finishedSpy.wait(5000));
+
+        QStringList paths;
+        for (int i = 0; i < model.rowCount(); ++i)
+            paths << model.filePath(i);
+
+        QVERIFY(paths.contains(dir.path() + "/reports/zqxreport.md"));
+    }
 };
 
 QTEST_MAIN(TestSearchService)

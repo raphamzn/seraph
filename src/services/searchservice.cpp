@@ -152,7 +152,10 @@ void SearchService::startFdSearch(const QString &rootPath, const QString &patter
     m_fdRootPath = rootPath;
 
     QStringList args;
-    args << "--color" << "never" << "--follow";
+    // --no-ignore-vcs: a file manager has to find files a git repo keeps
+    // out of its history, and the iterator fallback never read .gitignore.
+    // .ignore/.fdignore still apply, as a deliberate opt-out.
+    args << "--color" << "never" << "--follow" << "--no-ignore-vcs";
     if (showHidden) args << "--hidden";
     args << "--max-results" << QString::number(m_maxResults);
 
