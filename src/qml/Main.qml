@@ -1150,7 +1150,18 @@ ApplicationWindow {
         if (fileOps.isRemotePath(panePath(activePane)))
             return
         setPaneRecents(activePane, false)
+        setPaneSearchSource(activePane, "")
         setPaneSearchMode(activePane, true)
+        setPaneFilterPanelOpen(activePane, true)
+    }
+
+    // With no query the filters narrow the folder being shown; once a
+    // recursive search starts they narrow its results instead. Filtering only
+    // the recursive results left the type/date/size filters acting on an
+    // empty list whenever the search box was empty.
+    function setPaneSearchSource(pane, query) {
+        searchProxyForPane(pane).switchSourceModel(
+            query === "" ? paneBaseModel(pane) : searchResultsForPane(pane))
     }
 
     function closeSearch(pane) {
@@ -1170,6 +1181,7 @@ ApplicationWindow {
         if (query === "") {
             service.cancelSearch()
             results.clear()
+            setPaneSearchSource(pane, "")
             return
         }
 
@@ -1188,6 +1200,7 @@ ApplicationWindow {
         var targetPane = pane || activePane
         var targetQuery = query !== undefined ? query : searchProxyForPane(targetPane).searchQuery
         if (targetQuery === "") return
+        setPaneSearchSource(targetPane, targetQuery)
         searchServiceForPane(targetPane).startSearch(
             panePath(targetPane),
             targetQuery,
@@ -1199,6 +1212,7 @@ ApplicationWindow {
         var query = searchProxyForPane(activePane).searchQuery
         if (query === "") return
         clearPaneDebounce(activePane)
+        setPaneSearchSource(activePane, query)
         searchServiceForPane(activePane).startSearch(
             panePath(activePane),
             query,

@@ -177,6 +177,34 @@ private slots:
         QCOMPARE(proxy.rowCount(), 1);
     }
 
+    void testSwitchSourceKeepsFilters()
+    {
+        TestDir dir;
+        dir.createFile("a.cpp");
+        dir.createFile("b.txt");
+        dir.createDir("sub");
+
+        FileSystemModel listing;
+        listing.setSynchronousReload(true);
+        listing.setRootPath(dir.path());
+
+        SearchResultsModel results;
+        results.addResults({QFileInfo(dir.path() + "/sub")});
+
+        SearchProxyModel proxy;
+        proxy.setSourceModel(&results);
+        proxy.setFileTypeFilter("folders");
+        QCOMPARE(proxy.rowCount(), 1);
+
+        proxy.switchSourceModel(&listing);
+        QCOMPARE(proxy.rowCount(), 1);
+        QCOMPARE(proxy.fileName(0), QString("sub"));
+
+        QSignalSpy resetSpy(&proxy, &QAbstractItemModel::modelReset);
+        proxy.switchSourceModel(&listing);
+        QCOMPARE(resetSpy.count(), 0);
+    }
+
     void testClearSearch()
     {
         TestDir dir;
