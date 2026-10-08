@@ -106,8 +106,13 @@ int main(int argc, char *argv[])
     // before the single-instance handoff, so the receiving process sees
     // an absolute path regardless of where the launcher invoked us from.
     QString initialOpenPath;
+    bool newWindowRequested = false;
     for (int i = 1; i < argc; ++i) {
         QString a = QString::fromLocal8Bit(argv[i]);
+        if (a == QLatin1String("--new-window")) {
+            newWindowRequested = true;
+            continue;
+        }
         if (a.startsWith('-')) continue;
         initialOpenPath = a;
         break;
@@ -139,11 +144,19 @@ int main(int argc, char *argv[])
     // forward our arg over a per-uid unix domain socket and exit. The
     // running instance spawns a new tab for the path. Mirrors how browsers
     // handle `firefox <url>` when a window is already open.
+    // `--new-window` skips the handoff and runs as a secondary window: it
+    // leaves the socket and session.json to the primary, so the two never
+    // fight over which tabs get restored. With no primary running it is
+    // just a normal start.
     const QString seraphSocketName = QStringLiteral("seraph-%1").arg(static_cast<uint>(getuid()));
+    bool secondaryWindow = false;
     {
         QLocalSocket probe;
         probe.connectToServer(seraphSocketName);
-        if (probe.waitForConnected(150)) {
+        const bool primaryRunning = probe.waitForConnected(150);
+        if (primaryRunning && newWindowRequested) {
+            secondaryWindow = true;
+        } else if (primaryRunning) {
             QJsonObject msg;
             if (!initialOpenPath.isEmpty())
                 msg.insert(QStringLiteral("path"), initialOpenPath);
@@ -293,7 +306,8 @@ int main(int argc, char *argv[])
     // Remembered for the argv path below: a restored session deserves a NEW tab
     // for it, a fresh start should take over the seeded one instead.
     bool restoredSession = false;
-    if (config->startupLocation() != QStringLiteral("home") && sessionData.contains("tabs")) {
+    if (!secondaryWindow && config->startupLocation() != QStringLiteral("home")
+            && sessionData.contains("tabs")) {
         tabModel->restoreSession(sessionData.value("tabs").toArray(),
                                  sessionData.value("activeTab").toInt(0));
         restoredSession = true;
@@ -549,29 +563,36 @@ int main(int argc, char *argv[])
         sessionSaveTimer.start();
     };
 
-    QObject::connect(&sessionSaveTimer, &QTimer::timeout, &app, saveSession);
-    QObject::connect(tabModel, &TabListModel::sessionChanged, &app, scheduleSessionSave);
+    if (!secondaryWindow) {
+        QObject::connect(&sessionSaveTimer, &QTimer::timeout, &app, saveSession);
+        QObject::connect(tabModel, &TabListModel::sessionChanged, &app, scheduleSessionSave);
+    }
 
     if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
         applyWindowEffects(win);
         QObject::connect(config, &ConfigManager::configChanged, win, [=]() {
             applyWindowEffects(win);
         });
-        QObject::connect(win, &QQuickWindow::xChanged, &app, scheduleSessionSave);
-        QObject::connect(win, &QQuickWindow::yChanged, &app, scheduleSessionSave);
-        QObject::connect(win, &QQuickWindow::widthChanged, &app, scheduleSessionSave);
-        QObject::connect(win, &QQuickWindow::heightChanged, &app, scheduleSessionSave);
-        QObject::connect(win, &QQuickWindow::visibilityChanged, &app, scheduleSessionSave);
+        if (!secondaryWindow) {
+            QObject::connect(win, &QQuickWindow::xChanged, &app, scheduleSessionSave);
+            QObject::connect(win, &QQuickWindow::yChanged, &app, scheduleSessionSave);
+            QObject::connect(win, &QQuickWindow::widthChanged, &app, scheduleSessionSave);
+            QObject::connect(win, &QQuickWindow::heightChanged, &app, scheduleSessionSave);
+            QObject::connect(win, &QQuickWindow::visibilityChanged, &app, scheduleSessionSave);
+        }
     }
 
     // Save session on quit
-    QObject::connect(&app, &QCoreApplication::aboutToQuit, [&]() {
-        sessionSaveTimer.stop();
-        saveSession();
-    });
+    if (!secondaryWindow) {
+        QObject::connect(&app, &QCoreApplication::aboutToQuit, [&]() {
+            sessionSaveTimer.stop();
+            saveSession();
+        });
+    }
 
-    // Restore window geometry
-    if (sessionData.contains("windowWidth") && !engine.rootObjects().isEmpty()) {
+    // Restore window geometry. A secondary window keeps the default size
+    // instead of landing exactly on top of the primary.
+    if (!secondaryWindow && sessionData.contains("windowWidth") && !engine.rootObjects().isEmpty()) {
         if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
             win->setX(sessionData.value("windowX").toInt());
             win->setY(sessionData.value("windowY").toInt());
@@ -618,30 +639,34 @@ int main(int argc, char *argv[])
         }
     };
 
-    // Stale socket from a crashed previous instance would block listen().
-    QLocalServer::removeServer(seraphSocketName);
-    QLocalServer *ipcServer = new QLocalServer(&app);
-    ipcServer->setSocketOptions(QLocalServer::UserAccessOption);
-    if (!ipcServer->listen(seraphSocketName)) {
-        qWarning() << "Seraph: single-instance IPC listen failed:" << ipcServer->errorString();
-    }
-    QObject::connect(ipcServer, &QLocalServer::newConnection, &app, [ipcServer, openPath]() {
-        while (QLocalSocket *conn = ipcServer->nextPendingConnection()) {
-            QObject::connect(conn, &QLocalSocket::readyRead, conn, [conn, openPath]() {
-                const QByteArray data = conn->readAll();
-                for (const QByteArray &line : data.split('\n')) {
-                    const QByteArray trimmed = line.trimmed();
-                    if (trimmed.isEmpty()) continue;
-                    QJsonParseError err;
-                    const QJsonDocument doc = QJsonDocument::fromJson(trimmed, &err);
-                    if (err.error != QJsonParseError::NoError || !doc.isObject()) continue;
-                    // a second invocation while running: always a new tab
-                    openPath(doc.object().value(QStringLiteral("path")).toString(), true);
-                }
-            });
-            QObject::connect(conn, &QLocalSocket::disconnected, conn, &QObject::deleteLater);
+    // A secondary window must not take the socket: removeServer() would
+    // unlink the primary's, and later launches would land here instead.
+    if (!secondaryWindow) {
+        // Stale socket from a crashed previous instance would block listen().
+        QLocalServer::removeServer(seraphSocketName);
+        QLocalServer *ipcServer = new QLocalServer(&app);
+        ipcServer->setSocketOptions(QLocalServer::UserAccessOption);
+        if (!ipcServer->listen(seraphSocketName)) {
+            qWarning() << "Seraph: single-instance IPC listen failed:" << ipcServer->errorString();
         }
-    });
+        QObject::connect(ipcServer, &QLocalServer::newConnection, &app, [ipcServer, openPath]() {
+            while (QLocalSocket *conn = ipcServer->nextPendingConnection()) {
+                QObject::connect(conn, &QLocalSocket::readyRead, conn, [conn, openPath]() {
+                    const QByteArray data = conn->readAll();
+                    for (const QByteArray &line : data.split('\n')) {
+                        const QByteArray trimmed = line.trimmed();
+                        if (trimmed.isEmpty()) continue;
+                        QJsonParseError err;
+                        const QJsonDocument doc = QJsonDocument::fromJson(trimmed, &err);
+                        if (err.error != QJsonParseError::NoError || !doc.isObject()) continue;
+                        // a second invocation while running: always a new tab
+                        openPath(doc.object().value(QStringLiteral("path")).toString(), true);
+                    }
+                });
+                QObject::connect(conn, &QLocalSocket::disconnected, conn, &QObject::deleteLater);
+            }
+        });
+    }
 
     // Apply the path this process was launched with (if any): a new tab on a
     // restored session, or the seeded tab itself on a fresh start.

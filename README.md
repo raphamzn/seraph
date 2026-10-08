@@ -157,6 +157,8 @@ AppImage and Flatpak packaging live in this repo (`.github/workflows/build.yml`,
 | `Ctrl+Shift+T` | Reopen closed tab |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab` | Cycle tabs |
 
+Seraph runs as a single instance: launching it again (`seraph ~/some/dir`) opens the path as a new tab in the window already open. `seraph --new-window [path]` opens a separate window instead (also a "New Window" action on the launcher entry). That extra window starts fresh and does not touch the saved session, so the tabs restored next time are always the main window's.
+
 ### File operations
 
 | Shortcut | Action |
