@@ -290,9 +290,13 @@ int main(int argc, char *argv[])
     // (TabListModel already seeds one), so we simply skip restoring the saved
     // tabs. "last" (the default) restores the previous session. Window geometry
     // is restored below regardless of this setting.
+    // Remembered for the argv path below: a restored session deserves a NEW tab
+    // for it, a fresh start should take over the seeded one instead.
+    bool restoredSession = false;
     if (config->startupLocation() != QStringLiteral("home") && sessionData.contains("tabs")) {
         tabModel->restoreSession(sessionData.value("tabs").toArray(),
                                  sessionData.value("activeTab").toInt(0));
+        restoredSession = true;
     } else if (auto *seededTab = tabModel->activeTab()) {
         // Not restoring a session: the constructor-seeded tab still carries the
         // hard-coded "grid" default, so apply the persisted view mode to it.
@@ -593,9 +597,14 @@ int main(int argc, char *argv[])
     // Raise, focus, and navigate to a path — used for both the initial
     // argv path and for paths forwarded by a subsequent invocation over
     // the single-instance socket. Empty path just raises the window.
-    auto openPathInNewTab = [&engine, tabModel](const QString &path) {
+    // `newTab == false` steers the active tab there instead of adding one:
+    // on a fresh start with startup_location = "home" the only tab is the
+    // constructor-seeded home, and `seraph ~/x` used to leave it behind as a
+    // second tab (home + x) every single time.
+    auto openPath = [&engine, tabModel](const QString &path, bool newTab) {
         if (!path.isEmpty()) {
-            tabModel->addTab();
+            if (newTab || !tabModel->activeTab())
+                tabModel->addTab();
             if (auto *tab = tabModel->activeTab())
                 tab->navigateTo(path);
         }
@@ -616,9 +625,9 @@ int main(int argc, char *argv[])
     if (!ipcServer->listen(seraphSocketName)) {
         qWarning() << "Seraph: single-instance IPC listen failed:" << ipcServer->errorString();
     }
-    QObject::connect(ipcServer, &QLocalServer::newConnection, &app, [ipcServer, openPathInNewTab]() {
+    QObject::connect(ipcServer, &QLocalServer::newConnection, &app, [ipcServer, openPath]() {
         while (QLocalSocket *conn = ipcServer->nextPendingConnection()) {
-            QObject::connect(conn, &QLocalSocket::readyRead, conn, [conn, openPathInNewTab]() {
+            QObject::connect(conn, &QLocalSocket::readyRead, conn, [conn, openPath]() {
                 const QByteArray data = conn->readAll();
                 for (const QByteArray &line : data.split('\n')) {
                     const QByteArray trimmed = line.trimmed();
@@ -626,17 +635,18 @@ int main(int argc, char *argv[])
                     QJsonParseError err;
                     const QJsonDocument doc = QJsonDocument::fromJson(trimmed, &err);
                     if (err.error != QJsonParseError::NoError || !doc.isObject()) continue;
-                    openPathInNewTab(doc.object().value(QStringLiteral("path")).toString());
+                    // a second invocation while running: always a new tab
+                    openPath(doc.object().value(QStringLiteral("path")).toString(), true);
                 }
             });
             QObject::connect(conn, &QLocalSocket::disconnected, conn, &QObject::deleteLater);
         }
     });
 
-    // Apply the path this process was launched with (if any) as a new tab
-    // on the restored session.
+    // Apply the path this process was launched with (if any): a new tab on a
+    // restored session, or the seeded tab itself on a fresh start.
     if (!initialOpenPath.isEmpty())
-        QTimer::singleShot(0, &app, [=]() { openPathInNewTab(initialOpenPath); });
+        QTimer::singleShot(0, &app, [=]() { openPath(initialOpenPath, restoredSession); });
 
     return app.exec();
 }
