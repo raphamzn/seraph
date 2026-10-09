@@ -281,6 +281,60 @@ private slots:
         removeProc.waitForFinished(5000);
         QDir(dirPath).removeRecursively();
     }
+    // ffmpeg cannot open a trash:// URI, so trashed videos came back blank
+    // while trashed images (read through `gio cat`) worked.
+    void testLoadTrashedVideo()
+    {
+        if (QStandardPaths::findExecutable("gio").isEmpty())
+            QSKIP("gio not found in PATH");
+        if (QStandardPaths::findExecutable("ffmpeg").isEmpty())
+            QSKIP("ffmpeg not found in PATH");
+
+        const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        const QString dirPath = QDir::homePath() + "/.cache/seraph-test-trash-video-" + uniqueId;
+        QDir().mkpath(dirPath);
+        const QString filePath = dirPath + "/clip? 50%.mp4";
+
+        QProcess makeVideo;
+        makeVideo.start("ffmpeg", {"-v", "error", "-nostdin", "-f", "lavfi",
+                                   "-i", "testsrc=duration=2:size=160x90:rate=10",
+                                   "-pix_fmt", "yuv420p", "-y", filePath});
+        if (!makeVideo.waitForFinished(15000) || makeVideo.exitCode() != 0)
+            QSKIP("ffmpeg could not generate a test video");
+
+        QProcess trashProc;
+        trashProc.start("gio", {"trash", filePath});
+        if (!trashProc.waitForFinished(5000) || trashProc.exitCode() != 0)
+            QSKIP("gio trash failed in this environment");
+
+        const QString trashUri = findTrashEntryUri(filePath);
+        if (trashUri.isEmpty())
+            QSKIP("Could not find trashed video URI");
+
+        // The model's trash path is gio's encoded URI, and MediaUrl encodes it
+        // once more for the provider; build the id the same way.
+        const QString id = QString::fromUtf8(QUrl::toPercentEncoding(trashUri, "/"))
+            + "?mtime=0";
+        ThumbnailResponse response(id, QSize(80, 80));
+        QSignalSpy spy(&response, &QQuickImageResponse::finished);
+        if (spy.isEmpty())
+            spy.wait(10000);
+
+        // Clean up before verifying, so a failure doesn't leave the clip in the
+        // user's real trash.
+        QQuickTextureFactory *factory = response.textureFactory();
+        const QImage result = factory ? factory->image() : QImage();
+        delete factory;
+
+        QProcess removeProc;
+        removeProc.start("gio", {"remove", "-f", trashUri});
+        removeProc.waitForFinished(5000);
+        QDir(dirPath).removeRecursively();
+
+        QVERIFY(!result.isNull());
+        QVERIFY(result.width() <= 80);
+        QVERIFY(result.height() <= 80);
+    }
 };
 
 QTEST_MAIN(TestThumbnailProvider)

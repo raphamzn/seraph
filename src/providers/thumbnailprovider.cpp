@@ -43,24 +43,51 @@ static bool runningInFlatpak()
     return inSandbox;
 }
 
-static QByteArray readTrashUriData(const QString &uri)
+// Inside Flatpak the sandboxed gio sees its own (empty) trash; route through
+// `flatpak-spawn --host gio` so we reach the host's real trash where the file
+// actually lives.
+static QByteArray runGio(const QStringList &args)
 {
     QProcess proc;
-    const QString uriArg = QUrl(uri).toString(QUrl::FullyEncoded);
-    // Inside Flatpak the sandboxed gio sees its own (empty) trash; route
-    // through `flatpak-spawn --host gio cat` so we read from the host's
-    // real trash where the file actually lives.
-    if (runningInFlatpak()) {
+    if (runningInFlatpak())
         proc.start(QStringLiteral("flatpak-spawn"),
-                   {QStringLiteral("--host"), QStringLiteral("gio"),
-                    QStringLiteral("cat"), uriArg});
-    } else {
-        proc.start(QStringLiteral("gio"), {QStringLiteral("cat"), uriArg});
-    }
+                   QStringList{QStringLiteral("--host"), QStringLiteral("gio")} + args);
+    else
+        proc.start(QStringLiteral("gio"), args);
     if (!proc.waitForFinished(10000) || proc.exitCode() != 0)
         return {};
 
     return proc.readAllStandardOutput();
+}
+
+static QByteArray readTrashUriData(const QString &uri)
+{
+    return runGio({QStringLiteral("cat"), QUrl(uri).toString(QUrl::FullyEncoded)});
+}
+
+// The real file behind a trash:// entry (usually under
+// ~/.local/share/Trash/files/), or empty when it can't be reached from here —
+// e.g. a host path the Flatpak sandbox can't see. ffmpeg can't open trash://
+// URIs at all, so without this every trashed video came back blank.
+static QString resolveTrashTarget(const QString &uri)
+{
+    const QByteArray out = runGio({QStringLiteral("info"),
+                                   QStringLiteral("-a"),
+                                   QStringLiteral("standard::target-uri"),
+                                   QUrl(uri).toString(QUrl::FullyEncoded)});
+    static const QByteArray key = "standard::target-uri: ";
+    for (const QByteArray &line : out.split('\n')) {
+        const int at = line.indexOf(key);
+        if (at < 0)
+            continue;
+        const QUrl target(QString::fromUtf8(line.mid(at + key.size()).trimmed()),
+                          QUrl::StrictMode);
+        if (!target.isLocalFile())
+            return {};
+        const QString local = target.toLocalFile();
+        return QFileInfo(local).isReadable() ? local : QString();
+    }
+    return {};
 }
 
 static QMimeType mimeForLocation(const QString &path)
@@ -233,6 +260,15 @@ void ThumbnailResponse::run()
 {
     const QSize targetSize = m_requestedSize.isValid()
         ? m_requestedSize : QSize(128, 128);
+
+    // Work on the real file when the trash entry has one: it is the only way
+    // to thumbnail a trashed video, it spares a full `gio cat` for images, and
+    // it lets the result be cached like any other local file.
+    if (isTrashUri(m_id)) {
+        const QString local = resolveTrashTarget(m_id);
+        if (!local.isEmpty())
+            m_id = local;
+    }
 
     QString cachePath;
     const bool cacheable = isCacheableLocalPath(m_id);
