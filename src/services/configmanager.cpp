@@ -249,6 +249,7 @@ void ConfigManager::setDefaults()
     m_radiusSmall = 4;
     m_radiusMedium = 8;
     m_radiusLarge = 12;
+    m_gridSpacing = 12;
     m_transparencyEnabled = true;
     m_transparencyLevel = 1.0;
     m_animationsEnabled = true;
@@ -336,6 +337,8 @@ void ConfigManager::loadConfig()
             m_radiusMedium = static_cast<int>(*v);
         if (auto v = config["appearance"]["radius_large"].value<int64_t>())
             m_radiusLarge = static_cast<int>(*v);
+        if (auto v = config["appearance"]["grid_spacing"].value<int64_t>())
+            m_gridSpacing = static_cast<int>(qBound<int64_t>(int64_t(0), *v, int64_t(48)));
         if (auto v = config["appearance"]["transparency_enabled"].value<bool>())
             m_transparencyEnabled = *v;
         if (auto v = config["appearance"]["transparency_level"].value<double>())
@@ -437,6 +440,7 @@ QStringList ConfigManager::bookmarks() const { return m_bookmarks; }
 int ConfigManager::radiusSmall() const { return m_radiusSmall; }
 int ConfigManager::radiusMedium() const { return m_radiusMedium; }
 int ConfigManager::radiusLarge() const { return m_radiusLarge; }
+int ConfigManager::gridSpacing() const { return m_gridSpacing; }
 bool ConfigManager::transparencyEnabled() const { return m_transparencyEnabled; }
 double ConfigManager::transparencyLevel() const { return m_transparencyLevel; }
 bool ConfigManager::animationsEnabled() const { return m_animationsEnabled; }
@@ -665,6 +669,7 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     const bool updatesAppearance = settings.contains("radiusSmall")
         || settings.contains("radiusMedium")
         || settings.contains("radiusLarge")
+        || settings.contains("gridSpacing")
         || settings.contains("transparencyEnabled")
         || settings.contains("transparencyLevel")
         || settings.contains("animationsEnabled")
@@ -691,6 +696,8 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         m_radiusSmall = radiusSmall;
         m_radiusMedium = radiusMedium;
         m_radiusLarge = radiusLarge;
+        if (settings.contains("gridSpacing"))
+            m_gridSpacing = qBound(0, settings.value("gridSpacing").toInt(), 48);
         m_transparencyEnabled = settings.contains("transparencyEnabled")
             ? settings.value("transparencyEnabled").toBool()
             : m_transparencyEnabled;
@@ -708,6 +715,7 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         appearance.insert_or_assign("radius_small", m_radiusSmall);
         appearance.insert_or_assign("radius_medium", m_radiusMedium);
         appearance.insert_or_assign("radius_large", m_radiusLarge);
+        appearance.insert_or_assign("grid_spacing", m_gridSpacing);
         appearance.insert_or_assign("transparency_enabled", m_transparencyEnabled);
         appearance.insert_or_assign("transparency_level", m_transparencyLevel);
         appearance.insert_or_assign("animations_enabled", m_animationsEnabled);

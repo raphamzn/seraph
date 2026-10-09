@@ -37,6 +37,9 @@ QtObject {
     property int radiusSmall: config.radiusSmall
     property int radiusMedium: config.radiusMedium
     property int radiusLarge: config.radiusLarge
+    // Empty space between grid cells — somewhere to right-click the folder
+    // itself when it is full of files.
+    property int gridSpacing: config.gridSpacing
     readonly property real baseFontSize: {
         var pointSize = Qt.application.font.pointSize
         return pointSize > 0 ? pointSize : 10

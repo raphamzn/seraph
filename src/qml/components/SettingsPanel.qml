@@ -44,6 +44,7 @@ Window {
     readonly property int defaultRadiusSmall: 4
     readonly property int defaultRadiusMedium: 8
     readonly property int defaultRadiusLarge: 12
+    readonly property int defaultGridSpacing: 12
     readonly property bool defaultTransparencyEnabled: true
     readonly property real defaultTransparencyLevel: 1.0
     readonly property bool defaultAnimationsEnabled: true
@@ -98,6 +99,7 @@ Window {
     property int draftRadiusSmall: config.radiusSmall
     property int draftRadiusMedium: config.radiusMedium
     property int draftRadiusLarge: config.radiusLarge
+    property int draftGridSpacing: config.gridSpacing
     property bool draftTransparencyEnabled: config.transparencyEnabled
     property real draftTransparencyLevel: config.transparencyLevel
     property bool draftAnimationsEnabled: config.animationsEnabled
@@ -264,6 +266,9 @@ Window {
         Theme.radiusLarge = Qt.binding(function() {
             return root.visible ? root.draftRadiusLarge : config.radiusLarge
         })
+        Theme.gridSpacing = Qt.binding(function() {
+            return root.visible ? root.draftGridSpacing : config.gridSpacing
+        })
         Theme.transparencyEnabled = Qt.binding(function() {
             return root.visible ? root.draftTransparencyEnabled : config.transparencyEnabled
         })
@@ -289,6 +294,7 @@ Window {
         draftRadiusSmall = defaultRadiusSmall
         draftRadiusMedium = defaultRadiusMedium
         draftRadiusLarge = defaultRadiusLarge
+        draftGridSpacing = defaultGridSpacing
         draftTransparencyEnabled = defaultTransparencyEnabled
         draftTransparencyLevel = defaultTransparencyLevel
         draftAnimationsEnabled = defaultAnimationsEnabled
@@ -333,6 +339,7 @@ Window {
             draftRadiusSmall = config.radiusSmall
             draftRadiusMedium = Math.max(config.radiusMedium, draftRadiusSmall)
             draftRadiusLarge = Math.max(config.radiusLarge, draftRadiusMedium)
+            draftGridSpacing = config.gridSpacing
             draftTransparencyEnabled = config.transparencyEnabled
             draftTransparencyLevel = config.transparencyLevel
             draftAnimationsEnabled = config.animationsEnabled
@@ -398,6 +405,7 @@ Window {
             radiusSmall: draftRadiusSmall,
             radiusMedium: draftRadiusMedium,
             radiusLarge: draftRadiusLarge,
+            gridSpacing: draftGridSpacing,
             transparencyEnabled: draftTransparencyEnabled,
             transparencyLevel: draftTransparencyLevel,
             animationsEnabled: draftAnimationsEnabled,
@@ -755,6 +763,20 @@ Window {
                 value: root.draftSidebarWidth
                 onMoved: (value) => {
                     root.draftSidebarWidth = Math.round(value)
+                    root.queueSettingsApply()
+                }
+            }
+
+            Q.Slider {
+                Layout.fillWidth: true
+                label: "Grid spacing"
+                from: 0
+                to: 48
+                stepSize: 2
+                showValue: true
+                value: root.draftGridSpacing
+                onMoved: (value) => {
+                    root.draftGridSpacing = Math.round(value)
                     root.queueSettingsApply()
                 }
             }

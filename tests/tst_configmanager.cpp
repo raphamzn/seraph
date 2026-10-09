@@ -125,6 +125,7 @@ private slots:
         QCOMPARE(mgr.radiusSmall(), 4);
         QCOMPARE(mgr.radiusMedium(), 8);
         QCOMPARE(mgr.radiusLarge(), 12);
+        QCOMPARE(mgr.gridSpacing(), 12);
     }
 
     void testDefaultBookmarks()
@@ -490,6 +491,7 @@ private slots:
                 "radius_small = 2\n"
                 "radius_medium = 6\n"
                 "radius_large = 16\n"
+                "grid_spacing = 20\n"
                 "transparency_enabled = false\n"
                 "transparency_level = 0.4\n"
                 "animations_enabled = false\n");
@@ -499,6 +501,7 @@ private slots:
         QCOMPARE(mgr.radiusSmall(), 2);
         QCOMPARE(mgr.radiusMedium(), 6);
         QCOMPARE(mgr.radiusLarge(), 16);
+        QCOMPARE(mgr.gridSpacing(), 20);
         QCOMPARE(mgr.transparencyEnabled(), false);
         QCOMPARE(mgr.transparencyLevel(), 0.4);
         QCOMPARE(mgr.animationsEnabled(), false);
@@ -565,6 +568,7 @@ private slots:
         settings.insert("radiusSmall", 6);
         settings.insert("radiusMedium", 12);
         settings.insert("radiusLarge", 18);
+        settings.insert("gridSpacing", 30);
         settings.insert("transparencyEnabled", false);
         settings.insert("transparencyLevel", 0.3);
         settings.insert("animationsEnabled", false);
@@ -580,6 +584,7 @@ private slots:
         QCOMPARE(mgr.radiusSmall(), 6);
         QCOMPARE(mgr.radiusMedium(), 12);
         QCOMPARE(mgr.radiusLarge(), 18);
+        QCOMPARE(mgr.gridSpacing(), 30);
         QCOMPARE(mgr.transparencyEnabled(), false);
         QCOMPARE(mgr.transparencyLevel(), 0.3);
         QCOMPARE(mgr.animationsEnabled(), false);

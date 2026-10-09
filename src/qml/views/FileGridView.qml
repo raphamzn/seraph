@@ -57,7 +57,12 @@ GridView {
 
     cellWidth: Math.floor(width / effectiveColumnCount)
     cellHeight: cellWidth  // square cells
-    readonly property int iconSize: cellHeight - 8 - labelHeight - 5  // 8px top, 0px gap, 5px bottom
+    // Each cell keeps half the configured spacing as an empty border, so two
+    // neighbours leave a full gap between them. That gap is background: a
+    // click there reaches the folder, not a file — without it a full folder
+    // had nowhere to right-click for "New Folder".
+    readonly property int cellInset: Math.floor(Theme.gridSpacing / 2)
+    readonly property int iconSize: cellHeight - 2 * cellInset - 8 - labelHeight - 5  // 8px top, 0px gap, 5px bottom
 
     focus: visible
     keyNavigationEnabled: false
@@ -117,6 +122,27 @@ GridView {
             duration: Theme.animDurationSlow
             easing.type: Theme.animEasingEnter; easing.bezierCurve: Theme.animBezierCurve
         }
+    }
+
+    // A cell's clickable area in view coordinates: the cell minus the spacing
+    // border around it.
+    function contentRectOf(item) {
+        var pos = root.mapFromItem(item, 0, 0)
+        return Qt.rect(pos.x + cellInset, pos.y + cellInset,
+                       item.width - 2 * cellInset, item.height - 2 * cellInset)
+    }
+
+    // The file under a point in view coordinates, or -1 over empty space —
+    // which includes the spacing between cells.
+    function fileIndexAt(x, y) {
+        var idx = root.indexAt(x + root.contentX, y + root.contentY)
+        if (idx < 0)
+            return -1
+        var item = root.itemAtIndex(idx)
+        if (!item)
+            return idx
+        var r = contentRectOf(item)
+        return (x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height) ? idx : -1
     }
 
     function moveSelection(delta, extend) {
@@ -558,7 +584,7 @@ GridView {
         // Per-folder drop target
         DropArea {
             id: folderDropArea
-            anchors.fill: parent
+            anchors.fill: selectionRect
             keys: ["text/uri-list"]
             enabled: delegateItem.isDir && !delegateItem.isSelected
 
@@ -585,7 +611,7 @@ GridView {
             visible: delegateItem.hasThumbnail && thumbImg.status !== Image.Error
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: root.cellInset + 8
             width: root.iconSize
             height: root.iconSize
             fillMode: Image.PreserveAspectFit
@@ -602,7 +628,7 @@ GridView {
             visible: !thumbImg.visible
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: root.cellInset + 8
             width: root.iconSize
             height: root.iconSize
             source: "image://icon/" + delegateItem.fileIconName + Theme.iconQuery
@@ -698,7 +724,7 @@ GridView {
 
         Text {
             id: labelText
-            width: parent.width - 12
+            width: parent.width - 2 * root.cellInset - 12
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: (iconImg.visible ? iconImg : thumbImg).bottom
             anchors.topMargin: 0
@@ -729,7 +755,7 @@ GridView {
         Rectangle {
             id: selectionRect
             anchors.fill: parent
-            anchors.margins: 0
+            anchors.margins: root.cellInset
             radius: Theme.radiusMedium
             z: -1
             opacity: (root.isDragging && delegateItem.isSelected) ? 0.4 : 1.0
@@ -898,7 +924,7 @@ GridView {
         }
 
         onPressed: (mouse) => {
-            var idx = root.indexAt(mouse.x + root.contentX, mouse.y + root.contentY)
+            var idx = root.fileIndexAt(mouse.x, mouse.y)
             if (idx >= 0) {
                 mouse.accepted = false
                 return
@@ -952,8 +978,7 @@ GridView {
             for (var i = 0; i < c; i++) {
                 var item = root.itemAtIndex(i)
                 if (!item) continue
-                var itemPos = root.mapFromItem(item, 0, 0)
-                var itemRect = Qt.rect(itemPos.x, itemPos.y, item.width, item.height)
+                var itemRect = root.contentRectOf(item)
                 if (rectsIntersect(rb, itemRect))
                     newSel.push(i)
             }

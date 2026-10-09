@@ -39,6 +39,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(int radiusSmall READ radiusSmall NOTIFY configChanged)
     Q_PROPERTY(int radiusMedium READ radiusMedium NOTIFY configChanged)
     Q_PROPERTY(int radiusLarge READ radiusLarge NOTIFY configChanged)
+    Q_PROPERTY(int gridSpacing READ gridSpacing NOTIFY configChanged)
     Q_PROPERTY(bool transparencyEnabled READ transparencyEnabled NOTIFY configChanged)
     Q_PROPERTY(double transparencyLevel READ transparencyLevel NOTIFY configChanged)
     Q_PROPERTY(bool animationsEnabled READ animationsEnabled NOTIFY configChanged)
@@ -96,6 +97,7 @@ public:
     int radiusSmall() const;
     int radiusMedium() const;
     int radiusLarge() const;
+    int gridSpacing() const;
     bool transparencyEnabled() const;
     double transparencyLevel() const;
     bool animationsEnabled() const;
@@ -167,6 +169,7 @@ private:
     QStringList m_bookmarks;
     int m_radiusSmall;
     int m_radiusMedium;
+    int m_gridSpacing;
     int m_radiusLarge;
     bool m_transparencyEnabled;
     double m_transparencyLevel;
