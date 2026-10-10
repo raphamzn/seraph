@@ -2,6 +2,7 @@
 #include "models/filesystemmodel.h"
 #include <QDateTime>
 #include <QMimeDatabase>
+#include <cmath>
 
 SearchProxyModel::SearchProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent)
@@ -204,17 +205,39 @@ bool SearchProxyModel::matchesDate(const QModelIndex &sourceIndex) const
     return true;
 }
 
+// The size filter is "<op><number><unit>", e.g. "<1MB", ">50GB", "=1.5GB".
+// Units are binary (1KB = 1024 bytes). "=" matches to the precision the
+// number was typed with: "=10MB" accepts 9.5MB up to 10.5MB, "=1.5GB"
+// accepts 1.45GB up to 1.55GB, since an exact byte count never matches.
 bool SearchProxyModel::matchesSize(const QModelIndex &sourceIndex) const
 {
     bool dir = sourceModel()->data(sourceIndex, FileSystemModel::IsDirRole).toBool();
     if (dir) return true;
 
-    qint64 size = sourceModel()->data(sourceIndex, FileSystemModel::FileSizeRole).toLongLong();
+    static const QRegularExpression re(
+        QStringLiteral("^\\s*([<>=])\\s*(\\d+(?:[.,]\\d+)?)\\s*(B|KB|MB|GB|TB)\\s*$"),
+        QRegularExpression::CaseInsensitiveOption);
+    const auto m = re.match(m_sizeFilter);
+    if (!m.hasMatch()) return true;
 
-    if (m_sizeFilter == "tiny")    return size < 10 * 1024;
-    if (m_sizeFilter == "small")   return size < 1024 * 1024;
-    if (m_sizeFilter == "medium")  return size < 100 * 1024 * 1024;
-    if (m_sizeFilter == "large")   return size < 1024LL * 1024 * 1024;
-    if (m_sizeFilter == "huge")    return size >= 1024LL * 1024 * 1024;
-    return true;
+    const QString op = m.captured(1);
+    QString number = m.captured(2);
+    number.replace(',', '.');
+    const QString unitName = m.captured(3).toUpper();
+
+    static const QStringList units = { "B", "KB", "MB", "GB", "TB" };
+    double unit = 1;
+    for (int i = units.indexOf(unitName); i > 0; --i)
+        unit *= 1024;
+
+    const double target = number.toDouble() * unit;
+    const double size = sourceModel()->data(sourceIndex, FileSystemModel::FileSizeRole).toLongLong();
+
+    if (op == "<") return size < target;
+    if (op == ">") return size > target;
+
+    const int dot = number.indexOf('.');
+    const int decimals = dot < 0 ? 0 : number.size() - dot - 1;
+    const double halfStep = unit * std::pow(10.0, -decimals) / 2;
+    return size >= target - halfStep && size < target + halfStep;
 }

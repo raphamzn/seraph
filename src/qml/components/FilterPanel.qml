@@ -16,10 +16,38 @@ Rectangle {
     signal sizeFilterChanged(string filter)
     signal clearAllFilters()
 
+    // The size filter is "<op><number><unit>" (e.g. ">50MB"), built from the
+    // three controls. They keep their values while the filter is off, so it
+    // comes back as the user left it; "" means off.
+    property string sizeOp: "<"
+    property string sizeNumber: "1"
+    property string sizeUnit: "MB"
+    readonly property bool sizeActive: activeSizeFilter !== ""
+
     function applyState(typeFilter, dateFilter, sizeFilter) {
         activeTypes = typeFilter ? typeFilter.split(",").filter(function(v) { return v !== "" }) : []
         activeDateFilter = dateFilter || ""
         activeSizeFilter = sizeFilter || ""
+        var m = activeSizeFilter.match(/^([<>=])([\d.,]+)(KB|MB|GB)$/)
+        // Leave the field alone when it already says this, so a sync
+        // triggered by typing "1," does not rewrite it under the cursor
+        if (m && activeSizeFilter !== sizeFilterString()) {
+            sizeOp = m[1]
+            sizeNumber = m[2]
+            sizeUnit = m[3]
+        }
+    }
+
+    function sizeFilterString() {
+        var number = sizeNumber.replace(",", ".")
+        if (!/^\d+(\.\d+)?$/.test(number))
+            number = number.replace(/\.$/, "")
+        return /^\d+(\.\d+)?$/.test(number) ? sizeOp + number + sizeUnit : ""
+    }
+
+    function updateSizeFilter() {
+        activeSizeFilter = sizeFilterString()
+        sizeFilterChanged(activeSizeFilter)
     }
 
     function isTypeActive(value) {
@@ -180,49 +208,126 @@ Rectangle {
                     font.weight: Font.Medium
                 }
 
-                Flow {
-                    Layout.fillWidth: true
+                RowLayout {
                     spacing: 4
 
                     Repeater {
                         model: [
-                            { label: "< 10KB", value: "tiny" },
-                            { label: "< 1MB", value: "small" },
-                            { label: "< 100MB", value: "medium" },
-                            { label: "< 1GB", value: "large" },
-                            { label: "> 1GB", value: "huge" },
+                            { label: "<", value: "<", name: "Smaller than" },
+                            { label: "=", value: "=", name: "About" },
+                            { label: ">", value: ">", name: "Larger than" },
                         ]
 
                         delegate: Rectangle {
                             required property var modelData
-                            width: sizeText.implicitWidth + 16
+                            readonly property bool chosen: root.sizeActive && root.sizeOp === modelData.value
+                            Accessible.role: Accessible.Button
+                            Accessible.name: modelData.name
+                            width: 26
                             height: 26
                             radius: 13
-                            color: root.activeSizeFilter === modelData.value
+                            color: chosen
                                 ? Theme.accent
                                 : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
 
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             Text {
-                                id: sizeText
                                 anchors.centerIn: parent
                                 text: modelData.label
                                 font.pointSize: Theme.fontSmall
-                                color: root.activeSizeFilter === modelData.value ? Theme.base : Theme.subtext
+                                color: parent.chosen ? Theme.base : Theme.subtext
                             }
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (root.activeSizeFilter === modelData.value) {
+                                    // Clicking the operator in use turns the filter off
+                                    if (parent.chosen) {
                                         root.activeSizeFilter = ""
                                         root.sizeFilterChanged("")
-                                    } else {
-                                        root.activeSizeFilter = modelData.value
-                                        root.sizeFilterChanged(modelData.value)
+                                        return
                                     }
+                                    root.sizeOp = modelData.value
+                                    if (root.sizeFilterString() === "")
+                                        root.sizeNumber = "1"
+                                    root.updateSizeFilter()
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.preferredWidth: 56
+                        Layout.preferredHeight: 26
+                        Layout.leftMargin: 4
+                        Layout.rightMargin: 4
+                        radius: 13
+                        color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
+                        border.width: 1
+                        border.color: sizeInput.activeFocus
+                            ? Theme.accent
+                            : root.sizeActive ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.6) : "transparent"
+
+                        TextInput {
+                            id: sizeInput
+                            anchors.fill: parent
+                            anchors.leftMargin: 8
+                            anchors.rightMargin: 8
+                            verticalAlignment: TextInput.AlignVCenter
+                            horizontalAlignment: TextInput.AlignHCenter
+                            clip: true
+                            selectByMouse: true
+                            text: root.sizeNumber
+                            font.pointSize: Theme.fontSmall
+                            color: root.sizeActive ? Theme.text : Theme.subtext
+                            selectionColor: Theme.accent
+                            selectedTextColor: Theme.base
+                            validator: RegularExpressionValidator { regularExpression: /^\d{0,7}([.,]\d{0,3})?$/ }
+                            Accessible.role: Accessible.EditableText
+                            Accessible.name: "Size"
+                            onTextEdited: {
+                                root.sizeNumber = text
+                                root.updateSizeFilter()
+                            }
+                            Keys.onEscapePressed: focus = false
+                        }
+                    }
+
+                    Repeater {
+                        model: ["KB", "MB", "GB"]
+
+                        delegate: Rectangle {
+                            required property string modelData
+                            readonly property bool chosen: root.sizeActive && root.sizeUnit === modelData
+                            Accessible.role: Accessible.Button
+                            Accessible.name: modelData
+                            width: unitText.implicitWidth + 16
+                            height: 26
+                            radius: 13
+                            color: chosen
+                                ? Theme.accent
+                                : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
+
+                            Text {
+                                id: unitText
+                                anchors.centerIn: parent
+                                text: modelData
+                                font.pointSize: Theme.fontSmall
+                                color: parent.chosen ? Theme.base : Theme.subtext
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    root.sizeUnit = modelData
+                                    if (root.sizeFilterString() === "")
+                                        root.sizeNumber = "1"
+                                    root.updateSizeFilter()
                                 }
                             }
                         }

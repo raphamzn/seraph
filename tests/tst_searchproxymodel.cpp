@@ -119,11 +119,30 @@ private slots:
 
         SearchProxyModel proxy;
         proxy.setSourceModel(&source);
-        proxy.setSizeFilter("small");
+        proxy.setSizeFilter("<1MB");
         QCOMPARE(proxy.rowCount(), 2);
 
-        proxy.setSizeFilter("tiny");
+        proxy.setSizeFilter("<10KB");
         QCOMPARE(proxy.rowCount(), 1);
+
+        proxy.setSizeFilter(">100KB");
+        QCOMPARE(proxy.rowCount(), 1);
+        QCOMPARE(proxy.fileName(0), QString("medium.txt"));
+
+        proxy.setSizeFilter(">1MB");
+        QCOMPARE(proxy.rowCount(), 0);
+
+        // 500000 bytes is 488.28KB: "=" matches to the typed precision
+        proxy.setSizeFilter("=488KB");
+        QCOMPARE(proxy.rowCount(), 1);
+        proxy.setSizeFilter("=490KB");
+        QCOMPARE(proxy.rowCount(), 0);
+        proxy.setSizeFilter("=0,5MB");
+        QCOMPARE(proxy.rowCount(), 1);
+
+        // Malformed filters do not hide anything
+        proxy.setSizeFilter("<MB");
+        QCOMPARE(proxy.rowCount(), 2);
     }
 
     void testDateFilter()
