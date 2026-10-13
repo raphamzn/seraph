@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
+#include <QImage>
 #include <QImageReader>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -41,6 +42,9 @@ void ImageFetcher::start(const QString &url)
     request.setTransferTimeout(m_timeoutMs);
     request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("Seraph"));
     QNetworkReply *reply = m_network.get(request);
+    // The transfer timeout only catches stalls; a server dripping a byte at a
+    // time would keep "downloading…" forever without a total deadline.
+    QTimer::singleShot(m_timeoutMs, reply, &QNetworkReply::abort);
 
     const auto tooBig = [this](qint64 bytes) { return m_maxBytes > 0 && bytes > m_maxBytes; };
     connect(reply, &QNetworkReply::metaDataChanged, reply, [reply, tooBig]() {
@@ -66,11 +70,13 @@ void ImageFetcher::start(const QString &url)
         buffer.open(QIODevice::ReadOnly);
         QImageReader reader(&buffer);
         const QByteArray format = reader.format();
-        if (format.isEmpty()) {
+        // Decode it once: a truncated file can still have a valid header.
+        const QImage image = format.isEmpty() ? QImage() : reader.read();
+        if (image.isNull()) {
             finish(url, QVariantMap{{QStringLiteral("failed"), true}});
             return;
         }
-        const QSize size = reader.size();
+        const QSize size = image.size();
         const QString name = QString::fromLatin1(
             QCryptographicHash::hash(url.toUtf8(), QCryptographicHash::Sha1).toHex())
             + QLatin1Char('.') + QString::fromLatin1(format);

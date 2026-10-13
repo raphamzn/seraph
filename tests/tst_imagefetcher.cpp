@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTest>
+#include <QTimer>
 #include <QUrl>
 
 #include "services/imagefetcher.h"
@@ -30,6 +31,15 @@ public:
                     const QString path = QString::fromLatin1(m_buffers[socket].split(' ').value(1));
                     if (path == "/hang")
                         return;
+                    if (path == "/drip") {
+                        // Headers, then one byte every 100 ms: never stalls long
+                        // enough for a transfer timeout to fire.
+                        socket->write("HTTP/1.1 200 X\r\nContent-Length: 1000\r\n\r\n");
+                        auto *drip = new QTimer(socket);
+                        connect(drip, &QTimer::timeout, socket, [socket]() { socket->write("x"); });
+                        drip->start(100);
+                        return;
+                    }
                     const Response r = routes.value(path, Response{404, "missing"});
                     socket->write("HTTP/1.1 " + QByteArray::number(r.status) + " X\r\nContent-Length: "
                                   + QByteArray::number(r.body.size()) + "\r\nConnection: close\r\n\r\n" + r.body);
@@ -121,6 +131,27 @@ private slots:
         const QString url = server.url("/hang");
         fetcher.fetch({url});
         QTRY_VERIFY_WITH_TIMEOUT(fetcher.images().value(url).toMap().value("failed").toBool(), 5000);
+    }
+
+    void testDripFeedingServerHitsTheTotalDeadline()
+    {
+        TinyHttpServer server;
+        ImageFetcher fetcher;
+        fetcher.setTimeoutMs(500);
+        const QString url = server.url("/drip");
+        fetcher.fetch({url});
+        QTRY_VERIFY_WITH_TIMEOUT(fetcher.images().value(url).toMap().value("failed").toBool(), 5000);
+    }
+
+    void testTruncatedImageFails()
+    {
+        TinyHttpServer server;
+        const QByteArray full = png(64, 64);
+        server.routes["/cut.png"] = {200, full.left(full.size() / 2)};
+        ImageFetcher fetcher;
+        const QString url = server.url("/cut.png");
+        fetcher.fetch({url});
+        QTRY_VERIFY(fetcher.images().value(url).toMap().value("failed").toBool());
     }
 
     void testNonHttpUrlsAreRefused()
