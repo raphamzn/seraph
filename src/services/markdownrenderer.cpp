@@ -760,6 +760,9 @@ QVariantMap MarkdownRenderer::render(const QString &markdown, const QString &bas
                                      const QVariantMap &options) const
 {
     QString source = markdown;
+    // Windows line endings: the hard-break and fence scans look for "  \n".
+    source.replace(QStringLiteral("\r\n"), QStringLiteral("\n"));
+    source.replace(QLatin1Char('\r'), QLatin1Char('\n'));
     const QVariantList frontMatter = extractFrontMatter(&source);
     source = markHardBreaks(source);
 

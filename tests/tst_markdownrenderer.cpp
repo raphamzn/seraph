@@ -474,6 +474,15 @@ private slots:
             "{\"nome\": \"teste\", \"itens\": [1, 2, {\"x\": true}]}"}));
     }
 
+    void testCrlfHardBreakStaysInsideTheParagraph()
+    {
+        const QVariantMap doc = renderPlain("line one  \r\nline two\r\n");
+
+        QCOMPARE(blocksOf(doc).size(), 1);
+        QVERIFY2(block(doc, 0).value("html").toString().contains("<br>"),
+                 qPrintable(block(doc, 0).value("html").toString()));
+    }
+
     void testCrlfCodeKeepsIndentationWithoutCarriageReturns()
     {
         const QVariantMap doc = renderPlain("```python\r\ndef f():\r\n    return 1\r\n```\r\n");
