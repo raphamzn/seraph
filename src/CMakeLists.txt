@@ -1,5 +1,6 @@
 set(SERAPH_SOURCES
     main.cpp
+    appenvironment.cpp
     services/configmanager.cpp
     services/themeloader.cpp
     services/systemappearance.cpp

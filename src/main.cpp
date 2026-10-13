@@ -27,6 +27,7 @@
 #include <KWindowEffects>
 #endif
 
+#include "appenvironment.h"
 #include "services/configmanager.h"
 #include "services/themeloader.h"
 #include "services/systemappearance.h"
@@ -174,92 +175,11 @@ int main(int argc, char *argv[])
     // Use native text rendering (FreeType/fontconfig) for crisp fonts matching GTK apps
     QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
 
-    auto resolveUiFont = [&](const QString &preferredFamily) {
-        // Resolve the platform UI font first so the app does not depend on
-        // theme-local font defaults that may not exist inside a sandbox.
-        QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
-        if (font.family().isEmpty())
-            font = app.font();
-
-        if (!preferredFamily.trimmed().isEmpty())
-            font.setFamily(preferredFamily.trimmed());
-
-        font.setHintingPreference(QFont::PreferFullHinting);
-        return font;
-    };
-
-    // Ensure config directory exists
-    const QString configDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation)
-                              + "/.config/seraph";
-
-    // One-time migration from the pre-fork HyprFM config location so existing
-    // users keep their settings, bookmarks and per-folder sort order when they
-    // switch to Seraph. Only runs when Seraph has no config of its own yet.
-    if (!QDir(configDir).exists()) {
-        const QString legacyConfigDir =
-            QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.config/hyprfm";
-        if (QDir(legacyConfigDir).exists()) {
-            std::function<void(const QString &, const QString &)> copyDir =
-                [&](const QString &from, const QString &to) {
-                    QDir().mkpath(to);
-                    const QDir src(from);
-                    const auto entries = src.entryInfoList(
-                        QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
-                    for (const QFileInfo &fi : entries) {
-                        const QString target = to + '/' + fi.fileName();
-                        if (fi.isDir())
-                            copyDir(fi.absoluteFilePath(), target);
-                        else
-                            QFile::copy(fi.absoluteFilePath(), target);
-                    }
-                };
-            copyDir(legacyConfigDir, configDir);
-            qInfo() << "Seraph: migrated config from" << legacyConfigDir << "to" << configDir;
-        }
-    }
-
-    QDir().mkpath(configDir);
-    const QString configPath = configDir + "/config.toml";
-
-    auto firstExistingDir = [](const QStringList &paths) {
-        for (const QString &path : paths) {
-            const QString cleanPath = QDir::cleanPath(path);
-            if (QDir(cleanPath).exists())
-                return cleanPath;
-        }
-        return QString();
-    };
-
-    const QString appDir = QCoreApplication::applicationDirPath();
-    const QString dataDir = firstExistingDir({
-        QDir(appDir).filePath("../share/seraph"),
-        QDir(appDir).filePath("../../share/seraph"),
-        QStringLiteral(SERAPH_DATA_DIR),
-        QStringLiteral(SERAPH_SOURCE_DIR),
-    });
-
-    QStringList themeSearchPaths = {
-        QDir(appDir).filePath("../themes"),
-        QDir(appDir).filePath("../../themes"),
-        QStringLiteral(SERAPH_DATA_DIR) + "/themes",
-        QStringLiteral(SERAPH_SOURCE_DIR) + "/themes",
-    };
-    if (!dataDir.isEmpty())
-        themeSearchPaths.prepend(QDir(dataDir).filePath("themes"));
-
-    const QString bundledThemesDir = firstExistingDir(themeSearchPaths);
-    if (dataDir.isEmpty())
-        qWarning() << "Seraph: unable to locate data directory";
-    if (bundledThemesDir.isEmpty())
-        qWarning() << "Seraph: unable to locate themes directory";
-
-    // The user's own themes dir comes first so a theme dropped there shadows a
-    // bundled one of the same name — and so a system themer can generate one.
-    // Listed unconditionally: a themer may create it while Seraph is running,
-    // and lookups check each candidate file anyway.
-    QStringList themeDirs{configDir + "/themes"};
-    if (!bundledThemesDir.isEmpty())
-        themeDirs.append(bundledThemesDir);
+    const AppEnvironment env = resolveAppEnvironment();
+    const QString &configDir = env.configDir;
+    const QString &configPath = env.configPath;
+    const QString &dataDir = env.dataDir;
+    const QStringList &themeDirs = env.themeDirs;
 
     // Fresh installs follow the system light/dark preference. Where nothing
     // reports one, "auto" resolves to the dark theme anyway.
@@ -387,7 +307,7 @@ int main(int argc, char *argv[])
     splitFsModel->setGitStatusService(secondaryGitService);
 
     // Keep the live UI in sync with persisted config values.
-    QObject::connect(config, &ConfigManager::configChanged, [=, &app, &resolveUiFont]() {
+    QObject::connect(config, &ConfigManager::configChanged, [=, &app]() {
         theme->setTheme(config->theme(), config->lightTheme(), config->darkTheme());
         bookmarks->setBookmarks(config->bookmarks());
         fsModel->setShowHidden(config->showHidden());
@@ -421,15 +341,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    // Prefer the installed data layout, but keep source-tree fallbacks for dev builds.
-    if (!dataDir.isEmpty()) {
-        engine.addImportPath(dataDir);                           // Seraph module
-        engine.addImportPath(QDir(dataDir).filePath("src/qml")); // Quill module
-    }
-    engine.addImportPath(QStringLiteral(SERAPH_DATA_DIR));
-    engine.addImportPath(QStringLiteral(SERAPH_DATA_DIR "/src/qml"));
-    engine.addImportPath(QStringLiteral(SERAPH_SOURCE_DIR));
-    engine.addImportPath(QStringLiteral(SERAPH_SOURCE_DIR "/src/qml"));
+    addSeraphImportPaths(engine, dataDir);
 
     // Set icon theme so QIcon::fromTheme() works (e.g. for drag pixmaps)
     QIcon::setThemeName(config->iconTheme());
