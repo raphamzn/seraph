@@ -35,6 +35,8 @@ class ConfigManager : public QObject
     Q_PROPERTY(bool previewInfoVisible READ previewInfoVisible NOTIFY configChanged)
     Q_PROPERTY(double millerParentFraction READ millerParentFraction NOTIFY configChanged)
     Q_PROPERTY(double millerCurrentFraction READ millerCurrentFraction NOTIFY configChanged)
+    Q_PROPERTY(double readerZoom READ readerZoom NOTIFY configChanged)
+    Q_PROPERTY(QString readerEditor READ readerEditor NOTIFY configChanged)
     Q_PROPERTY(QStringList bookmarks READ bookmarks NOTIFY configChanged)
     Q_PROPERTY(int radiusSmall READ radiusSmall NOTIFY configChanged)
     Q_PROPERTY(int radiusMedium READ radiusMedium NOTIFY configChanged)
@@ -93,6 +95,10 @@ public:
     // fraction of the total; the preview column takes the remainder.
     double millerParentFraction() const;
     double millerCurrentFraction() const;
+    // `seraph --view` window: the last zoom used, and the editor id
+    // (EditorLauncher) that Ctrl+E opens the document in.
+    double readerZoom() const;
+    QString readerEditor() const;
     QStringList bookmarks() const;
     int radiusSmall() const;
     int radiusMedium() const;
@@ -127,6 +133,7 @@ public:
     Q_INVOKABLE void saveSidebarWidth(int width);
     Q_INVOKABLE void savePreviewInfoPanel(int width, bool visible);
     Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
+    Q_INVOKABLE void saveReaderZoom(double zoom);
 
 signals:
     void configChanged();
@@ -166,6 +173,8 @@ private:
     bool m_previewInfoVisible;
     double m_millerParentFraction;
     double m_millerCurrentFraction;
+    double m_readerZoom;
+    QString m_readerEditor;
     QStringList m_bookmarks;
     int m_radiusSmall;
     int m_radiusMedium;
