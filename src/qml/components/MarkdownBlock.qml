@@ -73,10 +73,16 @@ Item {
     // block; it never takes focus, so the host's keys keep working. Link
     // colour comes from MarkdownRenderer's linkColor option (no linkColor here).
     component ProseText: TextEdit {
+        id: prose
         property string html: ""
         property real htmlLineHeight: root.proseLineHeight
+        // Height of one unspaced line, for centring list markers on it.
+        readonly property real firstLineHeight: proseMetrics.height
         objectName: "markdownText"
         width: parent ? parent.width : root.columnWidth
+        // CSS line-height also pads the last line, which Text's lineHeight
+        // never did; trim it so blocks keep their old height.
+        height: Math.max(0, implicitHeight - (htmlLineHeight - 1) * proseMetrics.height)
         text: root.wrapHtml(html, htmlLineHeight)
         textFormat: TextEdit.RichText
         wrapMode: TextEdit.Wrap
@@ -90,6 +96,11 @@ Item {
         font.pointSize: Theme.fontNormal
         onLinkActivated: (link) => root.linkActivated(link)
         onSelectedTextChanged: if (selectedText !== "") root.selectionStarted(this)
+
+        FontMetrics {
+            id: proseMetrics
+            font: prose.font
+        }
 
         HoverHandler {
             cursorShape: parent.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
@@ -340,7 +351,7 @@ Item {
                     readonly property int depth: Math.max(1, modelData.depth || 1)
                     readonly property int checked: modelData.checked === undefined ? -1 : modelData.checked
                     // Height of the first wrapped line, to centre the marker on it.
-                    readonly property real firstLineHeight: itemText.contentHeight / Math.max(1, itemText.lineCount)
+                    readonly property real firstLineHeight: itemText.firstLineHeight
                     width: listColumn.width
                     height: itemText.height
 
