@@ -94,6 +94,8 @@ package() {
         "${pkgdir}/usr/share/applications/io.github.raphamzn.SeraphReader.desktop"
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.svg" \
         "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.raphamzn.Seraph.svg"
+    install -Dm644 "${pkgname}/dist/io.github.raphamzn.SeraphReader.svg" \
+        "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.raphamzn.SeraphReader.svg"
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.metainfo.xml" \
         "${pkgdir}/usr/share/metainfo/io.github.raphamzn.Seraph.metainfo.xml"
 

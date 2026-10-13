@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Shadow -->
+  <path d="M40 14 H84 L104 34 V112 Q104 120 96 120 H40 Q32 120 32 112 V22 Q32 14 40 14 Z" fill="#11111b" opacity="0.4"/>
+
+  <!-- Page -->
+  <path d="M36 10 H80 L100 30 V108 Q100 116 92 116 H36 Q28 116 28 108 V18 Q28 10 36 10 Z" fill="#1e1e2e"/>
+  <path d="M36 10 H80 L100 30 V108 Q100 116 92 116 H36 Q28 116 28 108 V18 Q28 10 36 10 Z" fill="none" stroke="#89b4fa" stroke-width="2.5" stroke-linejoin="round" opacity="0.7"/>
+
+  <!-- Folded corner -->
+  <path d="M80 10 V24 Q80 30 86 30 H100" fill="none" stroke="#89b4fa" stroke-width="2.5" stroke-linejoin="round" opacity="0.7"/>
+
+  <!-- Text lines -->
+  <rect x="40" y="38" width="28" height="3" rx="1.5" fill="#89b4fa" opacity="0.5"/>
+  <rect x="40" y="47" width="48" height="3" rx="1.5" fill="#cba6f7" opacity="0.4"/>
+  <rect x="40" y="56" width="38" height="3" rx="1.5" fill="#89b4fa" opacity="0.3"/>
+
+  <!-- Markdown mark -->
+  <rect x="38" y="70" width="52" height="32" rx="6" ry="6" fill="none" stroke="#94e2d5" stroke-width="2.5" opacity="0.6"/>
+  <path d="M46 94 V78 L53 86 L60 78 V94" fill="none" stroke="#cba6f7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <path d="M75 78 V93 M69 87 L75 94 L81 87" fill="none" stroke="#94e2d5" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+</svg>
