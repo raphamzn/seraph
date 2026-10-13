@@ -341,6 +341,132 @@ private slots:
         QCOMPARE(block(doc, 0).value("code").toString(), QString("foo"));
         QCOMPARE(block(doc, 1).value("html").toString(), QString());
     }
+
+    void testRemoteImageStatesFollowTheFetcher()
+    {
+        MarkdownRenderer renderer;
+        const QString md = "![Shot](https://img.example/a.png)\n\n![Gone](https://img.example/b.png)\n\n"
+                           "![Wait](https://img.example/c.png)\n";
+        QVariantMap options;
+        options["highlightCode"] = false;
+
+        // The quick preview: nothing is fetched.
+        QCOMPARE(block(renderer.render(md, "/tmp/d", options), 0).value("remoteState").toString(),
+                 QString("blocked"));
+
+        options["fetchRemoteImages"] = true;
+        options["remoteImages"] = QVariantMap{
+            {"https://img.example/a.png", QVariantMap{{"path", "file:///tmp/cache/a.png"}, {"width", 40}, {"height", 20}}},
+            {"https://img.example/b.png", QVariantMap{{"failed", true}}},
+        };
+        const QVariantMap doc = renderer.render(md, "/tmp/d", options);
+
+        QCOMPARE(block(doc, 0).value("remote").toBool(), false);
+        QCOMPARE(block(doc, 0).value("source").toString(), QString("file:///tmp/cache/a.png"));
+        QCOMPARE(block(doc, 0).value("remoteSource").toString(), QString("https://img.example/a.png"));
+        QCOMPARE(block(doc, 1).value("remoteState").toString(), QString("failed"));
+        QCOMPARE(block(doc, 2).value("remoteState").toString(), QString("loading"));
+        QCOMPARE(doc.value("remoteImages").toStringList(),
+                 QStringList({"https://img.example/a.png", "https://img.example/b.png", "https://img.example/c.png"}));
+    }
+
+    void testFetchedInlineImageIsEmbeddedAndCapped()
+    {
+        MarkdownRenderer renderer;
+        QVariantMap options;
+        options["highlightCode"] = false;
+        options["fetchRemoteImages"] = true;
+        options["inlineImageMaxWidth"] = 100;
+        options["remoteImages"] = QVariantMap{
+            {"https://badge.example/ci.svg", QVariantMap{{"path", "file:///tmp/cache/ci.svg"}, {"width", 400}, {"height", 40}}},
+        };
+        const QVariantMap doc = renderer.render(
+            "Build ![ci](https://badge.example/ci.svg) and ![x](https://badge.example/x.svg) ok\n",
+            "/tmp/d", options);
+
+        const QString html = block(doc, 0).value("html").toString();
+        QVERIFY2(html.contains("<img src=\"file:///tmp/cache/ci.svg\" width=\"100\" height=\"10\""), qPrintable(html));
+        QVERIFY2(html.contains(">x<") || html.contains(" x "), qPrintable(html));
+        QCOMPARE(doc.value("remoteImages").toStringList(),
+                 QStringList({"https://badge.example/ci.svg", "https://badge.example/x.svg"}));
+    }
+
+    void testLinkColorIsAppliedToAnchors()
+    {
+        MarkdownRenderer renderer;
+        QVariantMap options;
+        options["highlightCode"] = false;
+        options["linkColor"] = "#89b4fa";
+        const QString html = block(renderer.render("[site](https://x.y)\n", QString(), options), 0)
+                                 .value("html").toString();
+        QVERIFY2(html.contains("<a href=\"https://x.y\" style=\"color:#89b4fa\">"), qPrintable(html));
+    }
+
+    void testHighlightingIsStableAcrossRenders()
+    {
+        if (!batAvailable())
+            QSKIP("bat not installed");
+        MarkdownRenderer renderer;
+        const QString md = "```python\nprint(1)\n```\n";
+        const QString first = block(renderer.render(md), 0).value("html").toString();
+        const QString second = block(renderer.render(md), 0).value("html").toString();
+        QVERIFY(!first.isEmpty());
+        QCOMPARE(second, first);
+    }
+
+    // The document that Inlyne 0.5.3 broke: nested lists and code indentation.
+    void testInlyneRegressionDocument()
+    {
+        const QVariantMap doc = renderPlain(
+            "- Item de lista\n"
+            "  - Sub-item\n"
+            "    - Sub-sub-item\n"
+            "1. Primeiro\n"
+            "2. Segundo\n"
+            "   - aninhado\n"
+            "\n"
+            "```python\n"
+            "def soma(a, b):\n"
+            "    if a > b:\n"
+            "        return a + b\n"
+            "    return b\n"
+            "```\n"
+            "\n"
+            "```json\n"
+            "{\"nome\": \"teste\", \"itens\": [1, 2, {\"x\": true}]}\n"
+            "```\n");
+
+        QList<QPair<QString, int>> items;
+        QStringList code;
+        for (const QVariant &v : blocksOf(doc)) {
+            const QVariantMap b = v.toMap();
+            if (b.value("type") == "list") {
+                for (const QVariant &it : b.value("items").toList()) {
+                    const QVariantMap item = it.toMap();
+                    items.append({item.value("html").toString(), item.value("depth").toInt()});
+                }
+            } else if (b.value("type") == "code") {
+                code.append(b.value("code").toString());
+            }
+        }
+        const QList<QPair<QString, int>> expected{
+            {"Item de lista", 1}, {"Sub-item", 2}, {"Sub-sub-item", 3},
+            {"Primeiro", 1}, {"Segundo", 1}, {"aninhado", 2}};
+        QCOMPARE(items.size(), expected.size());
+        for (int i = 0; i < expected.size(); ++i) {
+            QVERIFY2(items[i].first.contains(expected[i].first), qPrintable(items[i].first));
+            QCOMPARE(items[i].second, expected[i].second);
+        }
+        QCOMPARE(code, QStringList({
+            "def soma(a, b):\n    if a > b:\n        return a + b\n    return b",
+            "{\"nome\": \"teste\", \"itens\": [1, 2, {\"x\": true}]}"}));
+    }
+
+    void testCrlfCodeKeepsIndentationWithoutCarriageReturns()
+    {
+        const QVariantMap doc = renderPlain("```python\r\ndef f():\r\n    return 1\r\n```\r\n");
+        QCOMPARE(block(doc, 0).value("code").toString(), QString("def f():\n    return 1"));
+    }
 };
 
 QTEST_MAIN(TestMarkdownRenderer)

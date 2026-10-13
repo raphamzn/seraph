@@ -30,6 +30,16 @@ public:
     //   batTheme             string bat --theme to use (default: bat's own default)
     //   codeBackground       color  inline-code background (default: none)
     //   codeColor            color  inline-code foreground (default: inherit)
+    //   linkColor            color  link colour, written into each <a> (default: none)
+    //   fetchRemoteImages    bool   remote images are being downloaded (the reader);
+    //                               unfetched ones are "loading", not "blocked"
+    //   remoteImages         map    url -> {path, width, height} | {failed: true},
+    //                               from ImageFetcher; fetched ones render locally
+    //   inlineImageMaxWidth  int    cap for fetched images inside prose (0 = none)
+    //
+    // Also in the result: remoteImages, every remote image url the document uses.
+    // Image blocks with remote == true carry remoteState: "blocked" (never
+    // fetched), "loading" or "failed"; remoteSource keeps the original url.
     Q_INVOKABLE QVariantMap render(const QString &markdown, const QString &baseDir = QString(),
                                    const QVariantMap &options = QVariantMap()) const;
 };

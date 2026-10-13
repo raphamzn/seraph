@@ -1,6 +1,11 @@
 #include "services/markdownrenderer.h"
+
+#include <QHash>
+#include <QMutex>
 #include "services/bathighlighter.h"
 
+#include <QHash>
+#include <QMutex>
 #include <QRegularExpression>
 #include <QtMath>
 #include <QTextBlock>
@@ -229,7 +234,22 @@ struct InlineContext {
     QString baseDir;
     QString codeBackground;
     QString codeColor;
+    QString linkColor;
+    // Remote images. The quick preview never fetches them; the reader's
+    // ImageFetcher downloads them and passes what it has in `remoteImages`.
+    bool fetchRemote = false;
+    QVariantMap remoteImages;   // url -> {path, width, height} | {failed: true}
+    int inlineImageMaxWidth = 0;
+    QStringList *remoteSeen = nullptr; // every remote url met, for the fetcher
 };
+
+// What is known about a remote image, recording that the document uses it.
+QVariantMap remoteImageEntry(const InlineContext &context, const QString &url)
+{
+    if (context.remoteSeen && !context.remoteSeen->contains(url))
+        context.remoteSeen->append(url);
+    return context.remoteImages.value(url).toMap();
+}
 
 QString inlineCodeStyle(const InlineContext &context)
 {
@@ -245,10 +265,25 @@ QString imageTag(const QTextImageFormat &image, const InlineContext &context)
 {
     const QString alt = image.property(QTextFormat::ImageAltText).toString();
     const QString source = resolveTarget(image.name(), context.baseDir);
-    if (isRemoteSource(source))
-        return (alt.isEmpty() ? QStringLiteral("[image]") : alt).toHtmlEscaped();
-    return QStringLiteral("<img src=\"") + source.toHtmlEscaped()
-        + QStringLiteral("\" alt=\"") + alt.toHtmlEscaped() + QStringLiteral("\">");
+    QString src = source;
+    QString size;
+    if (isRemoteSource(source)) {
+        const QVariantMap entry = remoteImageEntry(context, source);
+        src = entry.value("path").toString();
+        if (src.isEmpty())
+            return (alt.isEmpty() ? QStringLiteral("[image]") : alt).toHtmlEscaped();
+        int width = entry.value("width").toInt();
+        int height = entry.value("height").toInt();
+        if (width > 0 && height > 0) {
+            if (context.inlineImageMaxWidth > 0 && width > context.inlineImageMaxWidth) {
+                height = qMax(1, qRound(height * double(context.inlineImageMaxWidth) / width));
+                width = context.inlineImageMaxWidth;
+            }
+            size = QStringLiteral(" width=\"%1\" height=\"%2\"").arg(width).arg(height);
+        }
+    }
+    return QStringLiteral("<img src=\"") + src.toHtmlEscaped() + QStringLiteral("\"") + size
+        + QStringLiteral(" alt=\"") + alt.toHtmlEscaped() + QStringLiteral("\">");
 }
 
 QString inlineHtml(const QTextBlock &block, const InlineContext &context)
@@ -279,9 +314,12 @@ QString inlineHtml(const QTextBlock &block, const InlineContext &context)
         if (format.fontStrikeOut())
             text = QStringLiteral("<s>") + text + QStringLiteral("</s>");
         if (format.isAnchor()) {
+            const QString style = context.linkColor.isEmpty()
+                ? QString()
+                : QStringLiteral(" style=\"color:") + context.linkColor.toHtmlEscaped() + QStringLiteral("\"");
             text = QStringLiteral("<a href=\"")
                 + resolveTarget(format.anchorHref(), context.baseDir).toHtmlEscaped()
-                + QStringLiteral("\">") + text + QStringLiteral("</a>");
+                + QStringLiteral("\"") + style + QStringLiteral(">") + text + QStringLiteral("</a>");
         }
 
         html += text;
@@ -466,7 +504,20 @@ private:
             imageBlock["type"] = QStringLiteral("image");
             const QString source = resolveTarget(image.name(), m_baseDir);
             imageBlock["source"] = source;
-            imageBlock["remote"] = isRemoteSource(source);
+            imageBlock["remote"] = false;
+            if (isRemoteSource(source)) {
+                const QVariantMap entry = remoteImageEntry(m_context, source);
+                const QString local = entry.value("path").toString();
+                imageBlock["remoteSource"] = source;
+                if (!local.isEmpty()) {
+                    imageBlock["source"] = local;
+                } else {
+                    imageBlock["remote"] = true;
+                    imageBlock["remoteState"] = entry.value("failed").toBool()
+                        ? QStringLiteral("failed")
+                        : (m_context.fetchRemote ? QStringLiteral("loading") : QStringLiteral("blocked"));
+                }
+            }
             imageBlock["alt"] = image.property(QTextFormat::ImageAltText).toString();
             imageBlock["title"] = image.property(QTextFormat::ImageTitle).toString();
             m_blocks.append(imageBlock);
@@ -651,13 +702,27 @@ private:
             || m_highlighted >= m_options.maxHighlightedBlocks)
             return {};
         ++m_highlighted;
+        // Live reload and image arrivals re-render the whole document; without
+        // this every re-render would spawn bat once per fence again.
+        static QHash<QString, QString> cache;
+        static QMutex cacheMutex;
+        const QString key = m_options.batTheme + QChar(0x1f) + language + QChar(0x1f) + source;
+        {
+            QMutexLocker lock(&cacheMutex);
+            const auto it = cache.constFind(key);
+            if (it != cache.cend())
+                return *it;
+        }
         QString error;
         QByteArray colored = BatHighlighter::highlightSnippet(source, language, m_options.batTheme, &error);
-        if (colored.isEmpty())
-            return {};
         while (colored.endsWith('\n'))
             colored.chop(1);
-        return BatHighlighter::ansiToHtml(colored);
+        const QString html = colored.isEmpty() ? QString() : BatHighlighter::ansiToHtml(colored);
+        QMutexLocker lock(&cacheMutex);
+        if (cache.size() >= 512)
+            cache.clear();
+        cache.insert(key, html);
+        return html;
     }
 
     QString m_baseDir;
@@ -704,6 +769,12 @@ QVariantMap MarkdownRenderer::render(const QString &markdown, const QString &bas
     context.baseDir = baseDir;
     context.codeBackground = options.value("codeBackground").toString();
     context.codeColor = options.value("codeColor").toString();
+    context.linkColor = options.value("linkColor").toString();
+    context.fetchRemote = options.value("fetchRemoteImages", false).toBool();
+    context.remoteImages = options.value("remoteImages").toMap();
+    context.inlineImageMaxWidth = options.value("inlineImageMaxWidth", 0).toInt();
+    QStringList remoteSeen;
+    context.remoteSeen = &remoteSeen;
     BlockCollector::Options collectorOptions;
     collectorOptions.highlightCode = options.value("highlightCode", true).toBool();
     collectorOptions.maxHighlightedBlocks = options.value("maxHighlightedBlocks", 24).toInt();
@@ -739,5 +810,6 @@ QVariantMap MarkdownRenderer::render(const QString &markdown, const QString &bas
     statsMap["links"] = stats.links;
     statsMap["images"] = stats.images;
     result["stats"] = statsMap;
+    result["remoteImages"] = remoteSeen;
     return result;
 }
