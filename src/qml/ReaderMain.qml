@@ -73,8 +73,12 @@ ApplicationWindow {
         }
     }
 
-    function openSearch() {}
-    function closeSearch() { keyHandler.forceActiveFocus() }
+    function openSearch() { searchBar.open() }
+    function closeSearch() {
+        searchBar.visible = false
+        markdownView.clearSearch()
+        keyHandler.forceActiveFocus()
+    }
 
     Connections {
         target: readerDocument
@@ -127,7 +131,7 @@ ApplicationWindow {
         }
     }
     Shortcut { sequence: "Ctrl+W"; onActivated: window.close() }
-    Shortcut { sequence: "Escape"; onActivated: window.close() }
+    Shortcut { sequence: "Escape"; onActivated: searchBar.visible ? window.closeSearch() : window.close() }
     Shortcut { sequences: ["Ctrl+=", "Ctrl++"]; onActivated: window.zoomStep(1) }
     Shortcut { sequence: "Ctrl+-"; onActivated: window.zoomStep(-1) }
     Shortcut { sequence: "Ctrl+0"; onActivated: window.setZoom(1.0) }
@@ -159,11 +163,25 @@ ApplicationWindow {
         }
     }
 
+    ReaderSearchBar {
+        id: searchBar
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: missingBanner.bottom
+        visible: false
+        count: markdownView.searchCount
+        index: markdownView.searchIndex
+        onSearchRequested: (query) => markdownView.search(query)
+        onNextRequested: markdownView.searchNext()
+        onPreviousRequested: markdownView.searchPrevious()
+        onCloseRequested: window.closeSearch()
+    }
+
     MarkdownView {
         id: markdownView
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: missingBanner.bottom
+        anchors.top: searchBar.bottom
         anchors.bottom: parent.bottom
         visible: !window.showingError
         source: readerDocument.errorMessage === "" ? readerDocument.content : ""

@@ -109,6 +109,7 @@ list(APPEND seraph_qml_module_args
         qml/components/QuickPreview.qml
         qml/components/MarkdownView.qml
         qml/components/MarkdownBlock.qml
+        qml/components/ReaderSearchBar.qml
         qml/components/Toast.qml
         qml/components/RubberBand.qml
         qml/icons/IconCheck.qml
