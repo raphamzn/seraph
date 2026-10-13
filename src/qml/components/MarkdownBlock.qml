@@ -13,6 +13,7 @@ Item {
 
     signal linkActivated(string link)
     signal copyRequested(string text)
+    signal selectionStarted(Item item)
 
     readonly property string blockType: block && block.type ? block.type : ""
     readonly property real proseLineHeight: 1.45
@@ -20,6 +21,7 @@ Item {
     readonly property color cardColor: Qt.rgba(Theme.crust.r, Theme.crust.g, Theme.crust.b, 0.55)
     readonly property color cardBorder: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
     readonly property color pillColor: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
+    readonly property color selectionColor: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35)
 
     // Extra breathing room above headings so sections read as sections.
     readonly property real topInset: {
@@ -31,6 +33,11 @@ Item {
 
     width: columnWidth
     height: loader.height + topInset
+
+    // TextEdit has no lineHeight: the spacing rides in the HTML instead.
+    function wrapHtml(html, lineHeight) {
+        return "<div style=\"line-height:" + Math.round(lineHeight * 100) + "%\">" + html + "</div>"
+    }
 
     function headingPointSize(level) {
         var base = Theme.fontNormal
@@ -61,23 +68,31 @@ Item {
         }
     }
 
-    // Prose runs share this: wrapped rich text with themed links.
-    component ProseText: Text {
+    // Prose runs share this: wrapped, selectable rich text. A TextEdit, not a
+    // Text, so a search can select a hit and the user can select inside a
+    // block; it never takes focus, so the host's keys keep working. Link
+    // colour comes from MarkdownRenderer's linkColor option (no linkColor here).
+    component ProseText: TextEdit {
         property string html: ""
+        property real htmlLineHeight: root.proseLineHeight
+        objectName: "markdownText"
         width: parent ? parent.width : root.columnWidth
-        text: html
-        textFormat: Text.RichText
-        wrapMode: Text.Wrap
+        text: root.wrapHtml(html, htmlLineHeight)
+        textFormat: TextEdit.RichText
+        wrapMode: TextEdit.Wrap
+        readOnly: true
+        selectByMouse: true
+        activeFocusOnPress: false
+        persistentSelection: true
         color: Theme.text
-        linkColor: Theme.accent
+        selectionColor: root.selectionColor
+        selectedTextColor: Theme.text
         font.pointSize: Theme.fontNormal
-        lineHeight: root.proseLineHeight
         onLinkActivated: (link) => root.linkActivated(link)
+        onSelectedTextChanged: if (selectedText !== "") root.selectionStarted(this)
 
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.NoButton
-            cursorShape: parent.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor
+        HoverHandler {
+            cursorShape: parent.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
         }
     }
 
@@ -88,18 +103,14 @@ Item {
             width: root.columnWidth
             spacing: Math.round(6 * Theme.uiScale)
 
-            Text {
+            ProseText {
                 width: parent.width
-                text: root.block.html || ""
-                textFormat: Text.RichText
-                wrapMode: Text.Wrap
+                html: root.block.html || ""
+                htmlLineHeight: 1.2
                 color: (root.block.level || 1) >= 5 ? Theme.subtext : Theme.text
-                linkColor: Theme.accent
                 font.pointSize: root.headingPointSize(root.block.level || 1)
                 font.weight: (root.block.level || 1) <= 4 ? Font.Bold : Font.DemiBold
                 font.letterSpacing: (root.block.level || 1) === 1 ? -0.4 : 0
-                lineHeight: 1.2
-                onLinkActivated: (link) => root.linkActivated(link)
             }
 
             // H1/H2 get a hairline, the way GitHub separates major sections.
@@ -118,8 +129,8 @@ Item {
         ProseText {
             html: root.block.html || ""
             horizontalAlignment: root.block.align === "center"
-                ? Text.AlignHCenter
-                : (root.block.align === "right" ? Text.AlignRight : Text.AlignLeft)
+                ? TextEdit.AlignHCenter
+                : (root.block.align === "right" ? TextEdit.AlignRight : TextEdit.AlignLeft)
         }
     }
 
@@ -258,9 +269,15 @@ Item {
                     selectByMouse: true
                     textFormat: codeCard.highlighted ? TextEdit.RichText : TextEdit.PlainText
                     text: codeCard.highlighted ? root.block.html : (root.block.code || "")
+                    objectName: "markdownText"
+                    // Lets a search hit scroll this card sideways into view.
+                    property Item hostFlick: codeFlick
+                    activeFocusOnPress: false
+                    persistentSelection: true
                     color: Theme.text
-                    selectionColor: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.35)
+                    selectionColor: root.selectionColor
                     font.family: "monospace"
+                    onSelectedTextChanged: if (selectedText !== "") root.selectionStarted(this)
                     font.pointSize: Theme.fontSmall
                 }
 
@@ -410,10 +427,10 @@ Item {
             readonly property real cellWidth: width / columns
 
             function alignmentFor(cell) {
-                if (!cell) return Text.AlignLeft
-                if (cell.align === "right") return Text.AlignRight
-                if (cell.align === "center") return Text.AlignHCenter
-                return Text.AlignLeft
+                if (!cell) return TextEdit.AlignLeft
+                if (cell.align === "right") return TextEdit.AlignRight
+                if (cell.align === "center") return TextEdit.AlignHCenter
+                return TextEdit.AlignLeft
             }
 
             Column {
@@ -534,6 +551,11 @@ Item {
                         text: {
                             var label = root.block.alt || "image"
                             if (figureColumn.remote) {
+                                var state = root.block.remoteState || "blocked"
+                                if (state === "loading")
+                                    return label + "  ·  downloading…"
+                                if (state === "failed")
+                                    return label + "  ·  unavailable"
                                 var host = (root.block.source || "").replace(/^[a-z]+:\/\//i, "").split("/")[0]
                                 return label + (host ? "  ·  " + host : "")
                             }

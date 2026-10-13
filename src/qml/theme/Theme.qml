@@ -40,15 +40,19 @@ QtObject {
     // Empty space between grid cells — somewhere to right-click the folder
     // itself when it is full of files.
     property int gridSpacing: config.gridSpacing
-    readonly property real baseFontSize: {
+    readonly property real appFontSize: {
         var pointSize = Qt.application.font.pointSize
         return pointSize > 0 ? pointSize : 10
     }
-    readonly property real uiScale: Math.max(1.0, baseFontSize / 10.0)
+    // Only the `--view` reader changes this (Ctrl+= / Ctrl+-); at 1.0 every
+    // size below is exactly what it was before zoom existed.
+    property real zoom: 1.0
+    readonly property real baseFontSize: appFontSize * zoom
+    readonly property real uiScale: Math.max(1.0, appFontSize / 10.0) * zoom
     readonly property int spacing: Math.round(8 * uiScale)
-    readonly property int fontSmall: Math.max(9, Math.round(baseFontSize - 1))
-    readonly property int fontNormal: Math.max(10, Math.round(baseFontSize))
-    readonly property int fontLarge: Math.max(12, Math.round(baseFontSize + 2))
+    readonly property int fontSmall: Math.max(Math.round(9 * zoom), Math.round(baseFontSize - 1))
+    readonly property int fontNormal: Math.max(Math.round(10 * zoom), Math.round(baseFontSize))
+    readonly property int fontLarge: Math.max(Math.round(12 * zoom), Math.round(baseFontSize + 2))
     readonly property int controlSize: Math.round(32 * uiScale)
     readonly property int compactControlSize: Math.round(28 * uiScale)
     readonly property int titleBarHeight: Math.round(34 * uiScale)
