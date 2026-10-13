@@ -2444,7 +2444,7 @@ ApplicationWindow {
                                 anchors.left: parent.left; anchors.leftMargin: 36
                                 anchors.verticalCenter: parent.verticalCenter
                             }
-                            Q.Dropdown {
+                            AnchoredDropdown {
                                 model: propsBox.accessOptions
                                 currentIndex: accessIdx
                                 label: ""

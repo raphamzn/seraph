@@ -533,7 +533,7 @@ Window {
                 Layout.bottomMargin: 4
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Theme"
                 model: root.themeOptions
@@ -544,7 +544,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 visible: root.followSystemTheme
                 Layout.fillWidth: true
                 label: "Light Theme"
@@ -556,7 +556,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 visible: root.followSystemTheme
                 Layout.fillWidth: true
                 label: "Dark Theme"
@@ -568,7 +568,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Font"
                 model: root.fontOptions
@@ -579,7 +579,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Icon Pack"
                 model: root.iconThemeOptions
@@ -790,7 +790,7 @@ Window {
                 Layout.bottomMargin: 4
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Open on launch"
                 model: root.startupLocationLabels
@@ -810,7 +810,7 @@ Window {
                 Layout.bottomMargin: 4
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Default sort"
                 model: root.sortByLabels
@@ -1040,7 +1040,7 @@ Window {
                 Layout.bottomMargin: 4
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Enter"
                 enabled: root.draftAnimationsEnabled
@@ -1052,7 +1052,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Exit"
                 enabled: root.draftAnimationsEnabled
@@ -1064,7 +1064,7 @@ Window {
                 }
             }
 
-            Q.Dropdown {
+            AnchoredDropdown {
                 Layout.fillWidth: true
                 label: "Transition"
                 enabled: root.draftAnimationsEnabled
