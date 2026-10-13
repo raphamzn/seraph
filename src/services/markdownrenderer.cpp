@@ -1,7 +1,5 @@
 #include "services/markdownrenderer.h"
 
-#include <QHash>
-#include <QMutex>
 #include "services/bathighlighter.h"
 
 #include <QHash>
@@ -241,6 +239,7 @@ struct InlineContext {
     QVariantMap remoteImages;   // url -> {path, width, height} | {failed: true}
     int inlineImageMaxWidth = 0;
     QStringList *remoteSeen = nullptr; // every remote url met, for the fetcher
+    QStringList *inlineRemoteSeen = nullptr; // the ones inside prose
 };
 
 // What is known about a remote image, recording that the document uses it.
@@ -269,6 +268,8 @@ QString imageTag(const QTextImageFormat &image, const InlineContext &context)
     QString size;
     if (isRemoteSource(source)) {
         const QVariantMap entry = remoteImageEntry(context, source);
+        if (context.inlineRemoteSeen && !context.inlineRemoteSeen->contains(source))
+            context.inlineRemoteSeen->append(source);
         src = entry.value("path").toString();
         if (src.isEmpty())
             return (alt.isEmpty() ? QStringLiteral("[image]") : alt).toHtmlEscaped();
@@ -775,6 +776,8 @@ QVariantMap MarkdownRenderer::render(const QString &markdown, const QString &bas
     context.inlineImageMaxWidth = options.value("inlineImageMaxWidth", 0).toInt();
     QStringList remoteSeen;
     context.remoteSeen = &remoteSeen;
+    QStringList inlineRemoteSeen;
+    context.inlineRemoteSeen = &inlineRemoteSeen;
     BlockCollector::Options collectorOptions;
     collectorOptions.highlightCode = options.value("highlightCode", true).toBool();
     collectorOptions.maxHighlightedBlocks = options.value("maxHighlightedBlocks", 24).toInt();
@@ -811,5 +814,6 @@ QVariantMap MarkdownRenderer::render(const QString &markdown, const QString &bas
     statsMap["images"] = stats.images;
     result["stats"] = statsMap;
     result["remoteImages"] = remoteSeen;
+    result["inlineRemoteImages"] = inlineRemoteSeen;
     return result;
 }

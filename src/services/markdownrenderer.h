@@ -38,6 +38,8 @@ public:
     //   inlineImageMaxWidth  int    cap for fetched images inside prose (0 = none)
     //
     // Also in the result: remoteImages, every remote image url the document uses.
+    // inlineRemoteImages lists the ones inside prose (they need a re-render once
+    // fetched; image blocks can pick up a fetched file in place).
     // Image blocks with remote == true carry remoteState: "blocked" (never
     // fetched), "loading" or "failed"; remoteSource keeps the original url.
     Q_INVOKABLE QVariantMap render(const QString &markdown, const QString &baseDir = QString(),

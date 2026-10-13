@@ -414,6 +414,18 @@ private slots:
         QCOMPARE(second, first);
     }
 
+    // Block images update in place in the reader; only images inside prose
+    // need a re-render once fetched, so the reader asks for just those.
+    void testInlineRemoteImagesAreListedApart()
+    {
+        const QVariantMap doc = renderPlain(
+            "![Shot](https://img.example/a.png)\n\nBuild ![ci](https://badge.example/ci.svg) ok\n", "/tmp/d");
+
+        QCOMPARE(doc.value("inlineRemoteImages").toStringList(), QStringList({"https://badge.example/ci.svg"}));
+        QCOMPARE(doc.value("remoteImages").toStringList(),
+                 QStringList({"https://img.example/a.png", "https://badge.example/ci.svg"}));
+    }
+
     // The document that Inlyne 0.5.3 broke: nested lists and code indentation.
     void testInlyneRegressionDocument()
     {

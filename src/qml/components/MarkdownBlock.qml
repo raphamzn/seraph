@@ -10,6 +10,9 @@ Item {
     property var block: ({})
     property real columnWidth: 600
     property color inlineCodeBackground: "transparent"
+    // url -> {path, width, height} | {failed: true} from the reader's
+    // ImageFetcher: image blocks pick a fetched file up in place.
+    property var remoteImages: ({})
 
     signal linkActivated(string link)
     signal copyRequested(string text)
@@ -515,14 +518,17 @@ Item {
             width: root.columnWidth
             spacing: Math.round(6 * Theme.uiScale)
 
-            readonly property bool remote: root.block.remote === true
+            readonly property var fetched: root.block.remote === true && root.remoteImages
+                ? (root.remoteImages[root.block.remoteSource || root.block.source] || null) : null
+            readonly property bool remote: root.block.remote === true && !(fetched && fetched.path)
             readonly property string caption: root.block.title || root.block.alt || ""
 
             Image {
                 id: figure
                 visible: !figureColumn.remote && status !== Image.Error
                 anchors.horizontalCenter: parent.horizontalCenter
-                source: figureColumn.remote ? "" : (root.block.source || "")
+                source: figureColumn.remote ? ""
+                    : (figureColumn.fetched && figureColumn.fetched.path ? figureColumn.fetched.path : (root.block.source || ""))
                 asynchronous: true
                 smooth: true
                 fillMode: Image.PreserveAspectFit
@@ -562,7 +568,8 @@ Item {
                         text: {
                             var label = root.block.alt || "image"
                             if (figureColumn.remote) {
-                                var state = root.block.remoteState || "blocked"
+                                var state = figureColumn.fetched && figureColumn.fetched.failed
+                                    ? "failed" : (root.block.remoteState || "blocked")
                                 if (state === "loading")
                                     return label + "  ·  downloading…"
                                 if (state === "failed")

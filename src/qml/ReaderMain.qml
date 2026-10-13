@@ -194,7 +194,19 @@ ApplicationWindow {
             remoteImages: imageFetcher.images,
             inlineImageMaxWidth: Math.round(680 * Theme.uiScale)
         })
-        renderRevision: imageFetcher.revision
+        remoteImages: imageFetcher.images
+        // Re-render only when an image inside prose arrives: image blocks
+        // update in place, and every re-render drops the user's selection.
+        renderRevision: {
+            var inline = markdownView.document.inlineRemoteImages || []
+            var images = imageFetcher.images
+            var fetched = 0
+            for (var i = 0; i < inline.length; i++) {
+                if (images[inline[i]] && images[inline[i]].path)
+                    fetched++
+            }
+            return fetched
+        }
         onLinkRequested: (link) => window.followLink(link)
         onCopyRequested: (text) => fileOps.copyTextToClipboard(text)
         onRendered: (document) => imageFetcher.fetch(document.remoteImages || [])
