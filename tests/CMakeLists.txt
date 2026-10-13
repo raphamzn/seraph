@@ -8,6 +8,8 @@ target_include_directories(tst_configmanager PRIVATE
     ${CMAKE_SOURCE_DIR}/src/third_party
 )
 target_link_libraries(tst_configmanager PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
+# Same toml++ float formatting as the app (see src/CMakeLists.txt).
+target_compile_definitions(tst_configmanager PRIVATE TOML_FLOAT_CHARCONV=1)
 add_test(NAME tst_configmanager COMMAND tst_configmanager)
 
 add_executable(tst_themeloader tst_themeloader.cpp
@@ -18,6 +20,7 @@ target_include_directories(tst_themeloader PRIVATE
     ${CMAKE_SOURCE_DIR}/src/third_party
 )
 target_compile_definitions(tst_themeloader PRIVATE
+    TOML_FLOAT_CHARCONV=1
     THEMES_DIR="${CMAKE_SOURCE_DIR}/themes"
 )
 target_link_libraries(tst_themeloader PRIVATE Qt6::Test Qt6::Core Qt6::Gui)

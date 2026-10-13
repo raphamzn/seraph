@@ -538,6 +538,19 @@ private slots:
         QCOMPARE(reloaded.previewInfoWidth(), 360);
     }
 
+    void testSavedZoomIsWrittenShort()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        mgr.saveReaderZoom(1.1);
+
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QByteArray text = f.readAll();
+        QVERIFY2(text.contains("zoom = 1.1") && !text.contains("1.10000"), text.constData());
+    }
+
     void testParseAppearanceSection()
     {
         QTemporaryDir dir;

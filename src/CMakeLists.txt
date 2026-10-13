@@ -213,6 +213,9 @@ target_include_directories(seraph PRIVATE
 set(SERAPH_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
 
 target_compile_definitions(seraph PRIVATE
+    # toml++ turns float to_chars off for every GCC; GCC 11+ has it, and
+    # without it a saved 1.1 comes back as 1.1000000000000001.
+    TOML_FLOAT_CHARCONV=1
     SERAPH_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     SERAPH_DATA_DIR="${SERAPH_DATA_DIR}"
 )
