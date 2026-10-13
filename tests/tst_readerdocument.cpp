@@ -1,8 +1,10 @@
+#include <QDir>
 #include <QFile>
 #include <cstdio>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
+#include <QUrl>
 #include <unistd.h>
 
 #include "services/readerdocument.h"
@@ -187,6 +189,111 @@ private slots:
 
         QCOMPARE(changed.count(), 0);
         QCOMPARE(shown.count(), 0);
+    }
+
+    void testClassifyLink_data()
+    {
+        QTest::addColumn<QString>("link");
+        QTest::addColumn<QString>("kind");
+        QTest::addColumn<QString>("path");
+        QTest::addColumn<QString>("fragment");
+
+        QTest::newRow("anchor") << "#install-guide" << "anchor" << "" << "install-guide";
+        QTest::newRow("encoded anchor") << "#a%C3%A7%C3%A3o" << "anchor" << "" << "ação";
+        QTest::newRow("http") << "https://example.org/x" << "web" << "" << "";
+        QTest::newRow("mailto") << "mailto:a@b.c" << "web" << "" << "";
+        QTest::newRow("resolved md with fragment")
+            << "file:///docs/guide.md#Setup" << "markdown" << "/docs/guide.md" << "Setup";
+        QTest::newRow("encoded spaces and accents")
+            << "file:///docs/Notas%20A%C3%A7%C3%A3o.md" << "markdown" << "/docs/Notas Ação.md" << "";
+        QTest::newRow("relative raw path")
+            << "../other/README.MD" << "markdown" << "/other/README.MD" << "";
+        QTest::newRow("same file with fragment")
+            << "file:///docs/current.md#part-2" << "anchor" << "" << "part-2";
+        QTest::newRow("pdf") << "file:///docs/manual.pdf" << "file" << "/docs/manual.pdf" << "";
+        QTest::newRow("empty") << "" << "none" << "" << "";
+    }
+
+    void testClassifyLink()
+    {
+        QFETCH(QString, link);
+        QFETCH(QString, kind);
+        QFETCH(QString, path);
+        QFETCH(QString, fragment);
+
+        const QVariantMap r = ReaderDocument::classifyLink(link, "/docs/current.md");
+        QCOMPARE(r.value("kind").toString(), kind);
+        QCOMPARE(r.value("path").toString(), path);
+        QCOMPARE(r.value("fragment").toString(), fragment);
+    }
+
+    void testFileLinkCarriesAnOpenableUrl()
+    {
+        const QVariantMap r = ReaderDocument::classifyLink("file:///docs/a%20b.pdf", "/docs/current.md");
+        QCOMPARE(r.value("url").toString(), QUrl::fromLocalFile("/docs/a b.pdf").toString());
+    }
+
+    void testFolderLinkIsAFileEvenWithMdSuffix()
+    {
+        QTemporaryDir dir;
+        QVERIFY(QDir(dir.path()).mkdir("notes.md"));
+        const QVariantMap r = ReaderDocument::classifyLink(
+            QUrl::fromLocalFile(dir.filePath("notes.md")).toString(), dir.filePath("current.md"));
+        QCOMPARE(r.value("kind").toString(), QString("file"));
+    }
+
+    void testNavigateAndGoBackRestoresScroll()
+    {
+        QTemporaryDir dir;
+        writeFile(dir.filePath("a.md"), "# A\n");
+        writeFile(dir.filePath("b.md"), "# B\n");
+        ReaderDocument doc;
+        doc.open(dir.filePath("a.md"));
+        QSignalSpy shown(&doc, &ReaderDocument::shown);
+
+        doc.navigate(dir.filePath("b.md"), "intro", 120.5);
+        QCOMPARE(doc.filePath(), dir.filePath("b.md"));
+        QCOMPARE(doc.content(), QString("# B\n"));
+        QCOMPARE(doc.canGoBack(), true);
+        QCOMPARE(shown.last().at(0).toString(), QString("navigate"));
+        QCOMPARE(shown.last().at(1).toString(), QString("intro"));
+
+        QVERIFY(doc.goBack());
+        QCOMPARE(doc.filePath(), dir.filePath("a.md"));
+        QCOMPARE(doc.content(), QString("# A\n"));
+        QCOMPARE(doc.canGoBack(), false);
+        QCOMPARE(shown.last().at(0).toString(), QString("back"));
+        QCOMPARE(shown.last().at(2).toReal(), 120.5);
+
+        QVERIFY(!doc.goBack());
+    }
+
+    void testNavigateToMissingFileThenBack()
+    {
+        QTemporaryDir dir;
+        writeFile(dir.filePath("a.md"), "# A\n");
+        ReaderDocument doc;
+        doc.open(dir.filePath("a.md"));
+
+        doc.navigate(dir.filePath("ghost.md"), QString(), 40);
+        QCOMPARE(doc.missing(), true);
+        QCOMPARE(doc.content(), QString());
+
+        QVERIFY(doc.goBack());
+        QCOMPARE(doc.missing(), false);
+        QCOMPARE(doc.content(), QString("# A\n"));
+    }
+
+    void testOpenForgetsHistory()
+    {
+        QTemporaryDir dir;
+        writeFile(dir.filePath("a.md"), "# A\n");
+        writeFile(dir.filePath("b.md"), "# B\n");
+        ReaderDocument doc;
+        doc.open(dir.filePath("a.md"));
+        doc.navigate(dir.filePath("b.md"), QString(), 0);
+        doc.open(dir.filePath("a.md"));
+        QCOMPARE(doc.canGoBack(), false);
     }
 };
 

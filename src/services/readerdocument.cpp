@@ -118,17 +118,6 @@ void ReaderDocument::rearmWatch()
         m_watcher.addPath(m_path);
 }
 
-void ReaderDocument::navigate(const QString &, const QString &, qreal)
-{
-    // Filled in by Task 5.
-}
-
-bool ReaderDocument::goBack()
-{
-    // Filled in by Task 5.
-    return false;
-}
-
 void ReaderDocument::reload()
 {
     load(QStringLiteral("live"), QString(), -1);
@@ -139,10 +128,63 @@ QVariantMap ReaderDocument::classifyLink(const QString &link) const
     return classifyLink(link, m_path);
 }
 
-QVariantMap ReaderDocument::classifyLink(const QString &, const QString &)
+void ReaderDocument::navigate(const QString &path, const QString &fragment, qreal currentScrollY)
 {
-    // Filled in by Task 5.
-    return QVariantMap{{QStringLiteral("kind"), QStringLiteral("none")}};
+    m_history.append(HistoryEntry{m_path, currentScrollY});
+    emit historyChanged();
+    setPath(path);
+    load(QStringLiteral("navigate"), fragment, -1);
+}
+
+bool ReaderDocument::goBack()
+{
+    if (m_history.isEmpty())
+        return false;
+    const HistoryEntry entry = m_history.takeLast();
+    emit historyChanged();
+    setPath(entry.path);
+    load(QStringLiteral("back"), QString(), entry.scrollY);
+    return true;
+}
+
+QVariantMap ReaderDocument::classifyLink(const QString &link, const QString &currentFile)
+{
+    const auto result = [](const QString &kind, const QString &path = QString(),
+                           const QString &fragment = QString(), const QString &url = QString()) {
+        return QVariantMap{{QStringLiteral("kind"), kind}, {QStringLiteral("path"), path},
+                           {QStringLiteral("fragment"), fragment}, {QStringLiteral("url"), url}};
+    };
+    const auto decode = [](const QString &text) {
+        return QUrl::fromPercentEncoding(text.toUtf8());
+    };
+
+    if (link.isEmpty())
+        return result(QStringLiteral("none"));
+    if (link.startsWith(QLatin1Char('#')))
+        return result(QStringLiteral("anchor"), QString(), decode(link.mid(1)));
+
+    const QUrl url(link);
+    QString path;
+    QString fragment;
+    if (url.isLocalFile()) {
+        path = url.toLocalFile();
+        fragment = url.fragment(QUrl::FullyDecoded);
+    } else if (url.scheme().isEmpty()) {
+        // A raw path the renderer left alone (absolute, or relative with no baseDir).
+        const int hash = link.indexOf(QLatin1Char('#'));
+        const QString raw = decode(hash >= 0 ? link.left(hash) : link);
+        fragment = hash >= 0 ? decode(link.mid(hash + 1)) : QString();
+        path = QDir::isAbsolutePath(raw) ? raw : QFileInfo(currentFile).dir().filePath(raw);
+    } else {
+        return result(QStringLiteral("web"), QString(), QString(), link);
+    }
+
+    path = QDir::cleanPath(path);
+    if (!currentFile.isEmpty() && path == QDir::cleanPath(currentFile))
+        return result(QStringLiteral("anchor"), QString(), fragment);
+    if (isMarkdownPath(path) && !QFileInfo(path).isDir())
+        return result(QStringLiteral("markdown"), path, fragment);
+    return result(QStringLiteral("file"), path, QString(), QUrl::fromLocalFile(path).toString());
 }
 
 bool ReaderDocument::isMarkdownPath(const QString &path)
