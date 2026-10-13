@@ -1,6 +1,7 @@
 set(SERAPH_SOURCES
     main.cpp
     appenvironment.cpp
+    reader/readerapp.cpp
     services/configmanager.cpp
     services/themeloader.cpp
     services/systemappearance.cpp
@@ -87,6 +88,7 @@ endif()
 list(APPEND seraph_qml_module_args
     QML_FILES
         qml/Main.qml
+        qml/ReaderMain.qml
         qml/theme/Theme.qml
         qml/theme/MediaUrl.qml
         qml/components/StatusBar.qml

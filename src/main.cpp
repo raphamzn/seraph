@@ -28,6 +28,7 @@
 #endif
 
 #include "appenvironment.h"
+#include "reader/readerapp.h"
 #include "services/configmanager.h"
 #include "services/themeloader.h"
 #include "services/systemappearance.h"
@@ -108,15 +109,24 @@ int main(int argc, char *argv[])
     // an absolute path regardless of where the launcher invoked us from.
     QString initialOpenPath;
     bool newWindowRequested = false;
+    bool viewRequested = false;
     for (int i = 1; i < argc; ++i) {
         QString a = QString::fromLocal8Bit(argv[i]);
         if (a == QLatin1String("--new-window")) {
             newWindowRequested = true;
             continue;
         }
+        if (a == QLatin1String("--view")) {
+            viewRequested = true;
+            continue;
+        }
         if (a.startsWith('-')) continue;
         initialOpenPath = a;
         break;
+    }
+    if (viewRequested && initialOpenPath.isEmpty()) {
+        fprintf(stderr, "Usage: seraph --view <file.md>\n");
+        return 2;
     }
     if (!initialOpenPath.isEmpty()) {
         QFileInfo fi(initialOpenPath);
@@ -127,7 +137,9 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     app.setApplicationName("Seraph");
     app.setOrganizationName("seraph");
-    app.setDesktopFileName("seraph");
+    // The reader gets its own app_id so compositor rules and docks can tell
+    // it apart from the file manager.
+    app.setDesktopFileName(viewRequested ? "seraph-reader" : "seraph");
 
     // Startup timing: opt-in via SERAPH_TIMING=1 so normal runs stay quiet.
     // Prints milliseconds from QGuiApplication construction at each phase.
@@ -140,6 +152,11 @@ int main(int argc, char *argv[])
                                << qSetFieldWidth(0) << " ms  " << label;
     };
     mark("QGuiApplication ready");
+
+    // A reader window never joins the file manager instance: every file
+    // opened gets its own window, and session.json is left alone.
+    if (viewRequested)
+        return runReader(app, initialOpenPath, timingEnabled, mark);
 
     // Single-instance: if another Seraph is already running for this user,
     // forward our arg over a per-uid unix domain socket and exit. The
