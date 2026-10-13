@@ -73,6 +73,31 @@ ApplicationWindow {
         }
     }
 
+    // Re-render only when an image inside prose arrives: image blocks update
+    // in place, and every re-render drops the user's selection. Plain
+    // counters, not a binding on the document, which the re-render replaces.
+    property int inlineImageRevision: 0
+    property int inlineImagesShown: 0
+
+    function fetchedInlineImages(document) {
+        var inline = document && document.inlineRemoteImages ? document.inlineRemoteImages : []
+        var images = imageFetcher.images
+        var fetched = 0
+        for (var i = 0; i < inline.length; i++) {
+            if (images[inline[i]] && images[inline[i]].path)
+                fetched++
+        }
+        return fetched
+    }
+
+    Connections {
+        target: imageFetcher
+        function onImagesChanged() {
+            if (window.fetchedInlineImages(markdownView.document) !== window.inlineImagesShown)
+                window.inlineImageRevision++
+        }
+    }
+
     function openSearch() { searchBar.open() }
     function closeSearch() {
         searchBar.visible = false
@@ -195,21 +220,13 @@ ApplicationWindow {
             inlineImageMaxWidth: Math.round(680 * Theme.uiScale)
         })
         remoteImages: imageFetcher.images
-        // Re-render only when an image inside prose arrives: image blocks
-        // update in place, and every re-render drops the user's selection.
-        renderRevision: {
-            var inline = markdownView.document.inlineRemoteImages || []
-            var images = imageFetcher.images
-            var fetched = 0
-            for (var i = 0; i < inline.length; i++) {
-                if (images[inline[i]] && images[inline[i]].path)
-                    fetched++
-            }
-            return fetched
-        }
+        renderRevision: window.inlineImageRevision
         onLinkRequested: (link) => window.followLink(link)
         onCopyRequested: (text) => fileOps.copyTextToClipboard(text)
-        onRendered: (document) => imageFetcher.fetch(document.remoteImages || [])
+        onRendered: (document) => {
+            window.inlineImagesShown = window.fetchedInlineImages(document)
+            imageFetcher.fetch(document.remoteImages || [])
+        }
     }
 
     // Missing, unreadable or binary file: say so instead of closing.
