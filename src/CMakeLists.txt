@@ -22,6 +22,7 @@ set(SERAPH_SOURCES
     services/bathighlighter.cpp
     services/markdownrenderer.cpp
     services/readerdocument.cpp
+    services/imagefetcher.cpp
     services/diskusageservice.cpp
     services/remoteaccessservice.cpp
     services/runtimefeaturesservice.cpp

@@ -184,3 +184,10 @@ add_executable(tst_readerdocument tst_readerdocument.cpp
 target_include_directories(tst_readerdocument PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_readerdocument PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
 add_test(NAME tst_readerdocument COMMAND tst_readerdocument)
+
+add_executable(tst_imagefetcher tst_imagefetcher.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/imagefetcher.cpp
+)
+target_include_directories(tst_imagefetcher PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(tst_imagefetcher PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Network)
+add_test(NAME tst_imagefetcher COMMAND tst_imagefetcher)
