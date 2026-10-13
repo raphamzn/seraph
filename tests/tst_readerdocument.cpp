@@ -155,6 +155,28 @@ private slots:
         QCOMPARE(doc.missing(), false);
     }
 
+    // An editor that keeps the old file open after a save-by-rename used to
+    // leave the watch on the old inode: later in-place writes went unseen.
+    void testInPlaceWriteAfterRenameWhileOldFileIsHeldOpen()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.filePath("doc.md");
+        writeFile(path, "# A\n");
+        QFile held(path);
+        QVERIFY(held.open(QIODevice::ReadOnly));
+        ReaderDocument doc;
+        doc.setDebounceInterval(20);
+        doc.open(path);
+
+        const QString temp = dir.filePath(".doc.md.tmp");
+        writeFile(temp, "# B\n");
+        QCOMPARE(::rename(QFile::encodeName(temp).constData(), QFile::encodeName(path).constData()), 0);
+        QTRY_COMPARE(doc.content(), QString("# B\n"));
+
+        writeFile(path, "# C\n");
+        QTRY_COMPARE(doc.content(), QString("# C\n"));
+    }
+
     void testWriteBurstReloadsOnce()
     {
         QTemporaryDir dir;

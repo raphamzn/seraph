@@ -7,6 +7,8 @@
 #include <QFileInfo>
 #include <QUrl>
 
+#include <sys/stat.h>
+
 ReaderDocument::ReaderDocument(QObject *parent)
     : QObject(parent)
 {
@@ -64,6 +66,14 @@ void ReaderDocument::setPath(const QString &path)
 void ReaderDocument::load(const QString &reason, const QString &fragment, qreal scrollY)
 {
     const bool live = reason == QLatin1String("live");
+    const DiskStamp stamp = stampOf(m_path);
+    // Folder events fire for every file in it; skip the read when this one
+    // is byte-for-byte where it was.
+    if (live && stamp.inode != 0 && stamp == m_readStamp && !m_missing) {
+        rearmWatch();
+        return;
+    }
+    m_readStamp = stamp;
     QString text;
     QString error;
     const QFileInfo info(m_path);
@@ -114,8 +124,26 @@ void ReaderDocument::rearmWatch()
     const QString dir = QFileInfo(m_path).absolutePath();
     if (QFileInfo::exists(dir) && !m_watcher.directories().contains(dir))
         m_watcher.addPath(dir);
-    if (QFileInfo::exists(m_path) && !m_watcher.files().contains(m_path))
-        m_watcher.addPath(m_path);
+    if (!QFileInfo::exists(m_path))
+        return;
+    // A save-by-rename puts a new inode at the path. When something still
+    // holds the old one open, inotify keeps watching it and the path stays
+    // in files(), so compare inodes instead of trusting files().
+    const quint64 inode = stampOf(m_path).inode;
+    if (m_watcher.files().contains(m_path) && inode == m_watchedInode)
+        return;
+    m_watcher.removePath(m_path);
+    if (m_watcher.addPath(m_path))
+        m_watchedInode = inode;
+}
+
+ReaderDocument::DiskStamp ReaderDocument::stampOf(const QString &path)
+{
+    struct stat st;
+    if (::stat(QFile::encodeName(path).constData(), &st) != 0)
+        return {};
+    return {static_cast<quint64>(st.st_ino), static_cast<qint64>(st.st_size),
+            static_cast<qint64>(st.st_mtim.tv_sec) * 1000000000LL + st.st_mtim.tv_nsec};
 }
 
 void ReaderDocument::reload()

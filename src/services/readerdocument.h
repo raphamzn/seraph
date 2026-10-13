@@ -77,11 +77,26 @@ private:
     void load(const QString &reason, const QString &fragment, qreal scrollY);
     void rearmWatch();
 
+    // What identifies the bytes on disk: a new inode is a save-by-rename,
+    // and an unchanged triple means a folder event was about another file.
+    struct DiskStamp {
+        quint64 inode = 0;
+        qint64 size = -1;
+        qint64 mtimeNs = 0;
+        bool operator==(const DiskStamp &o) const
+        {
+            return inode == o.inode && size == o.size && mtimeNs == o.mtimeNs;
+        }
+    };
+    static DiskStamp stampOf(const QString &path);
+
     QString m_path;
     QString m_content;
     QString m_error;
     bool m_missing = false;
     QVector<HistoryEntry> m_history;
+    DiskStamp m_readStamp;    // the file as last read
+    quint64 m_watchedInode = 0;
     QFileSystemWatcher m_watcher;
     QTimer m_debounce;
 };
