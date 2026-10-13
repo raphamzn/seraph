@@ -24,6 +24,10 @@ public:
     Q_INVOKABLE QVariantMap loadFontPreview(const QString &path);
     Q_INVOKABLE QString localPreviewPath(const QString &path) const;
 
+    // Shared with ReaderDocument, which reads whole files instead of previews.
+    static bool looksBinary(const QByteArray &data);
+    static QString decodeText(const QByteArray &data);
+
 public slots:
     // Re-check availability of external tools (pdftoppm/pdfinfo). Called
     // when the user clicks Re-check in the Missing Dependencies dialog
@@ -39,8 +43,6 @@ private:
     QStringList listDirectoryEntries(const QString &path, int maxEntries, bool *truncated,
                                      QString *error) const;
     static bool isTrashUri(const QString &path);
-    static bool looksBinary(const QByteArray &data);
-    static QString decodeText(const QByteArray &data);
 
     int m_activeFontPreviewId = -1;
     QString m_activeFontPreviewPath;

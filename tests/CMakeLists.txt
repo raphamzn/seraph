@@ -175,3 +175,12 @@ add_executable(tst_markdownrenderer tst_markdownrenderer.cpp
 target_include_directories(tst_markdownrenderer PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_markdownrenderer PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
 add_test(NAME tst_markdownrenderer COMMAND tst_markdownrenderer)
+
+add_executable(tst_readerdocument tst_readerdocument.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/readerdocument.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/previewservice.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/bathighlighter.cpp
+)
+target_include_directories(tst_readerdocument PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(tst_readerdocument PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
+add_test(NAME tst_readerdocument COMMAND tst_readerdocument)
