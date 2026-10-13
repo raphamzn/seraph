@@ -12,6 +12,16 @@ ReaderDocument::ReaderDocument(QObject *parent)
 {
     m_debounce.setSingleShot(true);
     m_debounce.setInterval(150);
+
+    // Editors (and Claude) save by writing a new file and renaming it over the
+    // old one, which drops the file watch; the folder watch sees the rename
+    // and rearmWatch() re-adds the file. The delay coalesces the write burst
+    // a save produces into one read.
+    connect(&m_watcher, &QFileSystemWatcher::fileChanged, &m_debounce, qOverload<>(&QTimer::start));
+    connect(&m_watcher, &QFileSystemWatcher::directoryChanged, &m_debounce, qOverload<>(&QTimer::start));
+    connect(&m_debounce, &QTimer::timeout, this, [this]() {
+        load(QStringLiteral("live"), QString(), -1);
+    });
 }
 
 QString ReaderDocument::fileName() const
@@ -99,7 +109,13 @@ void ReaderDocument::load(const QString &reason, const QString &fragment, qreal 
 
 void ReaderDocument::rearmWatch()
 {
-    // Filled in by Task 4.
+    if (m_path.isEmpty())
+        return;
+    const QString dir = QFileInfo(m_path).absolutePath();
+    if (QFileInfo::exists(dir) && !m_watcher.directories().contains(dir))
+        m_watcher.addPath(dir);
+    if (QFileInfo::exists(m_path) && !m_watcher.files().contains(m_path))
+        m_watcher.addPath(m_path);
 }
 
 void ReaderDocument::navigate(const QString &, const QString &, qreal)
