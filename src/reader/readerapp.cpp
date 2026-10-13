@@ -90,9 +90,10 @@ int runReader(QGuiApplication &app, const QString &path, bool timingEnabled,
         }
     }
 
-    // Dev aid: SERAPH_GRAB=<file.png> saves the window a moment after it is
-    // shown and quits, so the reader can be checked offscreen
-    // (QT_QPA_PLATFORM=offscreen) without touching the desktop.
+#ifndef NDEBUG
+    // Dev aid, left out of Release builds: SERAPH_GRAB=<file.png> saves the
+    // window a moment after it is shown and quits, so the reader can be
+    // checked offscreen (QT_QPA_PLATFORM=offscreen) without the desktop.
     const QString grabPath = qEnvironmentVariable("SERAPH_GRAB");
     if (!grabPath.isEmpty()) {
         if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
@@ -104,6 +105,7 @@ int runReader(QGuiApplication &app, const QString &path, bool timingEnabled,
             });
         }
     }
+#endif
 
     QObject::connect(&app, &QGuiApplication::lastWindowClosed, &app, &QGuiApplication::quit);
     return app.exec();

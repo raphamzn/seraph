@@ -217,7 +217,8 @@ ApplicationWindow {
         renderOptions: ({
             fetchRemoteImages: true,
             remoteImages: imageFetcher.images,
-            inlineImageMaxWidth: Math.round(680 * Theme.uiScale)
+            // Fixed, not zoom-scaled: changing it would need a re-render.
+            inlineImageMaxWidth: 680
         })
         remoteImages: imageFetcher.images
         renderRevision: window.inlineImageRevision

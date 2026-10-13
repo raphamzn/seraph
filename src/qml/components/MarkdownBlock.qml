@@ -84,8 +84,17 @@ Item {
         objectName: "markdownText"
         width: parent ? parent.width : root.columnWidth
         // CSS line-height also pads the last line, which Text's lineHeight
-        // never did; trim it so blocks keep their old height.
-        height: Math.max(0, implicitHeight - (htmlLineHeight - 1) * proseMetrics.height)
+        // never did; trim it so blocks keep their old height. The pad follows
+        // that line's own height, which an inline image makes taller.
+        property real lastLineHeight: proseMetrics.height
+        height: Math.max(0, implicitHeight - (htmlLineHeight - 1) * lastLineHeight)
+        // Measured after layout settles: doing it inside the change would
+        // feed the new height straight back into the layout.
+        function measureLastLine() {
+            var rect = positionToRectangle(length)
+            lastLineHeight = rect.height > 0 ? rect.height : proseMetrics.height
+        }
+        onContentHeightChanged: Qt.callLater(measureLastLine)
         text: root.wrapHtml(html, htmlLineHeight)
         textFormat: TextEdit.RichText
         wrapMode: TextEdit.Wrap
