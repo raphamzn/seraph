@@ -705,8 +705,11 @@ private:
         ++m_highlighted;
         // Live reload and image arrivals re-render the whole document; without
         // this every re-render would spawn bat once per fence again.
+        // Bounded by size, not entry count: one fence can be a whole log file.
         static QHash<QString, QString> cache;
+        static qsizetype cacheChars = 0;
         static QMutex cacheMutex;
+        constexpr qsizetype MaxCacheChars = 4 * 1024 * 1024;
         const QString key = m_options.batTheme + QChar(0x1f) + language + QChar(0x1f) + source;
         {
             QMutexLocker lock(&cacheMutex);
@@ -719,10 +722,19 @@ private:
         while (colored.endsWith('\n'))
             colored.chop(1);
         const QString html = colored.isEmpty() ? QString() : BatHighlighter::ansiToHtml(colored);
+        // An empty result may be a bat timeout: try again next time.
+        if (html.isEmpty())
+            return html;
         QMutexLocker lock(&cacheMutex);
-        if (cache.size() >= 512)
+        const qsizetype entryChars = key.size() + html.size();
+        if (cacheChars + entryChars > MaxCacheChars) {
             cache.clear();
-        cache.insert(key, html);
+            cacheChars = 0;
+        }
+        if (entryChars <= MaxCacheChars) {
+            cache.insert(key, html);
+            cacheChars += entryChars;
+        }
         return html;
     }
 
