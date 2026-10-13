@@ -382,6 +382,13 @@ Item {
         event.accepted = true
         closePreview()
     }
+    // Text selected in the rendered markdown wins over the window's
+    // "copy file" shortcut, as it did when the code card took focus.
+    readonly property bool hasMarkdownSelection: markdownRendered && markdownView.selectedText() !== ""
+    Keys.onShortcutOverride: (event) => {
+        if (event.matches(StandardKey.Copy) && hasMarkdownSelection)
+            event.accepted = true
+    }
     Keys.onLeftPressed: (event) => {
         event.accepted = true
         cycleFile(-1)
@@ -413,6 +420,11 @@ Item {
         changePdfPage(1)
     }
     Keys.onPressed: (event) => {
+        if (event.matches(StandardKey.Copy) && hasMarkdownSelection) {
+            event.accepted = true
+            fileOps.copyTextToClipboard(markdownView.selectedText())
+            return
+        }
         if (event.key === Qt.Key_I && event.modifiers === Qt.NoModifier) {
             event.accepted = true
             toggleInfoPanel()
