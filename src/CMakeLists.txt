@@ -223,6 +223,8 @@ endif()
 install(TARGETS seraph DESTINATION bin)
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.desktop"
     DESTINATION share/applications)
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.SeraphReader.desktop"
+    DESTINATION share/applications)
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.svg"
     DESTINATION share/icons/hicolor/scalable/apps)
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.metainfo.xml"

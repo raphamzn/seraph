@@ -90,6 +90,8 @@ package() {
     # Install desktop entry, icon and AppStream metainfo
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.desktop" \
         "${pkgdir}/usr/share/applications/io.github.raphamzn.Seraph.desktop"
+    install -Dm644 "${pkgname}/dist/io.github.raphamzn.SeraphReader.desktop" \
+        "${pkgdir}/usr/share/applications/io.github.raphamzn.SeraphReader.desktop"
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.svg" \
         "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.raphamzn.Seraph.svg"
     install -Dm644 "${pkgname}/dist/io.github.raphamzn.Seraph.metainfo.xml" \

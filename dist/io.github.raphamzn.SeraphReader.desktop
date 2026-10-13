@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Seraph Reader
+GenericName=Markdown Reader
+Comment=Read Markdown files with Seraph's renderer
+Exec=seraph --view %f
+Icon=io.github.raphamzn.Seraph
+Terminal=false
+Type=Application
+NoDisplay=true
+Categories=Utility;TextTools;Qt;
+MimeType=text/markdown;text/x-markdown;
+StartupNotify=true
+StartupWMClass=seraph-reader
