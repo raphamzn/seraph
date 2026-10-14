@@ -354,11 +354,50 @@ FocusScope {
         root.sortRequested(sortColumn, sortAscending)
     }
 
-    // Column widths
-    readonly property int colName: root.width - colSize - colModified - colType
-    readonly property int colSize: 110
-    readonly property int colModified: 140
-    readonly property int colType: 80
+    // ── Resizable columns ────────────────────────────────────────────────
+    // Size/Modified/Type are fixed pixel widths, seeded from the persisted
+    // config and updated live while dragging a header divider (which breaks
+    // the binding); Name takes whatever is left of the row.
+    property int colSize: config.detailedSizeWidth
+    property int colModified: config.detailedModifiedWidth
+    property int colType: config.detailedTypeWidth
+    readonly property int minColWidth: 50
+    readonly property int minNameWidth: 120
+    // Header and rows inset their content by 8px on each side.
+    readonly property int rowContentWidth: Math.max(0, root.width - 16)
+    readonly property int colName: Math.max(0, rowContentWidth - colSize - colModified - colType)
+    // Breathing room between a cell's text and its neighbour's.
+    readonly property int cellPadding: 10
+
+    function persistColumnWidths() {
+        config.saveDetailedColumns(colSize, colModified, colType)
+    }
+
+    function resetColumnWidths() {
+        colSize = 100
+        colModified = 170
+        colType = 130
+        persistColumnWidths()
+    }
+
+    // Moves the divider that sits after column `key` by `dx` pixels: the
+    // column on its left grows and the one on its right shrinks, so every
+    // other divider stays put. Name is the flexible column, so the first
+    // divider only changes Size.
+    function dragDivider(key, startWidths, dx) {
+        if (key === "name") {
+            var maxSize = startWidths.size + startWidths.name - minNameWidth
+            colSize = Math.max(minColWidth, Math.min(startWidths.size - dx, Math.max(minColWidth, maxSize)))
+        } else if (key === "size") {
+            var pair = startWidths.size + startWidths.modified
+            colSize = Math.max(minColWidth, Math.min(startWidths.size + dx, pair - minColWidth))
+            colModified = pair - colSize
+        } else if (key === "modified") {
+            var pair2 = startWidths.modified + startWidths.type
+            colModified = Math.max(minColWidth, Math.min(startWidths.modified + dx, pair2 - minColWidth))
+            colType = pair2 - colModified
+        }
+    }
 
     Column {
         anchors.fill: parent
@@ -396,6 +435,9 @@ FocusScope {
                     delegate: Item {
                         width: modelData.width
                         height: 28
+                        // Each divider's grab area overhangs into the next
+                        // column, so earlier columns stack above later ones.
+                        z: 10 - index
 
                         Rectangle {
                             anchors.fill: parent
@@ -406,9 +448,13 @@ FocusScope {
                         }
 
                         Row {
+                            readonly property bool alignRight: modelData.key === "size"
                             anchors.verticalCenter: parent.verticalCenter
-                            anchors.left: parent.left
-                            anchors.leftMargin: 4
+                            anchors.left: alignRight ? undefined : parent.left
+                            anchors.right: alignRight ? parent.right : undefined
+                            anchors.leftMargin: modelData.key === "name" ? 4 : root.cellPadding
+                            anchors.rightMargin: root.cellPadding
+                            layoutDirection: alignRight ? Qt.RightToLeft : Qt.LeftToRight
                             spacing: 3
 
                             Text {
@@ -431,17 +477,6 @@ FocusScope {
                             }
                         }
 
-                        // Right border separator
-                        Rectangle {
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            anchors.topMargin: 4
-                            anchors.bottomMargin: 4
-                            width: 1
-                            color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
-                        }
-
                         MouseArea {
                             id: hdrMa
                             anchors.fill: parent
@@ -453,6 +488,56 @@ FocusScope {
                                 listView.forceActiveFocus()
                             }
                             onClicked: root.clickHeader(modelData.key)
+                        }
+
+                        // Right border separator, draggable to resize the
+                        // columns on either side. The last column has none:
+                        // its right edge is the edge of the view.
+                        Item {
+                            id: divider
+                            visible: modelData.key !== "type"
+                            anchors.right: parent.right
+                            anchors.rightMargin: -4
+                            width: 9
+                            height: parent.height
+                            z: 1
+                            property var startWidths: ({})
+                            property real startX: 0
+
+                            Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                anchors.topMargin: (divMa.containsMouse || divMa.pressed) ? 0 : 4
+                                anchors.bottomMargin: anchors.topMargin
+                                width: (divMa.containsMouse || divMa.pressed) ? 2 : 1
+                                color: (divMa.containsMouse || divMa.pressed)
+                                    ? Theme.accent
+                                    : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12)
+                            }
+
+                            MouseArea {
+                                id: divMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.SplitHCursor
+                                preventStealing: true
+                                onPressed: (mouse) => {
+                                    divider.startX = mapToItem(root, mouse.x, 0).x
+                                    divider.startWidths = {
+                                        name: root.colName, size: root.colSize,
+                                        modified: root.colModified, type: root.colType
+                                    }
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (!pressed)
+                                        return
+                                    var dx = mapToItem(root, mouse.x, 0).x - divider.startX
+                                    root.dragDivider(modelData.key, divider.startWidths, dx)
+                                }
+                                onReleased: root.persistColumnWidths()
+                                onDoubleClicked: root.resetColumnWidths()
+                            }
                         }
                     }
                 }
@@ -817,7 +902,9 @@ FocusScope {
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             horizontalAlignment: Text.AlignRight
-                            rightPadding: 8
+                            elide: Text.ElideRight
+                            leftPadding: root.cellPadding
+                            rightPadding: root.cellPadding
                         }
 
                         // Modified
@@ -827,8 +914,9 @@ FocusScope {
                             text: detRow.fileModifiedText
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
-                            horizontalAlignment: Text.AlignRight
-                            rightPadding: 8
+                            elide: Text.ElideRight
+                            leftPadding: root.cellPadding
+                            rightPadding: root.cellPadding
                         }
 
                         // Type
@@ -839,6 +927,7 @@ FocusScope {
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             elide: Text.ElideRight
+                            leftPadding: root.cellPadding
                             rightPadding: 4
                         }
 

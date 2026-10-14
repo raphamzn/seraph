@@ -336,6 +336,45 @@ private slots:
         QCOMPARE(mgr2.millerCurrentFraction(), 0.7);
     }
 
+    // --- Detailed view column widths persistence ---
+
+    void testDetailedColumnDefaults()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        QCOMPARE(mgr.detailedSizeWidth(), 100);
+        QCOMPARE(mgr.detailedModifiedWidth(), 170);
+        QCOMPARE(mgr.detailedTypeWidth(), 130);
+    }
+
+    void testSaveDetailedColumns()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        ConfigManager mgr(path);
+        mgr.saveDetailedColumns(90, 200, 150);
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.detailedSizeWidth(), 90);
+        QCOMPARE(mgr2.detailedModifiedWidth(), 200);
+        QCOMPARE(mgr2.detailedTypeWidth(), 150);
+    }
+
+    void testDetailedColumnsClamped()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        ConfigManager mgr(path);
+        mgr.saveDetailedColumns(10, 5000, 49);
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.detailedSizeWidth(), 50);
+        QCOMPARE(mgr2.detailedModifiedWidth(), 600);
+        QCOMPARE(mgr2.detailedTypeWidth(), 50);
+    }
+
     // --- Animation config ---
 
     void testAnimationDefaults()

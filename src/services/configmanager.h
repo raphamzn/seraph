@@ -35,6 +35,9 @@ class ConfigManager : public QObject
     Q_PROPERTY(bool previewInfoVisible READ previewInfoVisible NOTIFY configChanged)
     Q_PROPERTY(double millerParentFraction READ millerParentFraction NOTIFY configChanged)
     Q_PROPERTY(double millerCurrentFraction READ millerCurrentFraction NOTIFY configChanged)
+    Q_PROPERTY(int detailedSizeWidth READ detailedSizeWidth NOTIFY configChanged)
+    Q_PROPERTY(int detailedModifiedWidth READ detailedModifiedWidth NOTIFY configChanged)
+    Q_PROPERTY(int detailedTypeWidth READ detailedTypeWidth NOTIFY configChanged)
     Q_PROPERTY(double readerZoom READ readerZoom NOTIFY configChanged)
     Q_PROPERTY(QString readerEditor READ readerEditor NOTIFY configChanged)
     Q_PROPERTY(QStringList bookmarks READ bookmarks NOTIFY configChanged)
@@ -95,6 +98,11 @@ public:
     // fraction of the total; the preview column takes the remainder.
     double millerParentFraction() const;
     double millerCurrentFraction() const;
+    // Detailed view: pixel widths of the Size, Modified and Type columns;
+    // the Name column takes the remainder.
+    int detailedSizeWidth() const;
+    int detailedModifiedWidth() const;
+    int detailedTypeWidth() const;
     // `seraph --view` window: the last zoom used, and the editor id
     // (EditorLauncher) that Ctrl+E opens the document in.
     double readerZoom() const;
@@ -133,6 +141,7 @@ public:
     Q_INVOKABLE void saveSidebarWidth(int width);
     Q_INVOKABLE void savePreviewInfoPanel(int width, bool visible);
     Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
+    Q_INVOKABLE void saveDetailedColumns(int sizeWidth, int modifiedWidth, int typeWidth);
     Q_INVOKABLE void saveReaderZoom(double zoom);
 
 signals:
@@ -173,6 +182,9 @@ private:
     bool m_previewInfoVisible;
     double m_millerParentFraction;
     double m_millerCurrentFraction;
+    int m_detailedSizeWidth;
+    int m_detailedModifiedWidth;
+    int m_detailedTypeWidth;
     double m_readerZoom;
     QString m_readerEditor;
     QStringList m_bookmarks;

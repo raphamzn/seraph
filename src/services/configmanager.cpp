@@ -247,6 +247,9 @@ void ConfigManager::setDefaults()
     m_readerEditor = QStringLiteral("vscodium");
     m_millerParentFraction = 0.2;
     m_millerCurrentFraction = 0.5;
+    m_detailedSizeWidth = 100;
+    m_detailedModifiedWidth = 170;
+    m_detailedTypeWidth = 130;
     m_bookmarks = defaultBookmarkPaths();
     m_radiusSmall = 4;
     m_radiusMedium = 8;
@@ -335,6 +338,13 @@ void ConfigManager::loadConfig()
             m_millerParentFraction = qBound(0.1, *v, 0.6);
         if (auto v = config["miller"]["current_fraction"].value<double>())
             m_millerCurrentFraction = qBound(0.15, *v, 0.7);
+
+        if (auto v = config["detailed"]["size_width"].value<int64_t>())
+            m_detailedSizeWidth = qBound(50, static_cast<int>(*v), 600);
+        if (auto v = config["detailed"]["modified_width"].value<int64_t>())
+            m_detailedModifiedWidth = qBound(50, static_cast<int>(*v), 600);
+        if (auto v = config["detailed"]["type_width"].value<int64_t>())
+            m_detailedTypeWidth = qBound(50, static_cast<int>(*v), 600);
 
         // Appearance
         if (auto v = config["appearance"]["radius_small"].value<int64_t>())
@@ -444,6 +454,9 @@ double ConfigManager::readerZoom() const { return m_readerZoom; }
 QString ConfigManager::readerEditor() const { return m_readerEditor; }
 double ConfigManager::millerParentFraction() const { return m_millerParentFraction; }
 double ConfigManager::millerCurrentFraction() const { return m_millerCurrentFraction; }
+int ConfigManager::detailedSizeWidth() const { return m_detailedSizeWidth; }
+int ConfigManager::detailedModifiedWidth() const { return m_detailedModifiedWidth; }
+int ConfigManager::detailedTypeWidth() const { return m_detailedTypeWidth; }
 QStringList ConfigManager::bookmarks() const { return m_bookmarks; }
 int ConfigManager::radiusSmall() const { return m_radiusSmall; }
 int ConfigManager::radiusMedium() const { return m_radiusMedium; }
@@ -681,6 +694,28 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
 
         if (!miller.empty())
             config.insert_or_assign("miller", std::move(miller));
+    }
+
+    if (settings.contains("detailedSizeWidth") || settings.contains("detailedModifiedWidth")
+        || settings.contains("detailedTypeWidth")) {
+        toml::table detailed;
+        if (auto existingDetailed = config["detailed"].as_table())
+            detailed = *existingDetailed;
+
+        if (settings.contains("detailedSizeWidth")) {
+            m_detailedSizeWidth = qBound(50, settings.value("detailedSizeWidth").toInt(), 600);
+            detailed.insert_or_assign("size_width", m_detailedSizeWidth);
+        }
+        if (settings.contains("detailedModifiedWidth")) {
+            m_detailedModifiedWidth = qBound(50, settings.value("detailedModifiedWidth").toInt(), 600);
+            detailed.insert_or_assign("modified_width", m_detailedModifiedWidth);
+        }
+        if (settings.contains("detailedTypeWidth")) {
+            m_detailedTypeWidth = qBound(50, settings.value("detailedTypeWidth").toInt(), 600);
+            detailed.insert_or_assign("type_width", m_detailedTypeWidth);
+        }
+
+        config.insert_or_assign("detailed", std::move(detailed));
     }
 
     const bool updatesAppearance = settings.contains("radiusSmall")
@@ -973,5 +1008,14 @@ void ConfigManager::saveMillerColumns(double parentFraction, double currentFract
     saveSettings(QVariantMap{
         {"millerParentFraction", parentFraction},
         {"millerCurrentFraction", currentFraction},
+    });
+}
+
+void ConfigManager::saveDetailedColumns(int sizeWidth, int modifiedWidth, int typeWidth)
+{
+    saveSettings(QVariantMap{
+        {"detailedSizeWidth", sizeWidth},
+        {"detailedModifiedWidth", modifiedWidth},
+        {"detailedTypeWidth", typeWidth},
     });
 }
