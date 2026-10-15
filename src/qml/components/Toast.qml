@@ -6,7 +6,7 @@ import Seraph
 Item {
     id: root
     Accessible.role: Accessible.AlertMessage
-    Accessible.name: "Notifications"
+    Accessible.name: qsTr("Notifications")
 
     // Size to the column of toasts
     implicitWidth: toastColumn.implicitWidth

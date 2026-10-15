@@ -7,7 +7,7 @@ import Seraph
 Item {
     id: root
     Accessible.role: Accessible.Pane
-    Accessible.name: "Breadcrumb navigation: " + root.path
+    Accessible.name: qsTr("Breadcrumb navigation: %1").arg(root.path)
 
     property string path: ""
     property var activeTab: null
@@ -155,7 +155,7 @@ Item {
             Repeater {
                 id: segmentsRepeater
                 model: {
-                    if (root.isRecentsView) return [{ label: "Recents", fullPath: "" }]
+                    if (root.isRecentsView) return [{ label: qsTr("Recents"), fullPath: "" }]
                     if (!root.path || root.path === "/") return []
 
                     return fileOps.breadcrumbSegments(root.path)

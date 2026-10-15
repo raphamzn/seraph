@@ -5,7 +5,7 @@ import Seraph
 Rectangle {
     id: root
     Accessible.role: Accessible.PageTabList
-    Accessible.name: "File tabs"
+    Accessible.name: qsTr("File tabs")
 
     height: 40
     color: Theme.mantle
@@ -126,7 +126,7 @@ Rectangle {
 
                             Text {
                                 width: parent.width - 20 - parent.spacing
-                                text: model.title || "New Tab"
+                                text: model.title || qsTr("New Tab")
                                 color: tabDelegate.index === tabModel.activeIndex ? Theme.text : Theme.subtext
                                 font.pointSize: Theme.fontNormal
                                 elide: Text.ElideRight

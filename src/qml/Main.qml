@@ -250,7 +250,7 @@ ApplicationWindow {
         if (fileOps.isTrashPath(path)) {
             var trashPath = path.length > 9 && path.endsWith("/") ? path.slice(0, -1) : path
             if (trashPath === unifiedTrashPath || trashPath === unifiedTrashPath.slice(0, -1))
-                return "Trash"
+                return qsTr("Trash")
             var trashIndex = trashPath.lastIndexOf("/")
             return decodeURIComponent(trashIndex >= 0 ? trashPath.substring(trashIndex + 1) : trashPath)
         }
@@ -277,7 +277,7 @@ ApplicationWindow {
 
     function paneDisplayName(pane) {
         if (root.paneIsRecents(pane))
-            return "Recents"
+            return qsTr("Recents")
 
         return root.pathDisplayName(root.panePath(pane))
     }
@@ -704,7 +704,7 @@ ApplicationWindow {
         var item = transferConflictItems[transferConflictIndex]
         if (action === "overwrite") {
             if (item.samePath) {
-                conflictErrorText.text = "Cannot overwrite an item with itself"
+                conflictErrorText.text = qsTr("Cannot overwrite an item with itself")
                 return
             }
 
@@ -713,13 +713,13 @@ ApplicationWindow {
         } else if (action === "rename") {
             var name = conflictRenameField.text.trim()
             if (name === "" || name === "." || name === ".." || name.indexOf("/") >= 0) {
-                conflictErrorText.text = "Enter a valid file name"
+                conflictErrorText.text = qsTr("Enter a valid file name")
                 return
             }
 
             var targetPath = transferDestinationPath + "/" + name
             if (transferReservedTargets[targetPath] || fileOps.pathExists(targetPath) || targetPath === item.sourcePath) {
-                conflictErrorText.text = "That name already exists"
+                conflictErrorText.text = qsTr("That name already exists")
                 return
             }
 
@@ -933,7 +933,7 @@ ApplicationWindow {
 
         cancelSelectedSizeRequest()
         currentSelectedSizePending = true
-        currentSelectedSize = "Calculating size..."
+        currentSelectedSize = qsTr("Calculating size...")
         currentSelectedSizeRequestId = diskUsageService.requestSize(paths)
     }
 
@@ -1320,7 +1320,7 @@ ApplicationWindow {
         visible: false
         z: 1000
         Accessible.role: Accessible.Dialog
-        Accessible.name: "Rename"
+        Accessible.name: qsTr("Rename")
 
         function open() {
             renameErrorText.text = ""
@@ -1341,14 +1341,14 @@ ApplicationWindow {
             var parentDir = fileOps.parentPath(renameTargetPath)
             var targetPath = parentDir + "/" + name
             if (fileOps.pathExists(targetPath)) {
-                renameErrorText.text = "\"" + name + "\" already exists"
+                renameErrorText.text = qsTr("\"%1\" already exists").arg(name)
                 return
             }
 
             if (fileOps.isRemotePath(renameTargetPath)) {
                 var result = fileOps.renameResolvedItems([{ sourcePath: renameTargetPath, targetPath: targetPath }])
                 if (!result.success) {
-                    renameErrorText.text = result.error || "Rename failed"
+                    renameErrorText.text = result.error || qsTr("Rename failed")
                     return
                 }
                 fsModel.refresh()
@@ -1422,7 +1422,7 @@ ApplicationWindow {
             Q.Card {
                 id: renameCard
                 anchors.fill: parent
-                title: "Rename"
+                title: qsTr("Rename")
                 padding: 20
                 color: Theme.mantle
                 border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
@@ -1432,7 +1432,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     autoFocus: true
                     variant: "filled"
-                    placeholder: "Enter new name"
+                    placeholder: qsTr("Enter new name")
                     onTextChanged: renameErrorText.text = ""
                     Keys.onReturnPressed: renameDialog.accept()
                     Keys.onEscapePressed: renameDialog.reject()
@@ -1453,7 +1453,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: cancelRenameButton
-                        text: "Cancel"
+                        text: qsTr("Cancel")
                         variant: "ghost"
                         size: "small"
                         KeyNavigation.left: confirmRenameButton
@@ -1468,7 +1468,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: confirmRenameButton
-                        text: "Rename"
+                        text: qsTr("Rename")
                         variant: "primary"
                         size: "small"
                         KeyNavigation.left: cancelRenameButton
@@ -1494,7 +1494,7 @@ ApplicationWindow {
         visible: false
         z: 1000
         Accessible.role: Accessible.Dialog
-        Accessible.name: "New folder"
+        Accessible.name: qsTr("New folder")
 
         function open() {
             newFolderErrorText.text = ""
@@ -1511,7 +1511,7 @@ ApplicationWindow {
             if (newItemParentPath === "" || name === "") return
             var createdPath = newItemParentPath + "/" + name
             if (fileOps.pathExists(createdPath)) {
-                newFolderErrorText.text = "\"" + name + "\" already exists"
+                newFolderErrorText.text = qsTr("\"%1\" already exists").arg(name)
                 return
             }
             if (fileOps.isRemotePath(newItemParentPath)) {
@@ -1589,7 +1589,7 @@ ApplicationWindow {
             Q.Card {
                 id: folderCard
                 anchors.fill: parent
-                title: "New Folder"
+                title: qsTr("New Folder")
                 padding: 20
                 color: Theme.mantle
                 border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
@@ -1599,7 +1599,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     autoFocus: true
                     variant: "filled"
-                    placeholder: "Folder name"
+                    placeholder: qsTr("Folder name")
                     onTextChanged: newFolderErrorText.text = ""
                     Keys.onReturnPressed: newFolderDialog.accept()
                     Keys.onEscapePressed: newFolderDialog.reject()
@@ -1620,7 +1620,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: cancelNewFolderButton
-                        text: "Cancel"
+                        text: qsTr("Cancel")
                         variant: "ghost"
                         size: "small"
                         KeyNavigation.left: confirmNewFolderButton
@@ -1635,7 +1635,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: confirmNewFolderButton
-                        text: "Create"
+                        text: qsTr("Create")
                         variant: "primary"
                         size: "small"
                         KeyNavigation.left: cancelNewFolderButton
@@ -1659,7 +1659,7 @@ ApplicationWindow {
         visible: false
         z: 1000
         Accessible.role: Accessible.Dialog
-        Accessible.name: "New file"
+        Accessible.name: qsTr("New file")
 
         function open() {
             newFileErrorText.text = ""
@@ -1676,7 +1676,7 @@ ApplicationWindow {
             if (newItemParentPath === "" || name === "") return
             var createdPath = newItemParentPath + "/" + name
             if (fileOps.pathExists(createdPath)) {
-                newFileErrorText.text = "\"" + name + "\" already exists"
+                newFileErrorText.text = qsTr("\"%1\" already exists").arg(name)
                 return
             }
             if (fileOps.isRemotePath(newItemParentPath)) {
@@ -1754,7 +1754,7 @@ ApplicationWindow {
             Q.Card {
                 id: fileCard
                 anchors.fill: parent
-                title: "New File"
+                title: qsTr("New File")
                 color: Theme.mantle
                 border.color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
                 padding: 20
@@ -1764,7 +1764,7 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     autoFocus: true
                     variant: "filled"
-                    placeholder: "File name"
+                    placeholder: qsTr("File name")
                     onTextChanged: newFileErrorText.text = ""
                     Keys.onReturnPressed: newFileDialog.accept()
                     Keys.onEscapePressed: newFileDialog.reject()
@@ -1785,7 +1785,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: cancelNewFileButton
-                        text: "Cancel"
+                        text: qsTr("Cancel")
                         variant: "ghost"
                         size: "small"
                         KeyNavigation.left: confirmNewFileButton
@@ -1800,7 +1800,7 @@ ApplicationWindow {
 
                     Q.Button {
                         id: confirmNewFileButton
-                        text: "Create"
+                        text: qsTr("Create")
                         variant: "primary"
                         size: "small"
                         KeyNavigation.left: cancelNewFileButton
@@ -1821,7 +1821,7 @@ ApplicationWindow {
     Q.Dialog {
         id: appChooserDialog
         anchors.fill: parent
-        title: "Choose Application"
+        title: qsTr("Choose Application")
         dialogWidth: 400
         z: 1100
 
@@ -1848,7 +1848,7 @@ ApplicationWindow {
         Q.TextField {
             id: appSearchField
             Layout.fillWidth: true
-            placeholder: "Search applications\u2026"
+            placeholder: qsTr("Search applications\u2026")
             variant: "filled"
             onTextEdited: (text) => appChooserDialog.searchText = text
         }
@@ -1934,7 +1934,7 @@ ApplicationWindow {
                             Text {
                                 id: setDefaultLabel
                                 anchors.centerIn: parent
-                                text: "Set Default"
+                                text: qsTr("Set Default")
                                 color: Theme.accent
                                 font.pointSize: Theme.fontSmall
                                 font.weight: Font.DemiBold
@@ -1958,7 +1958,7 @@ ApplicationWindow {
 
         Text {
             visible: appListView.count === 0
-            text: "No applications found"
+            text: qsTr("No applications found")
             color: Theme.muted
             font.pointSize: Theme.fontSmall
             Layout.alignment: Qt.AlignHCenter
@@ -1972,7 +1972,7 @@ ApplicationWindow {
         visible: false
         z: 1000
         Accessible.role: Accessible.Dialog
-        Accessible.name: "File properties"
+        Accessible.name: qsTr("File properties")
 
         property var props: ({})
         property var apps: []
@@ -1998,7 +1998,7 @@ ApplicationWindow {
             }
 
             folderDiskUsagePending = true
-            folderDiskUsageText = "Calculating..."
+            folderDiskUsageText = qsTr("Calculating...")
             folderDiskUsageRequestId = diskUsageService.requestSize([props.path])
         }
 
@@ -2094,7 +2094,7 @@ ApplicationWindow {
             transform: Translate { y: propsBox.yOffset }
 
             // Access dropdown options
-            property var accessOptions: ["None", "Read only", "Read & Write", "Read, Write & Execute"]
+            property var accessOptions: [qsTr("None"), qsTr("Read only"), qsTr("Read & Write"), qsTr("Read, Write & Execute")]
 
             Rectangle {
                 anchors.fill: parent
@@ -2134,7 +2134,7 @@ ApplicationWindow {
                             elide: Text.ElideMiddle; width: parent.width
                         }
                         Text {
-                            text: { var p = propertiesDialog.props; return !p.mimeDescription ? "" : p.isDir ? "Folder" : p.mimeDescription }
+                            text: { var p = propertiesDialog.props; return !p.mimeDescription ? "" : p.isDir ? qsTr("Folder") : p.mimeDescription }
                             color: Theme.subtext; font.pointSize: Theme.fontSmall; elide: Text.ElideRight; width: parent.width
                         }
                     }
@@ -2144,7 +2144,7 @@ ApplicationWindow {
                 Q.Tabs {
                     id: propsTabs
                     width: parent.width
-                    model: propertiesDialog.props.canEditPermissions === false ? ["General"] : ["General", "Permissions"]
+                    model: propertiesDialog.props.canEditPermissions === false ? [qsTr("General")] : [qsTr("General"), qsTr("Permissions")]
                     currentIndex: propertiesDialog.currentTab
                     onTabChanged: (index) => propertiesDialog.currentTab = index
                 }
@@ -2186,10 +2186,10 @@ ApplicationWindow {
                         anchors.left: parent.left; anchors.right: parent.right
                         anchors.leftMargin: 24; anchors.rightMargin: 24; spacing: 0
 
-                        PropRow { label: "Kind"; value: { var p = propertiesDialog.props; return p.isDir ? "Folder" : (p.mimeDescription || "") } }
-                        PropRow { label: "Location"; value: propertiesDialog.props.parentDir || "" }
-                        PropRow { label: "Deleted"; value: propertiesDialog.props.deleted || ""; show: (propertiesDialog.props.deleted || "") !== "" }
-                        PropRow { label: "Link target"; value: propertiesDialog.props.symlinkTarget || ""; show: propertiesDialog.props.isSymlink || false }
+                        PropRow { label: qsTr("Kind"); value: { var p = propertiesDialog.props; return p.isDir ? qsTr("Folder") : (p.mimeDescription || "") } }
+                        PropRow { label: qsTr("Location"); value: propertiesDialog.props.parentDir || "" }
+                        PropRow { label: qsTr("Deleted"); value: propertiesDialog.props.deleted || ""; show: (propertiesDialog.props.deleted || "") !== "" }
+                        PropRow { label: qsTr("Link target"); value: propertiesDialog.props.symlinkTarget || ""; show: propertiesDialog.props.isSymlink || false }
                     }
 
                     // Separator
@@ -2200,9 +2200,9 @@ ApplicationWindow {
                         anchors.left: parent.left; anchors.right: parent.right
                         anchors.leftMargin: 24; anchors.rightMargin: 24; spacing: 0
 
-                        PropRow { label: "Created"; value: propertiesDialog.props.created || "" }
-                        PropRow { label: "Modified"; value: propertiesDialog.props.modified || "" }
-                        PropRow { label: "Accessed"; value: propertiesDialog.props.accessed || "" }
+                        PropRow { label: qsTr("Created"); value: propertiesDialog.props.created || "" }
+                        PropRow { label: qsTr("Modified"); value: propertiesDialog.props.modified || "" }
+                        PropRow { label: qsTr("Accessed"); value: propertiesDialog.props.accessed || "" }
                     }
 
                     Q.Separator { width: parent.width - 48; anchors.horizontalCenter: parent.horizontalCenter }
@@ -2213,16 +2213,16 @@ ApplicationWindow {
                         anchors.leftMargin: 24; anchors.rightMargin: 24; spacing: 0
 
                         PropRow {
-                            label: "Size"
+                            label: qsTr("Size")
                             value: propertiesDialog.props.sizeText || ""
                             show: !(propertiesDialog.props.isDir || false)
                         }
                         PropRow {
-                            label: "Disk usage"
+                            label: qsTr("Disk usage")
                             value: propertiesDialog.folderDiskUsageText
                             show: propertiesDialog.props.isDir || false
                         }
-                        PropRow { label: "Content"; value: propertiesDialog.props.contentText || ""; show: propertiesDialog.props.isDir || false }
+                        PropRow { label: qsTr("Content"); value: propertiesDialog.props.contentText || ""; show: propertiesDialog.props.isDir || false }
                     }
 
                     // Rich metadata (images, audio, video, PDF)
@@ -2262,12 +2262,12 @@ ApplicationWindow {
 
                         Item { width: 1; height: 4 }
 
-                        PropRow { label: "Capacity"; value: propertiesDialog.props.diskTotal || "" }
+                        PropRow { label: qsTr("Capacity"); value: propertiesDialog.props.diskTotal || "" }
 
                         // Usage bar
                         Item {
                             width: parent.width; height: 28
-                            Text { text: "Usage"; color: Theme.subtext; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: 80 }
+                            Text { text: qsTr("Usage"); color: Theme.subtext; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: 80 }
                             Column {
                                 anchors.left: parent.left; anchors.leftMargin: 88
                                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
@@ -2285,8 +2285,9 @@ ApplicationWindow {
 
                                 // Label
                                 Text {
-                                    text: (propertiesDialog.props.diskUsed || "") + " used (" + (propertiesDialog.props.diskUsedPctText || "") + ")  |  " +
-                                          (propertiesDialog.props.diskFree || "") + " free (" + (propertiesDialog.props.diskFreePctText || "") + ")"
+                                    text: qsTr("%1 used (%2)  |  %3 free (%4)")
+                                          .arg(propertiesDialog.props.diskUsed || "").arg(propertiesDialog.props.diskUsedPctText || "")
+                                          .arg(propertiesDialog.props.diskFree || "").arg(propertiesDialog.props.diskFreePctText || "")
                                     color: Theme.subtext; font.pixelSize: 10
                                 }
                             }
@@ -2301,8 +2302,8 @@ ApplicationWindow {
                         title: {
                             var apps = propertiesDialog.apps
                             for (var i = 0; i < apps.length; i++)
-                                if (apps[i].isDefault) return "Open with: " + apps[i].name
-                            return apps.length > 0 ? "Open with: " + apps[0].name : "Open with"
+                                if (apps[i].isDefault) return qsTr("Open with: %1").arg(apps[i].name)
+                            return apps.length > 0 ? qsTr("Open with: %1").arg(apps[0].name) : qsTr("Open with")
                         }
                         width: parent.width
 
@@ -2384,7 +2385,7 @@ ApplicationWindow {
                                 }
 
                                 Text {
-                                    text: "Other Application\u2026"
+                                    text: qsTr("Other Application\u2026")
                                     color: Theme.muted
                                     font.pointSize: Theme.fontSmall
                                     anchors.verticalCenter: parent.verticalCenter
@@ -2439,7 +2440,7 @@ ApplicationWindow {
                         Item {
                             width: parent.width; height: 34
                             Text {
-                                text: "Access"
+                                text: qsTr("Access")
                                 color: Theme.subtext; font.pointSize: Theme.fontSmall
                                 anchors.left: parent.left; anchors.leftMargin: 36
                                 anchors.verticalCenter: parent.verticalCenter
@@ -2458,7 +2459,7 @@ ApplicationWindow {
                     }
 
                     PermGroup {
-                        groupLabel: "Owner"
+                        groupLabel: qsTr("Owner")
                         userName: propertiesDialog.props.owner || ""
                         accessIdx: propertiesDialog.props.ownerAccess || 0
                         onAccessChanged: (idx) => {
@@ -2470,7 +2471,7 @@ ApplicationWindow {
                     Q.Separator { width: parent.width - 48; anchors.horizontalCenter: parent.horizontalCenter }
 
                     PermGroup {
-                        groupLabel: "Group"
+                        groupLabel: qsTr("Group")
                         userName: propertiesDialog.props.group || ""
                         accessIdx: propertiesDialog.props.groupAccess || 0
                         onAccessChanged: (idx) => {
@@ -2482,7 +2483,7 @@ ApplicationWindow {
                     Q.Separator { width: parent.width - 48; anchors.horizontalCenter: parent.horizontalCenter }
 
                     PermGroup {
-                        groupLabel: "Others"
+                        groupLabel: qsTr("Others")
                         userName: ""
                         accessIdx: propertiesDialog.props.otherAccess || 0
                         onAccessChanged: (idx) => {
@@ -2501,7 +2502,7 @@ ApplicationWindow {
                 Item {
                     width: parent.width; height: 48
                     Q.Button {
-                        text: "Close"
+                        text: qsTr("Close")
                         variant: "primary"
                         size: "small"
                         anchors.right: parent.right; anchors.rightMargin: 20
@@ -2518,7 +2519,7 @@ ApplicationWindow {
         anchors.fill: parent
         z: 9998
         dialogWidth: 460
-        title: root.transferMoveOperation ? "Move Conflict" : "Copy Conflict"
+        title: root.transferMoveOperation ? qsTr("Move Conflict") : qsTr("Copy Conflict")
         initialFocusItem: conflictRenameField
 
         property var currentItem: ({})
@@ -2531,8 +2532,8 @@ ApplicationWindow {
         Text {
             Layout.fillWidth: true
             text: conflictDialog.currentItem.samePath
-                ? "\"" + (conflictDialog.currentItem.sourceName || "") + "\" is already in this folder."
-                : "\"" + (conflictDialog.currentItem.sourceName || "") + "\" already exists in the destination."
+                ? qsTr("\"%1\" is already in this folder.").arg(conflictDialog.currentItem.sourceName || "")
+                : qsTr("\"%1\" already exists in the destination.").arg(conflictDialog.currentItem.sourceName || "")
             color: Theme.text
             font.pointSize: Theme.fontNormal
             wrapMode: Text.WordWrap
@@ -2541,8 +2542,8 @@ ApplicationWindow {
         Text {
             Layout.fillWidth: true
             text: root.transferMoveOperation
-                ? "Choose whether to skip it, replace the existing item, or keep both with a new name."
-                : "Choose whether to skip it, overwrite the existing item, or keep both with a new name."
+                ? qsTr("Choose whether to skip it, replace the existing item, or keep both with a new name.")
+                : qsTr("Choose whether to skip it, overwrite the existing item, or keep both with a new name.")
             color: Theme.subtext
             font.pointSize: Theme.fontNormal
             wrapMode: Text.WordWrap
@@ -2553,7 +2554,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             autoFocus: true
             variant: "filled"
-            placeholder: "New name"
+            placeholder: qsTr("New name")
             Keys.onReturnPressed: root.resolveTransferConflict("rename")
             Keys.onEscapePressed: conflictDialog.reject()
         }
@@ -2573,7 +2574,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: cancelConflictButton
-                text: "Cancel"
+                text: qsTr("Cancel")
                 variant: "ghost"
                 size: "small"
                 onClicked: conflictDialog.reject()
@@ -2581,7 +2582,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: skipConflictButton
-                text: "Skip"
+                text: qsTr("Skip")
                 variant: "ghost"
                 size: "small"
                 onClicked: root.resolveTransferConflict("skip")
@@ -2589,7 +2590,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: overwriteConflictButton
-                text: root.transferMoveOperation ? "Replace" : "Overwrite"
+                text: root.transferMoveOperation ? qsTr("Replace") : qsTr("Overwrite")
                 variant: "danger"
                 size: "small"
                 enabled: !(conflictDialog.currentItem.samePath || false)
@@ -2598,7 +2599,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: renameConflictButton
-                text: "Rename"
+                text: qsTr("Rename")
                 variant: "primary"
                 size: "small"
                 onClicked: root.resolveTransferConflict("rename")
@@ -2612,15 +2613,16 @@ ApplicationWindow {
         anchors.fill: parent
         z: 9998
         dialogWidth: 360
-        title: "Permanently Delete?"
+        title: qsTr("Permanently Delete?")
         initialFocusItem: cancelDeleteButton
         onAccepted: fileOps.deleteFiles(root.deleteConfirmPaths)
 
         Text {
             Layout.fillWidth: true
             text: root.deleteConfirmPaths.length === 1
-                ? "\"" + root.deleteConfirmPaths[0].substring(root.deleteConfirmPaths[0].lastIndexOf("/") + 1) + "\" will be permanently deleted. This cannot be undone."
-                : root.deleteConfirmPaths.length + " items will be permanently deleted. This cannot be undone."
+                ? qsTr("\"%1\" will be permanently deleted. This cannot be undone.")
+                    .arg(root.deleteConfirmPaths[0].substring(root.deleteConfirmPaths[0].lastIndexOf("/") + 1))
+                : qsTr("%n item(s) will be permanently deleted. This cannot be undone.", "", root.deleteConfirmPaths.length)
             color: Theme.subtext
             font.pointSize: Theme.fontNormal
             wrapMode: Text.WordWrap
@@ -2632,7 +2634,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: cancelDeleteButton
-                text: "Cancel"
+                text: qsTr("Cancel")
                 variant: "ghost"
                 size: "small"
                 KeyNavigation.left: confirmDeleteButton
@@ -2646,7 +2648,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: confirmDeleteButton
-                text: "Delete"
+                text: qsTr("Delete")
                 variant: "danger"
                 size: "small"
                 KeyNavigation.left: cancelDeleteButton
@@ -2666,13 +2668,13 @@ ApplicationWindow {
         anchors.fill: parent
         z: 9998
         dialogWidth: 360
-        title: "Empty Trash?"
+        title: qsTr("Empty Trash?")
         initialFocusItem: cancelEmptyTrashButton
         onAccepted: fileOps.emptyTrash()
 
         Text {
             Layout.fillWidth: true
-            text: "All items in the Trash will be permanently deleted. This cannot be undone."
+            text: qsTr("All items in the Trash will be permanently deleted. This cannot be undone.")
             color: Theme.subtext
             font.pointSize: Theme.fontNormal
             wrapMode: Text.WordWrap
@@ -2684,7 +2686,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: cancelEmptyTrashButton
-                text: "Cancel"
+                text: qsTr("Cancel")
                 variant: "ghost"
                 size: "small"
                 KeyNavigation.left: confirmEmptyTrashButton
@@ -2698,7 +2700,7 @@ ApplicationWindow {
 
             Q.Button {
                 id: confirmEmptyTrashButton
-                text: "Empty Trash"
+                text: qsTr("Empty Trash")
                 variant: "danger"
                 size: "small"
                 KeyNavigation.left: cancelEmptyTrashButton
@@ -3196,56 +3198,56 @@ ApplicationWindow {
         if (item.kind === "quickAccess") {
             if (item.isRecents)
                 return [
-                    { text: "Open", shortcut: "", action: "open" }
+                    { text: qsTr("Open"), shortcut: "", action: "open" }
                 ]
 
             if (fileOps.isTrashPath(item.path))
                 return [
-                    { text: "Open", shortcut: "Return", action: "open" },
-                    { text: "Open in New Tab", shortcut: "", action: "opennewtab" },
-                    { text: "Open in Split View", shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
+                    { text: qsTr("Open"), shortcut: "Return", action: "open" },
+                    { text: qsTr("Open in New Tab"), shortcut: "", action: "opennewtab" },
+                    { text: qsTr("Open in Split View"), shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
                     { separator: true },
-                    { text: "Empty Trash", shortcut: "", action: "emptytrash", destructive: true }
+                    { text: qsTr("Empty Trash"), shortcut: "", action: "emptytrash", destructive: true }
                 ]
 
             return [
-                { text: "Open", shortcut: "Return", action: "open" },
-                { text: "Open in New Tab", shortcut: "", action: "opennewtab" },
-                { text: "Open in Split View", shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
+                { text: qsTr("Open"), shortcut: "Return", action: "open" },
+                { text: qsTr("Open in New Tab"), shortcut: "", action: "opennewtab" },
+                { text: qsTr("Open in Split View"), shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
                 { separator: true },
-                { text: "Open in Terminal", shortcut: "", action: "terminal" },
-                { text: "Properties", shortcut: "", action: "properties" }
+                { text: qsTr("Open in Terminal"), shortcut: "", action: "terminal" },
+                { text: qsTr("Properties"), shortcut: "", action: "properties" }
             ]
         }
 
         if (item.kind === "bookmark") {
             return [
-                { text: "Open", shortcut: "Return", action: "open" },
-                { text: "Open in New Tab", shortcut: "", action: "opennewtab" },
-                { text: "Open in Split View", shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
+                { text: qsTr("Open"), shortcut: "Return", action: "open" },
+                { text: qsTr("Open in New Tab"), shortcut: "", action: "opennewtab" },
+                { text: qsTr("Open in Split View"), shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
                 { separator: true },
-                { text: "Open in Terminal", shortcut: "", action: "terminal" },
-                { text: "Properties", shortcut: "", action: "properties" },
+                { text: qsTr("Open in Terminal"), shortcut: "", action: "terminal" },
+                { text: qsTr("Properties"), shortcut: "", action: "properties" },
                 { separator: true },
-                { text: "Remove from Bookmarks", shortcut: "", action: "removebookmark", destructive: true }
+                { text: qsTr("Remove from Bookmarks"), shortcut: "", action: "removebookmark", destructive: true }
             ]
         }
 
         if (item.kind === "device") {
             if (!item.mounted)
                 return [
-                    { text: "Mount", shortcut: "", action: "mountdevice" }
+                    { text: qsTr("Mount"), shortcut: "", action: "mountdevice" }
                 ]
 
             return [
-                { text: "Open", shortcut: "Return", action: "open" },
-                { text: "Open in New Tab", shortcut: "", action: "opennewtab" },
-                { text: "Open in Split View", shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
+                { text: qsTr("Open"), shortcut: "Return", action: "open" },
+                { text: qsTr("Open in New Tab"), shortcut: "", action: "opennewtab" },
+                { text: qsTr("Open in Split View"), shortcut: "", action: "split_open", icon: "SquareSplitHorizontal" },
                 { separator: true },
-                { text: "Open in Terminal", shortcut: "", action: "terminal" },
-                { text: "Properties", shortcut: "", action: "properties" },
+                { text: qsTr("Open in Terminal"), shortcut: "", action: "terminal" },
+                { text: qsTr("Properties"), shortcut: "", action: "properties" },
                 { separator: true },
-                { text: "Unmount", shortcut: "", action: "unmountdevice" }
+                { text: qsTr("Unmount"), shortcut: "", action: "unmountdevice" }
             ]
         }
 
@@ -3696,9 +3698,9 @@ ApplicationWindow {
                     itemCount: root.activeItemCount()
                     folderCount: root.activeFolderCount()
                     searchStatus: root.searchMode && root.searchServiceForPane(activePane).isSearching
-                        ? "Searching... " + root.searchServiceForPane(activePane).resultCount + " results"
+                        ? qsTr("Searching... %n result(s)", "", root.searchServiceForPane(activePane).resultCount)
                         : (root.searchMode && root.searchProxyForPane(activePane).searchActive
-                            ? root.searchProxyForPane(activePane).rowCount() + " results"
+                            ? qsTr("%n result(s)", "", root.searchProxyForPane(activePane).rowCount())
                             : "")
                     selectedCount: root.currentSelectedCount
                     selectedSize: root.currentSelectedSize
@@ -3782,9 +3784,9 @@ ApplicationWindow {
                 propertiesDialog.refreshFolderDiskUsage()
             }
             if (success)
-                toast.show("Operation completed successfully", "success")
+                toast.show(qsTr("Operation completed successfully"), "success")
             else
-                toast.show(error || "Operation failed", "error")
+                toast.show(error || qsTr("Operation failed"), "error")
         }
     }
 

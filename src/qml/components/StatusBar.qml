@@ -8,9 +8,9 @@ Rectangle {
     Accessible.role: Accessible.StatusBar
     Accessible.name: {
         var parts = []
-        if (selectedCount > 0) parts.push(selectedCount + " selected")
-        else parts.push(itemCount + " items")
-        if (folderCount > 0) parts.push(folderCount + " folders")
+        if (selectedCount > 0) parts.push(qsTr("%n selected", "", selectedCount))
+        else parts.push(qsTr("%n item(s)", "", itemCount))
+        if (folderCount > 0) parts.push(qsTr("%n folder(s)", "", folderCount))
         if (selectedSize) parts.push(selectedSize)
         return parts.join(", ")
     }
@@ -71,7 +71,9 @@ Rectangle {
             Layout.fillWidth: true
             text: {
                 const files = statusBar.itemCount - statusBar.folderCount
-                return statusBar.itemCount + " items (" + statusBar.folderCount + " folders, " + files + " files)"
+                return qsTr("%1 (%2, %3)").arg(qsTr("%n item(s)", "", statusBar.itemCount))
+                    .arg(qsTr("%n folder(s)", "", statusBar.folderCount))
+                    .arg(qsTr("%n file(s)", "", files))
             }
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
@@ -80,7 +82,7 @@ Rectangle {
 
         Text {
             visible: statusBar.selectedCount > 0
-            text: statusBar.selectedCount + " selected" + (statusBar.selectedSize ? " \u2014 " + statusBar.selectedSize : "")
+            text: qsTr("%n selected", "", statusBar.selectedCount) + (statusBar.selectedSize ? " \u2014 " + statusBar.selectedSize : "")
             color: statusBar.selectedSizePending ? Theme.accent : Theme.subtext
             font.pointSize: Theme.fontSmall
             verticalAlignment: Text.AlignVCenter

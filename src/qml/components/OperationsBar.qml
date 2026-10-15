@@ -6,7 +6,7 @@ import Quill as Q
 Rectangle {
     id: root
     Accessible.role: Accessible.StatusBar
-    Accessible.name: "File operations"
+    Accessible.name: qsTr("File operations")
 
     property bool _showBar: false
 
@@ -137,7 +137,7 @@ Rectangle {
 
                     Text {
                         Layout.fillWidth: true
-                        text: paused ? "Paused" : statusText
+                        text: paused ? qsTr("Paused") : statusText
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                         elide: Text.ElideMiddle
@@ -236,7 +236,7 @@ Rectangle {
         // "Done" state when no active transfers but bar still lingering
         Text {
             visible: !fileOps.busy
-            text: "Done"
+            text: qsTr("Done")
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
         }

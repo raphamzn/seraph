@@ -5,7 +5,7 @@ import Seraph
 Item {
     id: root
     Accessible.role: Accessible.EditableText
-    Accessible.name: "Search files"
+    Accessible.name: qsTr("Search files")
     Accessible.description: root.searchQuery
 
     property string searchQuery: ""
@@ -82,7 +82,7 @@ Item {
                 Text {
                     anchors.fill: parent
                     verticalAlignment: Text.AlignVCenter
-                    text: "Search files..."
+                    text: qsTr("Search files...")
                     color: Theme.muted
                     font: searchInput.font
                     visible: !searchInput.text && !searchInput.activeFocus

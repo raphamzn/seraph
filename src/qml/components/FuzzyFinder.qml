@@ -11,8 +11,8 @@ Q.Dialog {
     anchors.fill: parent
     z: 1002
     dialogWidth: Math.min(720, width - 40)
-    title: "Quick Open"
-    subtitle: "Type to fuzzy-search files and folders. Enter to jump, Esc to close."
+    title: qsTr("Quick Open")
+    subtitle: qsTr("Type to fuzzy-search files and folders. Enter to jump, Esc to close.")
 
     // Emitted when the user picks a result.
     signal activated(string path, bool isDir)
@@ -52,7 +52,7 @@ Q.Dialog {
         Layout.fillWidth: true
         variant: "filled"
         icon: "Search"
-        placeholder: "Search files by name..."
+        placeholder: qsTr("Search files by name...")
 
         onTextEdited: {
             fuzzyFinder.setQuery(text)
@@ -95,8 +95,8 @@ Q.Dialog {
             anchors.centerIn: parent
             visible: fuzzyFinder.count === 0
             text: fuzzyFinder.scanning
-                ? "Scanning..."
-                : (searchField.text === "" ? "No files here" : "No matches")
+                ? qsTr("Scanning...")
+                : (searchField.text === "" ? qsTr("No files here") : qsTr("No matches"))
             color: Theme.subtext
             font.pointSize: Theme.fontNormal
         }

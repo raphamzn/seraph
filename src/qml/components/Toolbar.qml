@@ -5,7 +5,7 @@ import Seraph
 Rectangle {
     id: root
     Accessible.role: Accessible.ToolBar
-    Accessible.name: "Navigation toolbar"
+    Accessible.name: qsTr("Navigation toolbar")
 
     property var activeTab: null
     property string navigationPath: ""
@@ -239,7 +239,7 @@ Rectangle {
                         IconUndo { anchors.verticalCenter: parent.verticalCenter; size: 16; color: Theme.accent }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Restore"
+                            text: qsTr("Restore")
                             color: Theme.text
                             font.pointSize: Theme.fontNormal
                             font.weight: Font.Medium
@@ -259,7 +259,7 @@ Rectangle {
                         IconTrash { anchors.verticalCenter: parent.verticalCenter; size: 16; color: Theme.error }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Empty Trash"
+                            text: qsTr("Empty Trash")
                             color: Theme.error
                             font.pointSize: Theme.fontNormal
                             font.weight: Font.Medium
@@ -533,7 +533,7 @@ Rectangle {
                                 anchors.right: parent.right
                                 anchors.verticalCenter: parent.verticalCenter
                                 horizontalAlignment: Text.AlignHCenter
-                                text: tabDelegate.model.title || "New Tab"
+                                text: tabDelegate.model.title || qsTr("New Tab")
                                 color: tabDelegate.index === tabModel.activeIndex ? Theme.text : Theme.subtext
                                 font.pointSize: Theme.fontNormal
                                 font.weight: tabDelegate.index === tabModel.activeIndex ? Font.Medium : Font.Normal
