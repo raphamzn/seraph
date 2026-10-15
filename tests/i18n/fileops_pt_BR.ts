@@ -11,5 +11,16 @@
         <source>Home</source>
         <translation>Pasta pessoal</translation>
     </message>
+    <message>
+        <source>Trash</source>
+        <translation>Lixeira</translation>
+    </message>
+</context>
+<context>
+    <name>TabModel</name>
+    <message>
+        <source>Trash</source>
+        <translation>Lixeira</translation>
+    </message>
 </context>
 </TS>

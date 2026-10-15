@@ -337,6 +337,10 @@
         <translation>Instale &apos;%1&apos; pelo gerenciador de pacotes da sua distribuição.</translation>
     </message>
     <message>
+        <source>This build of Seraph was compiled without %1 support. Install the full (non-minimal) package or rebuild Seraph with %1 available at configure time.</source>
+        <translation>Esta versão do Seraph foi compilada sem suporte a %1. Instale o pacote completo (não mínimo) ou recompile o Seraph com %1 disponível na configuração.</translation>
+    </message>
+    <message>
         <source>GIO command-line tool</source>
         <translation>Ferramenta de linha de comando do GIO</translation>
     </message>
@@ -734,6 +738,10 @@
         <translation>Não foi possível criar o arquivo</translation>
     </message>
     <message>
+        <source>Trash</source>
+        <translation>Lixeira</translation>
+    </message>
+    <message>
         <source>Home</source>
         <translation>Pasta pessoal</translation>
     </message>
@@ -744,6 +752,13 @@
     <message>
         <source>Target folder does not exist</source>
         <translation>A pasta de destino não existe</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n transfer(s) active</source>
+        <translation>
+            <numerusform>%n transferência ativa</numerusform>
+            <numerusform>%n transferências ativas</numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <source>Trashing %n item(s)...</source>
@@ -775,6 +790,10 @@
         <translation>Falha ao excluir um ou mais itens</translation>
     </message>
     <message>
+        <source>Transfer operation is missing a source or destination path</source>
+        <translation>Falta o caminho de origem ou de destino na transferência</translation>
+    </message>
+    <message>
         <source>Source and destination are the same for %1</source>
         <translation>Origem e destino são iguais para %1</translation>
     </message>
@@ -799,6 +818,14 @@
         <translation>Dois itens não podem ficar com o mesmo nome</translation>
     </message>
     <message>
+        <source>%1 no longer exists</source>
+        <translation>%1 não existe mais</translation>
+    </message>
+    <message>
+        <source>%1 already exists</source>
+        <translation>%1 já existe</translation>
+    </message>
+    <message>
         <source>Could not prepare %1 for renaming</source>
         <translation>Não foi possível preparar %1 para renomear</translation>
     </message>
@@ -811,12 +838,32 @@
         <translation>Não foi possível listar a Lixeira</translation>
     </message>
     <message>
+        <source>Destination folder does not exist</source>
+        <translation>A pasta de destino não existe</translation>
+    </message>
+    <message>
+        <source>Failed to save clipboard image</source>
+        <translation>Falha ao salvar a imagem da área de transferência</translation>
+    </message>
+    <message>
+        <source>Clipboard does not contain an image</source>
+        <translation>A área de transferência não contém uma imagem</translation>
+    </message>
+    <message>
+        <source>Failed to write clipboard image</source>
+        <translation>Falha ao gravar a imagem da área de transferência</translation>
+    </message>
+    <message>
         <source>Open in Terminal is only available for local folders</source>
         <translation>Abrir no terminal só está disponível para pastas locais</translation>
     </message>
     <message>
         <source>Only available for local folders</source>
         <translation>Disponível apenas para pastas locais</translation>
+    </message>
+    <message>
+        <source>%1 is not installed</source>
+        <translation>%1 não está instalado</translation>
     </message>
     <message>
         <source>Terminal &quot;%1&quot; not found</source>
@@ -838,12 +885,20 @@
         <translation>Falha ao compactar</translation>
     </message>
     <message>
+        <source>Extracting...</source>
+        <translation>Extraindo...</translation>
+    </message>
+    <message>
         <source>Failed to start extraction</source>
         <translation>Falha ao iniciar a extração</translation>
     </message>
     <message>
         <source>Extraction failed</source>
         <translation>Falha ao extrair</translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation>Pausado</translation>
     </message>
     <message numerus="yes">
         <source>Moving %n item(s)...</source>
@@ -1003,6 +1058,10 @@
 </context>
 <context>
     <name>GioTransferWorker</name>
+    <message>
+        <source>iPhone / iPad is unreachable. Plug it in, unlock the screen, tap &quot;Trust&quot; when prompted, and make sure usbmuxd is running (systemctl status usbmuxd).</source>
+        <translation>iPhone / iPad inacessível. Conecte o aparelho, desbloqueie a tela, toque em &quot;Confiar&quot; quando solicitado e verifique se o usbmuxd está em execução (systemctl status usbmuxd).</translation>
+    </message>
     <message>
         <source>Could not read symbolic link target</source>
         <translation>Não foi possível ler o destino do link simbólico</translation>
@@ -1497,6 +1556,182 @@
 <context>
     <name>MetadataExtractor</name>
     <message>
+        <source>Album</source>
+        <translation>Álbum</translation>
+    </message>
+    <message>
+        <source>Aperture</source>
+        <translation>Abertura</translation>
+    </message>
+    <message>
+        <source>Artist</source>
+        <translation>Artista</translation>
+    </message>
+    <message>
+        <source>Audio channels</source>
+        <translation>Canais de áudio</translation>
+    </message>
+    <message>
+        <source>Audio codec</source>
+        <translation>Codec de áudio</translation>
+    </message>
+    <message>
+        <source>Author</source>
+        <translation>Autor</translation>
+    </message>
+    <message>
+        <source>Bit depth</source>
+        <translation>Profundidade de bits</translation>
+    </message>
+    <message>
+        <source>Bitrate</source>
+        <translation>Taxa de bits</translation>
+    </message>
+    <message>
+        <source>Camera make</source>
+        <translation>Marca da câmera</translation>
+    </message>
+    <message>
+        <source>Camera model</source>
+        <translation>Modelo da câmera</translation>
+    </message>
+    <message>
+        <source>Channels</source>
+        <translation>Canais</translation>
+    </message>
+    <message>
+        <source>Comment</source>
+        <translation>Comentário</translation>
+    </message>
+    <message>
+        <source>Created</source>
+        <translation>Criado</translation>
+    </message>
+    <message>
+        <source>Creator</source>
+        <translation>Criador</translation>
+    </message>
+    <message>
+        <source>Date taken</source>
+        <translation>Data da foto</translation>
+    </message>
+    <message>
+        <source>Dimensions</source>
+        <translation>Dimensões</translation>
+    </message>
+    <message>
+        <source>Duration</source>
+        <translation>Duração</translation>
+    </message>
+    <message>
+        <source>Encoder</source>
+        <translation>Codificador</translation>
+    </message>
+    <message>
+        <source>Exposure</source>
+        <translation>Exposição</translation>
+    </message>
+    <message>
+        <source>Flash</source>
+        <translation>Flash</translation>
+    </message>
+    <message>
+        <source>Focal length</source>
+        <translation>Distância focal</translation>
+    </message>
+    <message>
+        <source>Frame rate</source>
+        <translation>Taxa de quadros</translation>
+    </message>
+    <message>
+        <source>GPS</source>
+        <translation>GPS</translation>
+    </message>
+    <message>
+        <source>Genre</source>
+        <translation>Gênero</translation>
+    </message>
+    <message>
+        <source>ISO</source>
+        <translation>ISO</translation>
+    </message>
+    <message>
+        <source>Lens model</source>
+        <translation>Modelo da lente</translation>
+    </message>
+    <message>
+        <source>Megapixels</source>
+        <translation>Megapixels</translation>
+    </message>
+    <message>
+        <source>Metering mode</source>
+        <translation>Modo de medição</translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation>Modificado</translation>
+    </message>
+    <message>
+        <source>PDF version</source>
+        <translation>Versão do PDF</translation>
+    </message>
+    <message>
+        <source>Page size</source>
+        <translation>Tamanho da página</translation>
+    </message>
+    <message>
+        <source>Pages</source>
+        <translation>Páginas</translation>
+    </message>
+    <message>
+        <source>Producer</source>
+        <translation>Produtor</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>Resolução</translation>
+    </message>
+    <message>
+        <source>Sample rate</source>
+        <translation>Taxa de amostragem</translation>
+    </message>
+    <message>
+        <source>Software</source>
+        <translation>Software</translation>
+    </message>
+    <message>
+        <source>Subject</source>
+        <translation>Assunto</translation>
+    </message>
+    <message>
+        <source>Title</source>
+        <translation>Título</translation>
+    </message>
+    <message>
+        <source>Track</source>
+        <translation>Faixa</translation>
+    </message>
+    <message>
+        <source>Video codec</source>
+        <translation>Codec de vídeo</translation>
+    </message>
+    <message>
+        <source>White balance</source>
+        <translation>Balanço de branco</translation>
+    </message>
+    <message>
+        <source>Year</source>
+        <translation>Ano</translation>
+    </message>
+    <message>
+        <source>Mono</source>
+        <translation>Mono</translation>
+    </message>
+    <message>
+        <source>Stereo</source>
+        <translation>Estéreo</translation>
+    </message>
+    <message>
         <source>Install exiftool for camera metadata (make/model, ISO, aperture, GPS)</source>
         <translation>Instale o exiftool para metadados de câmera (marca/modelo, ISO, abertura, GPS)</translation>
     </message>
@@ -1597,6 +1832,14 @@
 </context>
 <context>
     <name>PreviewService</name>
+    <message>
+        <source>Unsupported archive format</source>
+        <translation>Formato de arquivo compactado não suportado</translation>
+    </message>
+    <message>
+        <source>Could not list archive contents</source>
+        <translation>Não foi possível listar o conteúdo do arquivo compactado</translation>
+    </message>
     <message>
         <source>Font file not found</source>
         <translation>Arquivo de fonte não encontrado</translation>
@@ -1846,6 +2089,10 @@
     <message>
         <source>Cannot open %1: %2</source>
         <translation>Não foi possível abrir %1: %2</translation>
+    </message>
+    <message>
+        <source>%1 is too large to show (over 32 MB).</source>
+        <translation>%1 é grande demais para exibir (mais de 32 MB).</translation>
     </message>
     <message>
         <source>This file looks binary and cannot be previewed as text.</source>
@@ -2575,6 +2822,13 @@
             <numerusform>%n arquivo</numerusform>
             <numerusform>%n arquivos</numerusform>
         </translation>
+    </message>
+</context>
+<context>
+    <name>TabModel</name>
+    <message>
+        <source>Trash</source>
+        <translation>Lixeira</translation>
     </message>
 </context>
 <context>

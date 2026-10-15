@@ -147,9 +147,11 @@ Item {
                 sourceComponent: {
                     if (fileOps.isRemotePath(root.path)) return bcIconMonitor
                     if (segmentsRepeater.count === 0) return bcIconFolder
+                    if (root.isRecentsView) return bcIconClock
                     var first = segmentsRepeater.model[0]
-                    // The home crumb's label is translated, so match it by path.
+                    // Home and Trash crumbs carry translated labels, so match them by path.
                     if (first && first.fullPath === fsModel.homePath()) return bcIconHome
+                    if (first && first.fullPath === "trash:///") return bcIconTrash
                     return root.iconForLabel(first ? first.label : "")
                 }
             }

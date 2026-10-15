@@ -478,7 +478,7 @@ QVariantList buildBreadcrumbs(const QString &path)
 
     if (isTrashUriPath(normalized)) {
         if (normalized == QStringLiteral("trash:///") || normalized == QStringLiteral("trash://")) {
-            segments.append(QVariantMap{{QStringLiteral("label"), QStringLiteral("Trash")},
+            segments.append(QVariantMap{{QStringLiteral("label"), QCoreApplication::translate("FileOperations", "Trash")},
                                         {QStringLiteral("fullPath"), QStringLiteral("trash:///")}});
             return segments;
         }
@@ -487,7 +487,7 @@ QVariantList buildBreadcrumbs(const QString &path)
         if (current.endsWith('/'))
             current.chop(1);
         QString remainder = current.mid(QStringLiteral("trash:///").size());
-        segments.append(QVariantMap{{QStringLiteral("label"), QStringLiteral("Trash")},
+        segments.append(QVariantMap{{QStringLiteral("label"), QCoreApplication::translate("FileOperations", "Trash")},
                                     {QStringLiteral("fullPath"), QStringLiteral("trash:///")}});
 
         QString accumulated = QStringLiteral("trash:///");
@@ -982,7 +982,7 @@ void FileOperations::emitAggregatedState()
         m_paused = t.paused;
     } else {
         // Multiple transfers: show aggregate
-        m_statusText = QString("%1 transfers active").arg(m_activeTransfers.size());
+        m_statusText = tr("%n transfer(s) active", nullptr, int(m_activeTransfers.size()));
         m_paused = std::all_of(m_activeTransfers.begin(), m_activeTransfers.end(),
                                [](const ActiveTransfer &t) { return t.paused; });
 
@@ -1316,7 +1316,7 @@ void FileOperations::transferResolvedItems(const QVariantList &operations, bool 
         const bool overwrite = item.value("overwrite").toBool();
 
         if (sourcePath.isEmpty() || targetPath.isEmpty()) {
-            emit operationFinished(false, "Transfer operation is missing a source or destination path");
+            emit operationFinished(false, QCoreApplication::translate("FileOperations", "Transfer operation is missing a source or destination path"));
             return;
         }
 
@@ -1423,7 +1423,7 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
         finalTargetPaths.insert(targetPath);
 
         if (!pathExistsSync(sourcePath)) {
-            return renameResult(false, QStringLiteral("%1 no longer exists")
+            return renameResult(false, QCoreApplication::translate("FileOperations", "%1 no longer exists")
                 .arg(locationFileName(sourcePath)));
         }
 
@@ -1436,7 +1436,7 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
 
     for (const RenameOperation &op : renameOperations) {
         if (pathExistsSync(op.targetPath) && !changedSourcePaths.contains(op.targetPath)) {
-            return renameResult(false, QStringLiteral("%1 already exists")
+            return renameResult(false, QCoreApplication::translate("FileOperations", "%1 already exists")
                 .arg(locationFileName(op.targetPath)));
         }
     }
@@ -1676,7 +1676,7 @@ QString FileOperations::pasteClipboardImage(const QString &destinationDir)
 {
     const QString outputPath = uniqueImagePastePath(destinationDir);
     if (outputPath.isEmpty()) {
-        emit operationFinished(false, "Destination folder does not exist");
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Destination folder does not exist"));
         return {};
     }
 
@@ -1686,7 +1686,7 @@ QString FileOperations::pasteClipboardImage(const QString &destinationDir)
     const QImage image = clipboardImage(clipboard);
     if (!image.isNull()) {
         if (!image.save(outputPath, "PNG")) {
-            emit operationFinished(false, "Failed to save clipboard image");
+            emit operationFinished(false, QCoreApplication::translate("FileOperations", "Failed to save clipboard image"));
             return {};
         }
         emitChangedPaths({outputPath});
@@ -1696,13 +1696,13 @@ QString FileOperations::pasteClipboardImage(const QString &destinationDir)
 
     const QByteArray rawImage = clipboardImageData();
     if (rawImage.isEmpty()) {
-        emit operationFinished(false, "Clipboard does not contain an image");
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Clipboard does not contain an image"));
         return {};
     }
 
     QFile file(outputPath);
     if (!file.open(QIODevice::WriteOnly)) {
-        emit operationFinished(false, "Failed to write clipboard image");
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Failed to write clipboard image"));
         return {};
     }
     file.write(rawImage);
@@ -1760,7 +1760,7 @@ void FileOperations::openInTerminalWith(const QString &dirPath, const QString &c
     // just flash open and close with a "command not found".
     const QString program = command.section(QLatin1Char(' '), 0, 0);
     if (QStandardPaths::findExecutable(program).isEmpty()) {
-        emit operationFinished(false, QStringLiteral("%1 is not installed").arg(program));
+        emit operationFinished(false, tr("%1 is not installed").arg(program));
         return;
     }
 
@@ -1908,7 +1908,7 @@ void FileOperations::extractArchive(const QString &archivePath, const QString &d
     QStringList listArgs;
     const bool canList = archiveListCommand(archivePath, &listProg, &listArgs);
 
-    startSimpleOperation(QStringLiteral("Extracting..."), {destination},
+    startSimpleOperation(tr("Extracting..."), {destination},
         [program, verboseArgs, canList, listProg, listArgs](ProgressReporter report) -> QString {
             int totalFiles = 0;
             if (canList) {
@@ -1980,12 +1980,12 @@ void FileOperations::pauseTransfer(int transferId)
         for (auto &t : m_activeTransfers) {
             t.worker->pause();
             t.paused = true;
-            t.statusText = QStringLiteral("Paused");
+            t.statusText = tr("Paused");
         }
     } else if (auto *t = findTransfer(transferId)) {
         t->worker->pause();
         t->paused = true;
-        t->statusText = QStringLiteral("Paused");
+        t->statusText = tr("Paused");
     }
     emitAggregatedState();
 }

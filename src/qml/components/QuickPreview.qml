@@ -1460,7 +1460,7 @@ Item {
                                     var keys = Object.keys(md)
                                     for (var i = 0; i < keys.length; ++i) {
                                         if (md[keys[i]] !== "")
-                                            result.push({ label: keys[i], value: String(md[keys[i]]) })
+                                            result.push({ label: qsTranslate("MetadataExtractor", keys[i]), value: String(md[keys[i]]) })
                                     }
                                     return result
                                 }

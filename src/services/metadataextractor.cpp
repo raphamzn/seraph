@@ -14,6 +14,53 @@
 
 namespace {
 
+// The metadata maps are keyed by these English labels and QML shows them via
+// qsTranslate("MetadataExtractor", key); listed here so lupdate collects them.
+[[maybe_unused]] const char *const kLabelsForTranslation[] = {
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Album"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Aperture"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Artist"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Audio channels"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Audio codec"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Author"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Bit depth"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Bitrate"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Camera make"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Camera model"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Channels"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Comment"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Created"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Creator"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Date taken"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Dimensions"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Duration"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Encoder"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Exposure"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Flash"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Focal length"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Frame rate"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "GPS"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Genre"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "ISO"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Lens model"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Megapixels"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Metering mode"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Modified"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "PDF version"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Page size"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Pages"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Producer"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Resolution"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Sample rate"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Software"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Subject"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Title"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Track"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Video codec"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "White balance"),
+    QT_TRANSLATE_NOOP("MetadataExtractor", "Year"),
+};
+
 QString formatDuration(double seconds)
 {
     if (seconds <= 0)
@@ -31,8 +78,8 @@ QString formatChannels(int channels)
 {
     if (channels <= 0)
         return {};
-    if (channels == 1) return QStringLiteral("Mono");
-    if (channels == 2) return QStringLiteral("Stereo");
+    if (channels == 1) return QCoreApplication::translate("MetadataExtractor", "Mono");
+    if (channels == 2) return QCoreApplication::translate("MetadataExtractor", "Stereo");
     return QString::number(channels);
 }
 
@@ -361,8 +408,8 @@ QVariantMap MetadataExtractor::extractVideo(const QString &path) const
             meta["Sample rate"] = QStringLiteral("%1 Hz").arg(sampleRate);
         const int channels = audio.value("channels").toInt();
         if (channels > 0) {
-            meta["Audio channels"] = channels == 1 ? QStringLiteral("Mono")
-                                   : channels == 2 ? QStringLiteral("Stereo")
+            meta["Audio channels"] = channels == 1 ? QCoreApplication::translate("MetadataExtractor", "Mono")
+                                   : channels == 2 ? QCoreApplication::translate("MetadataExtractor", "Stereo")
                                    : QStringLiteral("%1.%2").arg(channels - 1).arg(channels > 5 ? 1 : 0);
         }
     }

@@ -160,14 +160,14 @@ QVariantMap PreviewService::loadArchivePreview(const QString &path, int maxEntri
         program = "7z";
         args = {"l", "-slt", path};
     } else {
-        result["error"] = "Unsupported archive format";
+        result["error"] = QCoreApplication::translate("PreviewService", "Unsupported archive format");
         return result;
     }
 
     QProcess proc;
     proc.start(program, args);
     if (!proc.waitForFinished(10000) || proc.exitCode() != 0) {
-        result["error"] = "Could not list archive contents";
+        result["error"] = QCoreApplication::translate("PreviewService", "Could not list archive contents");
         return result;
     }
 

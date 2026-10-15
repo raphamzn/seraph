@@ -47,8 +47,28 @@ void LanguageManager::apply(const QString &setting)
 void LanguageManager::apply(const QString &setting, const QLocale &system)
 {
     const QString effective = resolve(setting, system);
-    if (effective == m_effective)
+    const QLocale::Language language = effective == kPortuguese ? QLocale::Portuguese : QLocale::English;
+
+    // Dates and numbers keep the system's regional formats (en_GB dates, pt_PT,
+    // a de_DE user falling back to English) unless the user explicitly picked
+    // a language other than the system's.
+    const QString normalized = setting.trimmed().toLower().replace(QLatin1Char('-'), QLatin1Char('_'));
+    const bool explicitChoice = normalized == QLatin1String("pt_br") || normalized == QLatin1String("en");
+    const QLocale formatLocale = !explicitChoice || system.language() == language
+        ? system
+        : (effective == kPortuguese ? QLocale(QLocale::Portuguese, QLocale::Brazil)
+                                    : QLocale(QLocale::English, QLocale::UnitedStates));
+
+    if (effective == m_effective && formatLocale == m_formatLocale)
         return;
+
+    m_formatLocale = formatLocale;
+    QLocale::setDefault(formatLocale);
+    if (effective == m_effective) {
+        // Same translation, different regional formats: views still re-read.
+        emit languageChanged();
+        return;
+    }
 
     if (m_translator) {
         QCoreApplication::removeTranslator(m_translator);
@@ -66,10 +86,6 @@ void LanguageManager::apply(const QString &setting, const QLocale &system)
         qWarning() << "Could not load translation" << m_qmPrefix + effective;
         delete translator;
     }
-
-    QLocale::setDefault(effective == kPortuguese
-        ? QLocale(QLocale::Portuguese, QLocale::Brazil)
-        : QLocale(QLocale::English, QLocale::UnitedStates));
 
     m_effective = effective;
     if (m_engine)

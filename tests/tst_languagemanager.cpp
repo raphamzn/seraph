@@ -69,6 +69,33 @@ private slots:
         QCOMPARE(fixtureText(), QString::fromUtf8("Configurações"));
     }
 
+    void testFormatsKeepSystemLocaleWhenLanguageMatches_data()
+    {
+        QTest::addColumn<QString>("setting");
+        QTest::addColumn<QString>("system");
+        QTest::addColumn<QString>("expectedLocale");
+
+        // Same language as the system: keep its regional formats (dates, decimals).
+        QTest::newRow("auto on en_GB") << "auto" << "en_GB" << "en_GB";
+        QTest::newRow("auto on de_DE") << "auto" << "de_DE" << "de_DE";
+        QTest::newRow("auto on pt_PT") << "auto" << "pt_PT" << "pt_PT";
+        QTest::newRow("en on en_GB") << "en" << "en_GB" << "en_GB";
+        // A different language than the system: use that language's formats.
+        QTest::newRow("pt_BR on en_GB") << "pt_BR" << "en_GB" << "pt_BR";
+        QTest::newRow("en on pt_BR") << "en" << "pt_BR" << "en_US";
+    }
+
+    void testFormatsKeepSystemLocaleWhenLanguageMatches()
+    {
+        QFETCH(QString, setting);
+        QFETCH(QString, system);
+        QFETCH(QString, expectedLocale);
+
+        LanguageManager mgr(nullptr, QStringLiteral(":/i18n-test/test_"));
+        mgr.apply(setting, QLocale(system));
+        QCOMPARE(QLocale().name(), expectedLocale);
+    }
+
     void testEnglishLoadsPluralForms()
     {
         // English is the source language, but "%n file(s)" still needs its

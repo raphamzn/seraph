@@ -69,7 +69,7 @@ QVariantMap buildHints(const QString &defaultPkg,
 QVariantMap buildFeatureHint(const QString &library)
 {
     QVariantMap out;
-    const QString msg = QStringLiteral(
+    const QString msg = QCoreApplication::translate("DependencyChecker",
         "This build of Seraph was compiled without %1 support. "
         "Install the full (non-minimal) package or rebuild Seraph with %1 "
         "available at configure time.").arg(library);

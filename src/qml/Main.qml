@@ -2022,7 +2022,7 @@ ApplicationWindow {
             var result = []
             for (var i = 0; i < keys.length; ++i) {
                 if (md[keys[i]] !== "")
-                    result.push({ label: keys[i], value: String(md[keys[i]]) })
+                    result.push({ label: qsTranslate("MetadataExtractor", keys[i]), value: String(md[keys[i]]) })
             }
             _metadataKeys = result
             _metadataHint = fileOps.isRemotePath(path) ? "" : metadataExtractor.missingDepsHint(props.mimeType || "")
@@ -2175,8 +2175,9 @@ ApplicationWindow {
                         property string value
                         property bool show: true
                         width: parent.width; height: show ? 28 : 0; visible: show
-                        Text { text: label; color: Theme.subtext; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: 80 }
-                        Text { text: value; color: Theme.text; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.leftMargin: 88; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideMiddle }
+                        // Wide enough for the Portuguese labels ("Destino do link"); elide past that.
+                        Text { text: label; color: Theme.subtext; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: 100; elide: Text.ElideRight }
+                        Text { text: value; color: Theme.text; font.pointSize: Theme.fontSmall; anchors.left: parent.left; anchors.leftMargin: 108; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideMiddle }
                     }
 
                     Item { width: 1; height: 8 }

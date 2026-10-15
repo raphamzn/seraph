@@ -85,7 +85,7 @@ void ReaderDocument::load(const QString &reason, const QString &fragment, qreal 
         if (!file.open(QIODevice::ReadOnly)) {
             error = QCoreApplication::translate("ReaderDocument", "Cannot open %1: %2").arg(info.fileName(), file.errorString());
         } else if (file.size() > MaxFileBytes) {
-            error = QStringLiteral("%1 is too large to show (over 32 MB).").arg(info.fileName());
+            error = QCoreApplication::translate("ReaderDocument", "%1 is too large to show (over 32 MB).").arg(info.fileName());
         } else {
             const QByteArray data = file.readAll();
             if (PreviewService::looksBinary(data))

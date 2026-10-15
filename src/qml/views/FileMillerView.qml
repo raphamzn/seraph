@@ -1401,7 +1401,7 @@ FocusScope {
                 for (var i = 0; i < keys.length; ++i) {
                     var value = md[keys[i]]
                     if (value !== undefined && value !== null && String(value) !== "")
-                        result.push({ label: keys[i], value: String(value) })
+                        result.push({ label: qsTranslate("MetadataExtractor", keys[i]), value: String(value) })
                 }
                 return result
             }

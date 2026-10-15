@@ -1,4 +1,5 @@
 #include "models/tabmodel.h"
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QUrl>
 
@@ -17,7 +18,7 @@ QString displayNameForPath(const QString &path)
     const QUrl url(path);
     if (url.scheme() == QStringLiteral("trash")) {
         const QString fileName = url.fileName();
-        return fileName.isEmpty() ? QStringLiteral("Trash") : fileName;
+        return fileName.isEmpty() ? QCoreApplication::translate("TabModel", "Trash") : fileName;
     }
 
     if (isRemoteUri(path)) {

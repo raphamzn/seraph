@@ -4,6 +4,7 @@
 #include <QSignalSpy>
 #include <QAbstractItemModelTester>
 #include <QFileInfo>
+#include <QTranslator>
 #include "models/tabmodel.h"
 #include "models/tablistmodel.h"
 
@@ -12,6 +13,19 @@ class TestTabModel : public QObject
     Q_OBJECT
 
 private slots:
+    void testTrashTitleIsTranslated()
+    {
+        QTranslator translator;
+        QVERIFY(translator.load(QStringLiteral(":/i18n-test/fileops_pt_BR")));
+        QCoreApplication::installTranslator(&translator);
+        TabModel tab;
+        tab.navigateTo(QStringLiteral("trash:///"));
+        const QString title = tab.title();
+        QCoreApplication::removeTranslator(&translator);
+
+        QCOMPARE(title, QString("Lixeira"));
+    }
+
     // === TabModel tests ===
 
     void testTabInitialState()

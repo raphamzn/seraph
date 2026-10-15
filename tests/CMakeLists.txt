@@ -33,6 +33,13 @@ add_executable(tst_tabmodel tst_tabmodel.cpp
 target_include_directories(tst_tabmodel PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_tabmodel PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME tst_tabmodel COMMAND tst_tabmodel)
+qt_add_lrelease(tst_tabmodel
+    TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/i18n/fileops_pt_BR.ts
+    QM_FILES_OUTPUT_VARIABLE tst_tabmodel_qm)
+qt_add_resources(tst_tabmodel "tst_tabmodel_i18n"
+    PREFIX "/i18n-test"
+    BASE "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES ${tst_tabmodel_qm})
 
 add_executable(tst_clipboardmanager tst_clipboardmanager.cpp
     ${CMAKE_SOURCE_DIR}/src/services/clipboardmanager.cpp

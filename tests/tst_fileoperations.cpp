@@ -1035,6 +1035,21 @@ private slots:
         QCOMPARE(segments.at(0).toMap().value("fullPath").toString(), QDir::homePath());
     }
 
+    void testBreadcrumbTrashCrumbIsTranslated()
+    {
+        QTranslator translator;
+        QVERIFY(translator.load(QStringLiteral(":/i18n-test/fileops_pt_BR")));
+        QCoreApplication::installTranslator(&translator);
+        FileOperations ops;
+        const QVariantList root = ops.breadcrumbSegments(QStringLiteral("trash:///"));
+        const QVariantList nested = ops.breadcrumbSegments(QStringLiteral("trash:///pasta"));
+        QCoreApplication::removeTranslator(&translator);
+
+        QCOMPARE(root.at(0).toMap().value("label").toString(), QString("Lixeira"));
+        QCOMPARE(nested.at(0).toMap().value("label").toString(), QString("Lixeira"));
+        QCOMPARE(nested.at(0).toMap().value("fullPath").toString(), QString("trash:///"));
+    }
+
     void testBreadcrumbSegmentsOutsideHomeKeepAncestors()
     {
         FileOperations ops;

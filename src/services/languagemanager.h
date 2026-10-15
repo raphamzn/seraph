@@ -34,6 +34,7 @@ signals:
 private:
     QString m_qmPrefix;
     QString m_effective;
+    QLocale m_formatLocale;
     QTranslator *m_translator = nullptr;
     QPointer<QQmlEngine> m_engine;
 };

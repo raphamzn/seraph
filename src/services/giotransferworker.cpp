@@ -49,7 +49,7 @@ QString humanizeMobileDeviceError(const QString &raw)
     if (!mentionsMobile)
         return raw;
 
-    return QStringLiteral(
+    return QCoreApplication::translate("GioTransferWorker",
         "iPhone / iPad is unreachable. "
         "Plug it in, unlock the screen, tap \"Trust\" when prompted, "
         "and make sure usbmuxd is running (systemctl status usbmuxd).");

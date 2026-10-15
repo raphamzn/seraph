@@ -55,6 +55,13 @@
 <context>
     <name>FileOperations</name>
     <message numerus="yes">
+        <source>%n transfer(s) active</source>
+        <translation>
+            <numerusform>%n transfer active</numerusform>
+            <numerusform>%n transfers active</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
         <source>Trashing %n item(s)...</source>
         <translation>
             <numerusform>Trashing %n item...</numerusform>
