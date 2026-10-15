@@ -6,7 +6,7 @@ import Quill as Q
 FocusScope {
     id: root
     Accessible.role: Accessible.Pane
-    Accessible.name: "Miller columns view"
+    Accessible.name: qsTr("Miller columns view")
 
     property var fileModel: null
     property string currentPath: ""
@@ -1314,7 +1314,7 @@ FocusScope {
             readonly property string pdfPageLabel: {
                 if (!isPdf || pdfPreview.pageCount <= 0)
                     return ""
-                return "Page " + (pdfPageIndex + 1) + " of " + pdfPreview.pageCount
+                return qsTr("Page %1 of %2").arg(pdfPageIndex + 1).arg(pdfPreview.pageCount)
             }
             readonly property bool isFont: {
                 if (isRemoteUri || previewIsDir)
@@ -1407,14 +1407,14 @@ FocusScope {
             }
 
             readonly property string detailKind: {
-                if (previewIsDir) return "Folder"
-                if (isArchive) return "Archive"
-                if (isAudio) return "Audio"
-                if (isVideo) return "Video"
+                if (previewIsDir) return qsTr("Folder")
+                if (isArchive) return qsTr("Archive")
+                if (isAudio) return qsTr("Audio")
+                if (isVideo) return qsTr("Video")
                 if (fileProps.mimeDescription) return fileProps.mimeDescription
                 var ext = previewFileName.lastIndexOf(".") >= 0
                     ? previewFileName.substring(previewFileName.lastIndexOf(".") + 1).toUpperCase() : ""
-                return ext !== "" ? ext + " file" : "File"
+                return ext !== "" ? qsTr("%1 file").arg(ext) : qsTr("File")
             }
 
             function changePdfPage(delta) {
@@ -1588,7 +1588,7 @@ FocusScope {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.margins: 8
-                            text: "Archive contents"
+                            text: qsTr("Archive contents")
                             color: Theme.text
                             font.pointSize: Theme.fontSmall
                             font.bold: true
@@ -1747,7 +1747,7 @@ FocusScope {
 
                         Text {
                             anchors.centerIn: parent
-                            text: previewColumn.isPdf ? "Rendering PDF..." : "Loading preview..."
+                            text: previewColumn.isPdf ? qsTr("Rendering PDF...") : qsTr("Loading preview...")
                             color: Theme.text
                             font.pointSize: Theme.fontSmall
                         }
@@ -1769,7 +1769,7 @@ FocusScope {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: previewColumn.isPdf ? "PDF preview could not be loaded" : "Preview could not be loaded"
+                            text: previewColumn.isPdf ? qsTr("PDF preview could not be loaded") : qsTr("Preview could not be loaded")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                         }
@@ -1811,7 +1811,7 @@ FocusScope {
                             text: previewColumn.textPreview.error !== ""
                                 ? previewColumn.textPreview.error
                                 : (previewColumn.textPreview.isBinary
-                                    ? "This file looks binary and cannot be previewed as text."
+                                    ? qsTr("This file looks binary and cannot be previewed as text.")
                                     : (renderMarkdown
                                         ? previewColumn.resolveMarkdownImages(previewColumn.textPreview.content, previewColumn.markdownBaseDir)
                                         : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
@@ -1874,7 +1874,7 @@ FocusScope {
                             Text {
                                 id: mdCopyPillLabel
                                 anchors.centerIn: parent
-                                text: mdCopyPill.flashed ? "Copied ✓" : "Copy"
+                                text: mdCopyPill.flashed ? qsTr("Copied ✓") : qsTr("Copy")
                                 color: mdCopyPill.flashed ? Theme.accent : Theme.subtext
                                 font.pointSize: Theme.fontSmall
                             }
@@ -1909,7 +1909,7 @@ FocusScope {
                             Text {
                                 id: mdToggleLabel
                                 anchors.centerIn: parent
-                                text: previewColumn.markdownShowSource ? "Rendered" : "Source"
+                                text: previewColumn.markdownShowSource ? qsTr("Rendered") : qsTr("Source")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
                             }
@@ -1957,8 +1957,8 @@ FocusScope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 220
                             text: previewColumn.pdfPreviewAvailable
-                                ? "PDF preview is unavailable for this file"
-                                : "PDF preview support is unavailable"
+                                ? qsTr("PDF preview is unavailable for this file")
+                                : qsTr("PDF preview support is unavailable")
                             color: Theme.text
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -1999,7 +1999,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: !previewColumn.fontPreview.valid
-                                text: previewColumn.fontPreview.error || "Unable to load this font"
+                                text: previewColumn.fontPreview.error || qsTr("Unable to load this font")
                                 color: Theme.error
                                 font.pointSize: Theme.fontSmall
                             }
@@ -2020,7 +2020,7 @@ FocusScope {
                                 model: previewColumn.fontPreview.valid ? [12, 16, 22, 30] : []
                                 delegate: Text {
                                     width: millerFontColumn.width
-                                    text: "The quick brown fox jumps over the lazy dog"
+                                    text: qsTr("The quick brown fox jumps over the lazy dog")
                                     color: Theme.text
                                     font.family: previewColumn.fontPreview.family || ""
                                     font.styleName: previewColumn.fontPreview.styleName || ""
@@ -2034,7 +2034,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: previewColumn.fontPreview.valid
-                                text: "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789"
+                                text: qsTr("ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789")
                                 color: Theme.text
                                 font.family: previewColumn.fontPreview.family || ""
                                 font.styleName: previewColumn.fontPreview.styleName || ""
@@ -2047,7 +2047,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: previewColumn.fontPreview.valid
-                                text: "Glyphs & ligatures"
+                                text: qsTr("Glyphs & ligatures")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
                                 font.weight: Font.DemiBold
@@ -2102,10 +2102,10 @@ FocusScope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 220
                             text: previewColumn.isAudio
-                                ? "Audio preview is not available yet"
+                                ? qsTr("Audio preview is not available yet")
                                 : (previewColumn.isVideo && !previewColumn.videoPreviewAvailable
-                                    ? "Video preview support is unavailable"
-                                    : "Preview not available")
+                                    ? qsTr("Video preview support is unavailable")
+                                    : qsTr("Preview not available"))
                             color: Theme.text
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2117,7 +2117,7 @@ FocusScope {
                             width: 220
                             text: previewColumn.isVideo && !previewColumn.videoPreviewAvailable
                                 ? runtimeFeatures.installHint("videoPreview")
-                                : "Open Quick Preview for a larger preview surface."
+                                : qsTr("Open Quick Preview for a larger preview surface.")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2129,7 +2129,7 @@ FocusScope {
                     Text {
                         anchors.centerIn: parent
                         visible: previewColumn.previewFilePath === ""
-                        text: "No selection"
+                        text: qsTr("No selection")
                         color: Qt.rgba(Theme.subtext.r, Theme.subtext.g, Theme.subtext.b, 0.5)
                         font.pointSize: Theme.fontSmall
                     }
@@ -2211,10 +2211,10 @@ FocusScope {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: previewColumn.folderSizePending
-                                        ? "Size: Calculating\u2026"
+                                        ? qsTr("Size: Calculating\u2026")
                                         : (previewColumn.folderSizeText !== ""
-                                            ? "Size: " + previewColumn.folderSizeText
-                                            : "Size:")
+                                            ? qsTr("Size: %1").arg(previewColumn.folderSizeText)
+                                            : qsTr("Size:"))
                                     color: Theme.subtext
                                     font.pointSize: Theme.fontSmall - 1
                                 }
@@ -2234,7 +2234,7 @@ FocusScope {
                                     Text {
                                         id: millerCalcSizeLabel
                                         anchors.centerIn: parent
-                                        text: "Calculate"
+                                        text: qsTr("Calculate")
                                         color: Theme.subtext
                                         font.pointSize: Theme.fontSmall - 1
                                     }
@@ -2247,8 +2247,8 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: !!(previewColumn.fileProps.originalPath || previewColumn.fileProps.parentDir)
-                                text: (previewColumn.fileProps.originalPath ? "Original Location: " : "Location: ")
-                                    + (previewColumn.fileProps.originalPath || previewColumn.fileProps.parentDir || "")
+                                text: (previewColumn.fileProps.originalPath ? qsTr("Original Location: %1") : qsTr("Location: %1"))
+                                    .arg(previewColumn.fileProps.originalPath || previewColumn.fileProps.parentDir || "")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2257,7 +2257,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: !previewColumn.previewIsDir && !!previewColumn.fileProps.contentText
-                                text: "Contents: " + previewColumn.fileProps.contentText
+                                text: qsTr("Contents: %1").arg(previewColumn.fileProps.contentText)
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2266,7 +2266,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: !!previewColumn.fileProps.deleted
-                                text: "Deleted: " + previewColumn.fileProps.deleted
+                                text: qsTr("Deleted: %1").arg(previewColumn.fileProps.deleted)
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2297,7 +2297,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: previewColumn.isText && previewColumn.textPreview.truncated
-                                text: "Showing a shortened text preview for quick browsing."
+                                text: qsTr("Showing a shortened text preview for quick browsing.")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -2306,7 +2306,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: (previewColumn.previewIsDir || previewColumn.isArchive) && previewColumn.directoryPreview.truncated
-                                text: "Only the first items are shown here."
+                                text: qsTr("Only the first items are shown here.")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall - 1
                                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere

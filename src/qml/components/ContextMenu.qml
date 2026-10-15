@@ -11,7 +11,7 @@ Item {
     visible: false
     z: 9999
     Accessible.role: Accessible.PopupMenu
-    Accessible.name: "Context menu"
+    Accessible.name: qsTr("Context menu")
 
     property string targetPath: ""
     property bool targetIsDir: false
@@ -102,7 +102,7 @@ Item {
         // "Other Application..."
         items.push({ separator: true })
         items.push({
-            text: "Other Application\u2026",
+            text: qsTr("Other Application\u2026"),
             shortcut: "",
             action: "chooseapp",
             icon: "Search",
@@ -590,18 +590,18 @@ Item {
             return customItems
         }
         if (!isEmptySpace && targetPath !== "") {
-            items.push({ text: "Open", shortcut: "Return", action: "open", icon: "ExternalLink" })
+            items.push({ text: qsTr("Open"), shortcut: "Return", action: "open", icon: "ExternalLink" })
             if (targetIsDir)
-                items.push({ text: "Open in New Tab", shortcut: "", action: "opennewtab", icon: "Folder" })
+                items.push({ text: qsTr("Open in New Tab"), shortcut: "", action: "opennewtab", icon: "Folder" })
             if (!splitViewEnabled && !isTrashView) {
                 items.push({
-                    text: targetIsDir ? "Open in Split View" : "Split View Here",
+                    text: targetIsDir ? qsTr("Open in Split View") : qsTr("Split View Here"),
                     shortcut: "",
                     action: targetIsDir ? "split_open" : "split_here",
                     icon: "SquareSplitHorizontal"
                 })
             } else if (splitViewEnabled) {
-                items.push({ text: "Close Split View", shortcut: "", action: "close_split", icon: "SquareSplitHorizontal" })
+                items.push({ text: qsTr("Close Split View"), shortcut: "", action: "close_split", icon: "SquareSplitHorizontal" })
             }
             if (!targetIsDir && fileModel) {
                 var props = fileModel.fileProperties(targetPath)
@@ -609,28 +609,28 @@ Item {
                 if (mime !== "") {
                     var apps = fileModel.availableApps(mime)
                     if (apps.length > 0)
-                        items.push({ text: "Open With", shortcut: "", action: "openwith_toggle", isSubmenu: true, icon: "ExternalLink", submenuItems: openWithSubmenuItems(apps, mime) })
+                        items.push({ text: qsTr("Open With"), shortcut: "", action: "openwith_toggle", isSubmenu: true, icon: "ExternalLink", submenuItems: openWithSubmenuItems(apps, mime) })
                     else
-                        items.push({ text: "Open With\u2026", shortcut: "", action: "chooseapp_direct", icon: "ExternalLink", mimeType: mime })
+                        items.push({ text: qsTr("Open With\u2026"), shortcut: "", action: "chooseapp_direct", icon: "ExternalLink", mimeType: mime })
                 }
             }
             if (targetIsDir && !isTrashView && !remoteContext && editorLauncher.editors.length > 0)
-                items.push({ text: "Open in…", shortcut: "", action: "openin_toggle", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin") })
+                items.push({ text: qsTr("Open in…"), shortcut: "", action: "openin_toggle", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin") })
             if (targetIsDir && !isTrashView && !remoteContext)
-                items.push({ text: "Open in Terminal", shortcut: "", action: "terminal", icon: "Terminal" })
+                items.push({ text: qsTr("Open in Terminal"), shortcut: "", action: "terminal", icon: "Terminal" })
             items.push({ separator: true })
             if (isTrashView) {
-                items.push({ text: "Restore", shortcut: "", action: "restore", icon: "Undo" })
-                items.push({ text: "Delete Permanently", shortcut: "Delete", action: "delete", icon: "Trash", destructive: true })
+                items.push({ text: qsTr("Restore"), shortcut: "", action: "restore", icon: "Undo" })
+                items.push({ text: qsTr("Delete Permanently"), shortcut: "Delete", action: "delete", icon: "Trash", destructive: true })
             } else {
-                items.push({ text: "Cut", shortcut: "Ctrl+X", action: "cut", icon: "Scissors" })
-                items.push({ text: "Copy", shortcut: "Ctrl+C", action: "copy", icon: "Copy" })
-                items.push({ text: "Copy Path", shortcut: "", action: "copypath", icon: "CopyPath" })
+                items.push({ text: qsTr("Cut"), shortcut: "Ctrl+X", action: "cut", icon: "Scissors" })
+                items.push({ text: qsTr("Copy"), shortcut: "Ctrl+C", action: "copy", icon: "Copy" })
+                items.push({ text: qsTr("Copy Path"), shortcut: "", action: "copypath", icon: "CopyPath" })
                 items.push({ separator: true })
 
                 // Compress submenu — always available for files/folders
                 if (!remoteContext) {
-                    items.push({ text: "Compress", shortcut: "", action: "compress_toggle", isSubmenu: true, icon: "FolderArchive",
+                    items.push({ text: qsTr("Compress"), shortcut: "", action: "compress_toggle", isSubmenu: true, icon: "FolderArchive",
                         submenuItems: [
                             { text: "ZIP", shortcut: "", action: "compress_zip" },
                             { text: "7z", shortcut: "", action: "compress_7z" },
@@ -644,70 +644,70 @@ Item {
 
                 // Extract option for archives
                 if (!remoteContext && !targetIsDir && fileOps.isArchive(targetPath))
-                    items.push({ text: "Extract Here", shortcut: "", action: "extract", icon: "PackageOpen" })
+                    items.push({ text: qsTr("Extract Here"), shortcut: "", action: "extract", icon: "PackageOpen" })
 
                 // Set as wallpaper for image files
                 if (!remoteContext && !targetIsDir && typeof mime === "string" && mime.startsWith("image/"))
-                    items.push({ text: "Set as Wallpaper", shortcut: "", action: "setwallpaper", icon: "Image" })
+                    items.push({ text: qsTr("Set as Wallpaper"), shortcut: "", action: "setwallpaper", icon: "Image" })
 
                 items.push({ separator: true })
                 items.push({
-                    text: effectivePaths.length > 1 ? "Bulk Rename..." : "Rename...",
+                    text: effectivePaths.length > 1 ? qsTr("Bulk Rename...") : qsTr("Rename..."),
                     shortcut: config.shortcutMap["rename"] || "",
                     action: effectivePaths.length > 1 ? "bulkrename" : "rename",
                     icon: "FolderPen"
                 })
-                items.push({ text: "Move to Trash", shortcut: "Delete", action: "trash", icon: "Trash", destructive: true })
+                items.push({ text: qsTr("Move to Trash"), shortcut: "Delete", action: "trash", icon: "Trash", destructive: true })
             }
             items.push({ separator: true })
-            items.push({ text: "Properties", shortcut: "", action: "properties", icon: "Info" })
+            items.push({ text: qsTr("Properties"), shortcut: "", action: "properties", icon: "Info" })
         } else {
-            items.push({ text: "Select All", shortcut: "Ctrl+A", action: "selectall", icon: "Check" })
+            items.push({ text: qsTr("Select All"), shortcut: "Ctrl+A", action: "selectall", icon: "Check" })
             items.push({ separator: true })
-            items.push({ text: "View", shortcut: "", action: "view_toggle", isSubmenu: true, icon: "Eye",
+            items.push({ text: qsTr("View"), shortcut: "", action: "view_toggle", isSubmenu: true, icon: "Eye",
                 submenuItems: [
-                    { text: "Grid", shortcut: "Ctrl+1", action: "view_grid", checked: currentViewMode === "grid", icon: "Grid" },
-                    { text: "Miller", shortcut: "Ctrl+2", action: "view_miller", checked: currentViewMode === "miller", icon: "Columns" },
-                    { text: "Detailed", shortcut: "Ctrl+3", action: "view_detailed", checked: currentViewMode === "detailed", icon: "AlignJustify" }
+                    { text: qsTr("Grid"), shortcut: "Ctrl+1", action: "view_grid", checked: currentViewMode === "grid", icon: "Grid" },
+                    { text: qsTr("Miller"), shortcut: "Ctrl+2", action: "view_miller", checked: currentViewMode === "miller", icon: "Columns" },
+                    { text: qsTr("Detailed"), shortcut: "Ctrl+3", action: "view_detailed", checked: currentViewMode === "detailed", icon: "AlignJustify" }
                 ]
             })
-            items.push({ text: "Sort By", shortcut: "", action: "sort_toggle", isSubmenu: true, icon: "SlidersH",
+            items.push({ text: qsTr("Sort By"), shortcut: "", action: "sort_toggle", isSubmenu: true, icon: "SlidersH",
                 submenuItems: [
-                    { text: "Name", shortcut: "", action: "sort_name", checked: currentSortBy === "name" },
-                    { text: "Size", shortcut: "", action: "sort_size", checked: currentSortBy === "size" },
-                    { text: "Date Modified", shortcut: "", action: "sort_modified", checked: currentSortBy === "modified" },
-                    { text: "Type", shortcut: "", action: "sort_type", checked: currentSortBy === "type" },
+                    { text: qsTr("Name"), shortcut: "", action: "sort_name", checked: currentSortBy === "name" },
+                    { text: qsTr("Size"), shortcut: "", action: "sort_size", checked: currentSortBy === "size" },
+                    { text: qsTr("Date Modified"), shortcut: "", action: "sort_modified", checked: currentSortBy === "modified" },
+                    { text: qsTr("Type"), shortcut: "", action: "sort_type", checked: currentSortBy === "type" },
                     { separator: true },
-                    { text: "Ascending", shortcut: "", action: "sort_asc", checked: currentSortAscending, icon: "ChevronUp" },
-                    { text: "Descending", shortcut: "", action: "sort_desc", checked: !currentSortAscending, icon: "ChevronDown" }
+                    { text: qsTr("Ascending"), shortcut: "", action: "sort_asc", checked: currentSortAscending, icon: "ChevronUp" },
+                    { text: qsTr("Descending"), shortcut: "", action: "sort_desc", checked: !currentSortAscending, icon: "ChevronDown" }
                 ]
             })
             if (!isTrashView) {
                 items.push({ separator: true })
-                items.push({ text: "New Folder...", shortcut: config.shortcutMap["new_folder"] || "", action: "newfolder", icon: "Folder" })
-                items.push({ text: "New File...", shortcut: config.shortcutMap["new_file"] || "", action: "newfile", icon: "FileText" })
+                items.push({ text: qsTr("New Folder..."), shortcut: config.shortcutMap["new_folder"] || "", action: "newfolder", icon: "Folder" })
+                items.push({ text: qsTr("New File..."), shortcut: config.shortcutMap["new_file"] || "", action: "newfile", icon: "FileText" })
                 items.push({ separator: true })
                 if (clipboard.hasContent || (!remoteContext && fileOps.hasClipboardImage())) {
                     items.push({
-                        text: clipboard.hasContent ? "Paste" : "Paste Image",
+                        text: clipboard.hasContent ? qsTr("Paste") : qsTr("Paste Image"),
                         shortcut: "Ctrl+V",
                         action: "paste",
                         icon: clipboard.hasContent ? "Clipboard" : "Image"
                     })
                 }
                 if (!splitViewEnabled)
-                    items.push({ text: "Split View Here", shortcut: "", action: "split_here", icon: "SquareSplitHorizontal" })
+                    items.push({ text: qsTr("Split View Here"), shortcut: "", action: "split_here", icon: "SquareSplitHorizontal" })
                 else
-                    items.push({ text: "Close Split View", shortcut: "", action: "close_split", icon: "SquareSplitHorizontal" })
+                    items.push({ text: qsTr("Close Split View"), shortcut: "", action: "close_split", icon: "SquareSplitHorizontal" })
                 items.push({ separator: true })
                 if (!remoteContext && editorLauncher.editors.length > 0)
-                    items.push({ text: "Open in…", shortcut: "", action: "openin_dir", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin_dir") })
+                    items.push({ text: qsTr("Open in…"), shortcut: "", action: "openin_dir", isSubmenu: true, icon: "Rocket", submenuItems: openInSubmenuItems("openin_dir") })
                 if (!remoteContext)
-                    items.push({ text: "Open in Terminal", shortcut: "", action: "terminal", icon: "Terminal" })
-                items.push({ text: "Properties", shortcut: "", action: "properties", icon: "Info" })
+                    items.push({ text: qsTr("Open in Terminal"), shortcut: "", action: "terminal", icon: "Terminal" })
+                items.push({ text: qsTr("Properties"), shortcut: "", action: "properties", icon: "Info" })
             } else {
                 items.push({ separator: true })
-                items.push({ text: "Empty Trash", shortcut: "", action: "emptytrash", icon: "Trash", destructive: true })
+                items.push({ text: qsTr("Empty Trash"), shortcut: "", action: "emptytrash", icon: "Trash", destructive: true })
             }
         }
         return items

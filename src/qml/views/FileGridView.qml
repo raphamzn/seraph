@@ -6,7 +6,7 @@ import Quill as Q
 GridView {
     id: root
     Accessible.role: Accessible.List
-    Accessible.name: "File grid"
+    Accessible.name: qsTr("File grid")
 
     property var selectedIndices: []
     property int lastSelectedIndex: -1   // anchor for shift-selection
@@ -492,7 +492,7 @@ GridView {
             : [filePath]
         dragIconName = iconName
         dragFileName = selectedIndices.length > 1
-            ? (selectedIndices.length + " items")
+            ? qsTr("%n item(s)", "", selectedIndices.length)
             : fileName
         isDragging = true
 
@@ -552,7 +552,7 @@ GridView {
         width: root.cellWidth
         height: root.cellHeight
         Accessible.role: Accessible.ListItem
-        Accessible.name: fileName + (isDir ? ", folder" : "")
+        Accessible.name: isDir ? qsTr("%1, folder").arg(fileName) : fileName
         Accessible.selected: isSelected
 
         required property int index

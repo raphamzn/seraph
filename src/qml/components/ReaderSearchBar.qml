@@ -67,7 +67,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: input.text === ""
-                text: "Find in document"
+                text: qsTr("Find in document")
                 color: Theme.muted
                 font.pointSize: Theme.fontNormal
             }
@@ -77,7 +77,7 @@ Rectangle {
             id: counter
             anchors.verticalCenter: parent.verticalCenter
             text: input.text === "" ? ""
-                : (root.count === 0 ? "No results" : (root.index + 1) + " of " + root.count)
+                : (root.count === 0 ? qsTr("No results") : qsTr("%1 of %2").arg(root.index + 1).arg(root.count))
             color: root.count === 0 && input.text !== "" ? Theme.warning : Theme.subtext
             font.pointSize: Theme.fontSmall
         }

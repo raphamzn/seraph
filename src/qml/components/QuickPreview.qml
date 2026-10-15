@@ -6,7 +6,7 @@ import Seraph
 Item {
     id: root
     Accessible.role: Accessible.Pane
-    Accessible.name: "Quick preview" + (root.filePath ? ": " + root.filePath.split("/").pop() : "")
+    Accessible.name: root.filePath ? qsTr("Quick preview: %1").arg(root.filePath.split("/").pop()) : qsTr("Quick preview")
 
     property string filePath: ""
     property var directoryFiles: []
@@ -153,7 +153,7 @@ Item {
     readonly property string pdfPageLabel: {
         if (!isPdf || pdfPreview.pageCount <= 0)
             return ""
-        return "Page " + (pdfPageIndex + 1) + " of " + pdfPreview.pageCount
+        return qsTr("Page %1 of %2").arg(pdfPageIndex + 1).arg(pdfPreview.pageCount)
     }
     readonly property bool hasVisualPreview: isImage || (isVideo && videoPreviewAvailable)
     readonly property string visualSource: {
@@ -165,25 +165,25 @@ Item {
     }
     readonly property string visualStatusText: {
         if (isVideo)
-            return "Video poster preview"
+            return qsTr("Video poster preview")
         if (isImage)
-            return "Image preview"
-        return "Preview"
+            return qsTr("Image preview")
+        return qsTr("Preview")
     }
     readonly property string detailKind: {
         if (isDirectory)
-            return "Folder"
+            return qsTr("Folder")
         if (isArchive)
-            return "Archive"
+            return qsTr("Archive")
         if (isAudio)
-            return "Audio"
+            return qsTr("Audio")
         if (isVideo)
-            return "Video"
+            return qsTr("Video")
         if (fileProps.mimeDescription)
             return fileProps.mimeDescription
         if (fileExtension !== "")
-            return fileExtension.toUpperCase() + " file"
-        return "File"
+            return qsTr("%1 file").arg(fileExtension.toUpperCase())
+        return qsTr("File")
     }
     readonly property string sidebarPathLabel: fileProps.originalPath || fileProps.parentDir || ""
 
@@ -614,7 +614,7 @@ Item {
                         Layout.fillWidth: true
                         text: root.detailKind
                             + (root.directoryFiles.length > 1
-                                ? "  ·  " + (root.currentIndex() + 1) + " of " + root.directoryFiles.length
+                                ? "  ·  " + qsTr("%1 of %2").arg(root.currentIndex() + 1).arg(root.directoryFiles.length)
                                 : "")
                             + (root.isPdf && root.pdfPageLabel !== ""
                                 ? "  ·  " + root.pdfPageLabel
@@ -691,7 +691,7 @@ Item {
                             ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.10)
                             : Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08))
                     Accessible.role: Accessible.Button
-                    Accessible.name: root.infoPanelVisible ? "Hide file information" : "Show file information"
+                    Accessible.name: root.infoPanelVisible ? qsTr("Hide file information") : qsTr("Show file information")
 
                     IconInfo {
                         anchors.centerIn: parent
@@ -849,7 +849,7 @@ Item {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.isPdf ? "PDF preview could not be loaded" : "Preview could not be loaded"
+                                text: root.isPdf ? qsTr("PDF preview could not be loaded") : qsTr("Preview could not be loaded")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontNormal
                             }
@@ -874,7 +874,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: root.isPdf ? "Rendering PDF..." : root.visualStatusText
+                                text: root.isPdf ? qsTr("Rendering PDF...") : root.visualStatusText
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
                             }
@@ -919,7 +919,7 @@ Item {
                                 text: textPreview.error !== ""
                                     ? textPreview.error
                                     : (textPreview.isBinary
-                                        ? "This file looks binary and cannot be previewed as text."
+                                        ? qsTr("This file looks binary and cannot be previewed as text.")
                                         : (textPreview.usesBat && textPreview.html !== ""
                                             ? textPreview.html
                                             : textPreview.content))
@@ -989,7 +989,7 @@ Item {
                                 Text {
                                     id: copyPillLabel
                                     anchors.centerIn: parent
-                                    text: copyPill.flashed ? "Copied ✓" : "Copy"
+                                    text: copyPill.flashed ? qsTr("Copied ✓") : qsTr("Copy")
                                     color: copyPill.flashed ? Theme.accent : Theme.subtext
                                     font.pointSize: Theme.fontSmall
                                 }
@@ -1022,7 +1022,7 @@ Item {
                                 Text {
                                     id: mdToggleLabel
                                     anchors.centerIn: parent
-                                    text: root.markdownShowSource ? "Rendered" : "Source"
+                                    text: root.markdownShowSource ? qsTr("Rendered") : qsTr("Source")
                                     color: Theme.subtext
                                     font.pointSize: Theme.fontSmall
                                 }
@@ -1051,7 +1051,7 @@ Item {
                                 Text {
                                     id: outlineToggleLabel
                                     anchors.centerIn: parent
-                                    text: "Outline"
+                                    text: qsTr("Outline")
                                     color: markdownView.showOutline ? Theme.accent : Theme.subtext
                                     font.pointSize: Theme.fontSmall
                                 }
@@ -1084,7 +1084,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: root.isArchive ? "Archive contents" : (fileProps.contentText || "Folder contents")
+                                text: root.isArchive ? qsTr("Archive contents") : (fileProps.contentText || qsTr("Folder contents"))
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
                                 font.bold: true
@@ -1150,7 +1150,7 @@ Item {
 
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: root.pdfPreviewAvailable ? "PDF preview is unavailable for this file" : "PDF preview support is unavailable"
+                                text: root.pdfPreviewAvailable ? qsTr("PDF preview is unavailable for this file") : qsTr("PDF preview support is unavailable")
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
                                 width: 280
@@ -1163,7 +1163,7 @@ Item {
                                 text: root.pdfPreview.error !== ""
                                     ? root.pdfPreview.error
                                     : (root.pdfPreviewAvailable
-                                        ? "Press Enter to open the file externally"
+                                        ? qsTr("Press Enter to open the file externally")
                                         : runtimeFeatures.installHint("pdfPreview"))
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
@@ -1193,7 +1193,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     visible: !root.fontPreview.valid
-                                    text: root.fontPreview.error || "Unable to load this font"
+                                    text: root.fontPreview.error || qsTr("Unable to load this font")
                                     color: Theme.error
                                     font.pointSize: Theme.fontNormal
                                 }
@@ -1214,7 +1214,7 @@ Item {
                                     model: root.fontPreview.valid ? [12, 18, 24, 32, 48] : []
                                     delegate: Text {
                                         width: fontPreviewColumn.width
-                                        text: "The quick brown fox jumps over the lazy dog"
+                                        text: qsTr("The quick brown fox jumps over the lazy dog")
                                         color: Theme.text
                                         font.family: root.fontPreview.family || ""
                                         font.styleName: root.fontPreview.styleName || ""
@@ -1228,7 +1228,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     visible: root.fontPreview.valid
-                                    text: "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789  !@#$%^&*()"
+                                    text: qsTr("ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789  !@#$%^&*()")
                                     color: Theme.text
                                     font.family: root.fontPreview.family || ""
                                     font.styleName: root.fontPreview.styleName || ""
@@ -1241,7 +1241,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     visible: root.fontPreview.valid
-                                    text: "Glyphs & ligatures"
+                                    text: qsTr("Glyphs & ligatures")
                                     color: Theme.subtext
                                     font.pointSize: Theme.fontSmall
                                     font.weight: Font.DemiBold
@@ -1290,10 +1290,10 @@ Item {
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: root.isAudio
-                                    ? "Audio preview is not available yet"
+                                    ? qsTr("Audio preview is not available yet")
                                     : (root.isVideo && !root.videoPreviewAvailable
-                                        ? "Video preview support is unavailable"
-                                        : "Preview not available")
+                                        ? qsTr("Video preview support is unavailable")
+                                        : qsTr("Preview not available"))
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
                                 width: 280
@@ -1305,7 +1305,7 @@ Item {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: root.isVideo && !root.videoPreviewAvailable
                                     ? runtimeFeatures.installHint("videoPreview")
-                                    : "Press Enter to open externally"
+                                    : qsTr("Press Enter to open externally")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
                                 width: 280
@@ -1401,9 +1401,9 @@ Item {
                                 fillMode: Image.PreserveAspectFit
                             }
 
-                            InfoBlock { label: "Kind"; value: root.detailKind; visibleWhenEmpty: true }
+                            InfoBlock { label: qsTr("Kind"); value: root.detailKind; visibleWhenEmpty: true }
                             // Files show their size directly; folders compute it on demand below.
-                            InfoBlock { label: "Size"; value: root.isDirectory ? "" : (fileProps.sizeText || "") }
+                            InfoBlock { label: qsTr("Size"); value: root.isDirectory ? "" : (fileProps.sizeText || "") }
 
                             // Folder size, computed on demand (a folder can hold a lot).
                             Column {
@@ -1413,7 +1413,7 @@ Item {
 
                                 Text {
                                     width: parent.width
-                                    text: "Size"
+                                    text: qsTr("Size")
                                     color: Theme.muted
                                     font.pointSize: Theme.fontSmall
                                     font.weight: Font.DemiBold
@@ -1422,7 +1422,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     visible: root.folderSizeText !== "" || root.folderSizePending
-                                    text: root.folderSizePending ? "Calculating…" : root.folderSizeText
+                                    text: root.folderSizePending ? qsTr("Calculating…") : root.folderSizeText
                                     color: Theme.text
                                     font.pointSize: Theme.fontNormal
                                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
@@ -1442,7 +1442,7 @@ Item {
                                     Text {
                                         id: calcSizeLabel
                                         anchors.centerIn: parent
-                                        text: "Calculate size"
+                                        text: qsTr("Calculate size")
                                         color: Theme.subtext
                                         font.pointSize: Theme.fontSmall
                                     }
@@ -1467,10 +1467,10 @@ Item {
                                 delegate: InfoBlock { label: modelData.label; value: modelData.value }
                             }
 
-                            InfoBlock { label: root.fileProps.originalPath ? "Original Location" : "Location"; value: root.sidebarPathLabel }
-                            InfoBlock { label: "Deleted"; value: fileProps.deleted || "" }
-                            InfoBlock { label: "Modified"; value: fileProps.modified || "" }
-                            InfoBlock { label: "Contents"; value: fileProps.contentText || "" }
+                            InfoBlock { label: root.fileProps.originalPath ? qsTr("Original Location") : qsTr("Location"); value: root.sidebarPathLabel }
+                            InfoBlock { label: qsTr("Deleted"); value: fileProps.deleted || "" }
+                            InfoBlock { label: qsTr("Modified"); value: fileProps.modified || "" }
+                            InfoBlock { label: qsTr("Contents"); value: fileProps.contentText || "" }
 
                             // Missing dependency hint
                             Text {
@@ -1487,7 +1487,7 @@ Item {
                             Text {
                                 width: parent.width
                                 visible: root.isText && textPreview.truncated
-                                text: "Showing a shortened text preview for quick browsing."
+                                text: qsTr("Showing a shortened text preview for quick browsing.")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
                                 wrapMode: Text.WordWrap
@@ -1496,7 +1496,7 @@ Item {
                             Text {
                                 width: parent.width
                                 visible: (root.isDirectory || root.isArchive) && directoryPreview.truncated
-                                text: "Only the first items are shown here."
+                                text: qsTr("Only the first items are shown here.")
                                 color: Theme.subtext
                                 font.pointSize: Theme.fontSmall
                                 wrapMode: Text.WordWrap
@@ -1521,8 +1521,8 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: root.directoryFiles.length > 1
-                    ? "Space or Esc to close, Return to open, Left/Right to browse nearby items, I to toggle file info"
-                    : "Space or Esc to close, Return to open externally, I to toggle file info"
+                    ? qsTr("Space or Esc to close, Return to open, Left/Right to browse nearby items, I to toggle file info")
+                    : qsTr("Space or Esc to close, Return to open externally, I to toggle file info")
                 color: Theme.muted
                 font.pointSize: Theme.fontSmall
                 horizontalAlignment: Text.AlignRight

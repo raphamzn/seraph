@@ -5,7 +5,7 @@ import Seraph
 Rectangle {
     id: root
     Accessible.role: Accessible.Grouping
-    Accessible.name: "Search filters"
+    Accessible.name: qsTr("Search filters")
 
     property var activeTypes: []  // array of active type values
     property string activeDateFilter: ""
@@ -82,7 +82,7 @@ Rectangle {
                 spacing: 4
 
                 Text {
-                    text: "Type"
+                    text: qsTr("Type")
                     font.pointSize: Theme.fontSmall
                     color: Theme.muted
                     font.weight: Font.Medium
@@ -94,12 +94,12 @@ Rectangle {
 
                     Repeater {
                         model: [
-                            { label: "Folders", value: "folders" },
-                            { label: "Documents", value: "documents" },
-                            { label: "Images", value: "images" },
-                            { label: "Audio", value: "audio" },
-                            { label: "Video", value: "video" },
-                            { label: "Code", value: "code" },
+                            { label: qsTr("Folders"), value: "folders" },
+                            { label: qsTr("Documents"), value: "documents" },
+                            { label: qsTr("Images"), value: "images" },
+                            { label: qsTr("Audio"), value: "audio" },
+                            { label: qsTr("Video"), value: "video" },
+                            { label: qsTr("Code"), value: "code" },
                         ]
 
                         delegate: Rectangle {
@@ -139,7 +139,7 @@ Rectangle {
                 spacing: 4
 
                 Text {
-                    text: "Modified"
+                    text: qsTr("Modified")
                     font.pointSize: Theme.fontSmall
                     color: Theme.muted
                     font.weight: Font.Medium
@@ -151,10 +151,10 @@ Rectangle {
 
                     Repeater {
                         model: [
-                            { label: "Today", value: "today" },
-                            { label: "This week", value: "week" },
-                            { label: "This month", value: "month" },
-                            { label: "This year", value: "year" },
+                            { label: qsTr("Today"), value: "today" },
+                            { label: qsTr("This week"), value: "week" },
+                            { label: qsTr("This month"), value: "month" },
+                            { label: qsTr("This year"), value: "year" },
                         ]
 
                         delegate: Rectangle {
@@ -202,7 +202,7 @@ Rectangle {
                 spacing: 4
 
                 Text {
-                    text: "Size"
+                    text: qsTr("Size")
                     font.pointSize: Theme.fontSmall
                     color: Theme.muted
                     font.weight: Font.Medium
@@ -213,9 +213,9 @@ Rectangle {
 
                     Repeater {
                         model: [
-                            { label: "<", value: "<", name: "Smaller than" },
-                            { label: "=", value: "=", name: "About" },
-                            { label: ">", value: ">", name: "Larger than" },
+                            { label: "<", value: "<", name: qsTr("Smaller than") },
+                            { label: "=", value: "=", name: qsTr("About") },
+                            { label: ">", value: ">", name: qsTr("Larger than") },
                         ]
 
                         delegate: Rectangle {
@@ -286,7 +286,7 @@ Rectangle {
                             selectedTextColor: Theme.base
                             validator: RegularExpressionValidator { regularExpression: /^\d{0,7}([.,]\d{0,3})?$/ }
                             Accessible.role: Accessible.EditableText
-                            Accessible.name: "Size"
+                            Accessible.name: qsTr("Size")
                             onTextEdited: {
                                 root.sizeNumber = text
                                 root.updateSizeFilter()
@@ -351,7 +351,7 @@ Rectangle {
                 Text {
                     id: clearText
                     anchors.centerIn: parent
-                    text: "Clear all"
+                    text: qsTr("Clear all")
                     font.pointSize: Theme.fontSmall
                     color: Theme.error
                 }

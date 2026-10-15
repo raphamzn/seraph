@@ -168,6 +168,169 @@
     </message>
 </context>
 <context>
+    <name>ContextMenu</name>
+    <message>
+        <source>Context menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Other Application…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in Split View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Split View Here</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close Split View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open With</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open With…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in Terminal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete Permanently</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy Path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Compress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extract Here</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set as Wallpaper</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bulk Rename...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move to Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Grid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Miller</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Detailed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sort By</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Date Modified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ascending</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Descending</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Folder...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New File...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste Image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Empty Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DeviceModel</name>
     <message>
         <source>Could not mount %1: unlock the iPhone or iPad, tap Trust on the device, and try again.</source>
@@ -219,6 +382,223 @@
     </message>
 </context>
 <context>
+    <name>FileDetailedView</name>
+    <message>
+        <source>File details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1, folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1, %2, %3</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>FileGridView</name>
+    <message>
+        <source>File grid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1, folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FileMillerView</name>
+    <message>
+        <source>Miller columns view</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Page %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Archive contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rendering PDF...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Loading preview...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This file looks binary and cannot be previewed as text.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copied ✓</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rendered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview is unavailable for this file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview support is unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load this font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The quick brown fox jumps over the lazy dog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+0123456789</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glyphs &amp; ligatures</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio preview is not available yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video preview support is unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview not available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open Quick Preview for a larger preview surface.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size: Calculating…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Calculate</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Original Location: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Location: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contents: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleted: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Showing a shortened text preview for quick browsing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the first items are shown here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>FileTabBar</name>
     <message>
         <source>File tabs</source>
@@ -226,6 +606,81 @@
     </message>
     <message>
         <source>New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FilterPanel</name>
+    <message>
+        <source>Search filters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folders</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This month</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This year</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Smaller than</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Larger than</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Clear all</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -650,6 +1105,83 @@
     </message>
 </context>
 <context>
+    <name>MarkdownBlock</name>
+    <message numerus="yes">
+        <source>%n line(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Copy code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>downloading…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MarkdownView</name>
+    <message numerus="yes">
+        <source>%Ln word(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>~%n min read</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n heading(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n code block(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing to render in this document.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ON THIS PAGE</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MissingDependenciesDialog</name>
     <message>
         <source>Missing dependencies</source>
@@ -728,6 +1260,245 @@
     </message>
     <message>
         <source>Done</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>QuickPreview</name>
+    <message>
+        <source>Quick preview: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quick preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Page %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video poster preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Image preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Archive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Hide file information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show file information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview could not be loaded</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rendering PDF...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This file looks binary and cannot be previewed as text.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copied ✓</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rendered</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Outline</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Archive contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview is unavailable for this file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview support is unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Press Enter to open the file externally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load this font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The quick brown fox jumps over the lazy dog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+0123456789  !@#$%^&amp;*()</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Glyphs &amp; ligatures</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio preview is not available yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Video preview support is unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Preview not available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Press Enter to open externally</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kind</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Calculating…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Calculate size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Original Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Modified</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Contents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Showing a shortened text preview for quick browsing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only the first items are shown here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Space or Esc to close, Return to open, Left/Right to browse nearby items, I to toggle file info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Space or Esc to close, Return to open externally, I to toggle file info</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ReaderMain</name>
+    <message>
+        <source>Seraph Reader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The file was deleted. Showing the last version until it comes back.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Alt+Left goes back</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ReaderSearchBar</name>
+    <message>
+        <source>Find in document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No results</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 of %2</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

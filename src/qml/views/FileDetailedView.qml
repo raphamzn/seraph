@@ -6,7 +6,7 @@ import Quill as Q
 FocusScope {
     id: root
     Accessible.role: Accessible.Table
-    Accessible.name: "File details"
+    Accessible.name: qsTr("File details")
     focus: visible
 
     property var selectedIndices: []
@@ -426,10 +426,10 @@ FocusScope {
 
                 Repeater {
                     model: [
-                        { key: "name",     label: "Name",        width: root.colName },
-                        { key: "size",     label: "Size",        width: root.colSize },
-                        { key: "modified", label: "Modified",    width: root.colModified },
-                        { key: "type",     label: "Type",        width: root.colType }
+                        { key: "name",     label: qsTr("Name"),        width: root.colName },
+                        { key: "size",     label: qsTr("Size"),        width: root.colSize },
+                        { key: "modified", label: qsTr("Modified"),    width: root.colModified },
+                        { key: "type",     label: qsTr("Type"),        width: root.colType }
                     ]
 
                     delegate: Item {
@@ -696,7 +696,7 @@ FocusScope {
                     detRow.scale = 1
                 }
                 Accessible.role: Accessible.ListItem
-                Accessible.name: fileName + (isDir ? ", folder" : ", " + fileType + ", " + fileSizeText)
+                Accessible.name: isDir ? qsTr("%1, folder").arg(fileName) : qsTr("%1, %2, %3").arg(fileName).arg(fileType).arg(fileSizeText)
                 Accessible.selected: isSelected
 
                 required property int index
@@ -894,7 +894,7 @@ FocusScope {
                                 if (detRow.isDir) {
                                     var cnt = root.folderItemCounts[detRow.filePath]
                                     if (cnt !== undefined)
-                                        return cnt + (cnt === 1 ? " item" : " items")
+                                        return qsTr("%n item(s)", "", cnt)
                                     return "—"
                                 }
                                 return detRow.fileSizeText

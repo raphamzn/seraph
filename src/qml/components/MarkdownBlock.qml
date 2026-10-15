@@ -210,7 +210,7 @@ Item {
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: (root.block.lineCount || 0) + (root.block.lineCount === 1 ? " line" : " lines")
+                        text: qsTr("%n line(s)", "", root.block.lineCount || 0)
                         color: Theme.muted
                         font.pointSize: Theme.fontSmall - 1
                     }
@@ -229,7 +229,7 @@ Item {
                         ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.14)
                         : root.pillColor
                     Accessible.role: Accessible.Button
-                    Accessible.name: "Copy code"
+                    Accessible.name: qsTr("Copy code")
 
                     Row {
                         id: copyRow
@@ -252,7 +252,7 @@ Item {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: codeCard.copied ? "Copied" : "Copy"
+                            text: codeCard.copied ? qsTr("Copied") : qsTr("Copy")
                             color: codeCard.copied ? Theme.accent : Theme.subtext
                             font.pointSize: Theme.fontSmall - 1
                         }
@@ -575,18 +575,18 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: {
-                            var label = root.block.alt || "image"
+                            var label = root.block.alt || qsTr("image")
                             if (figureColumn.remote) {
                                 var state = figureColumn.fetched && figureColumn.fetched.failed
                                     ? "failed" : (root.block.remoteState || "blocked")
                                 if (state === "loading")
-                                    return label + "  ·  downloading…"
+                                    return label + "  ·  " + qsTr("downloading…")
                                 if (state === "failed")
-                                    return label + "  ·  unavailable"
+                                    return label + "  ·  " + qsTr("unavailable")
                                 var host = (root.block.source || "").replace(/^[a-z]+:\/\//i, "").split("/")[0]
                                 return label + (host ? "  ·  " + host : "")
                             }
-                            return label + "  ·  not found"
+                            return label + "  ·  " + qsTr("not found")
                         }
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall

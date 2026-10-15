@@ -335,10 +335,6 @@ Item {
         easing.type: Easing.OutCubic
     }
 
-    function formatCount(value) {
-        return Number(value || 0).toLocaleString(Qt.locale(), "f", 0)
-    }
-
     component MetaChip: Rectangle {
         property string label: ""
         property bool accented: false
@@ -389,18 +385,18 @@ Item {
                     accented: true
                 }
                 MetaChip {
-                    label: root.stats.words > 0 ? root.formatCount(root.stats.words) + " words" : ""
+                    label: root.stats.words > 0 ? qsTr("%Ln word(s)", "", root.stats.words) : ""
                 }
                 MetaChip {
-                    label: root.stats.readingMinutes > 0 ? "~" + root.stats.readingMinutes + " min read" : ""
+                    label: root.stats.readingMinutes > 0 ? qsTr("~%n min read", "", root.stats.readingMinutes) : ""
                 }
                 MetaChip {
                     label: root.stats.headings > 0
-                        ? root.stats.headings + (root.stats.headings === 1 ? " heading" : " headings") : ""
+                        ? qsTr("%n heading(s)", "", root.stats.headings) : ""
                 }
                 MetaChip {
                     label: root.stats.codeBlocks > 0
-                        ? root.stats.codeBlocks + (root.stats.codeBlocks === 1 ? " code block" : " code blocks") : ""
+                        ? qsTr("%n code block(s)", "", root.stats.codeBlocks) : ""
                 }
             }
 
@@ -470,7 +466,7 @@ Item {
             Text {
                 visible: root.blocks.length === 0
                 width: parent.width
-                text: root.source === "" ? "" : "Nothing to render in this document."
+                text: root.source === "" ? "" : qsTr("Nothing to render in this document.")
                 color: Theme.muted
                 font.pointSize: Theme.fontNormal
                 horizontalAlignment: Text.AlignHCenter
@@ -518,7 +514,7 @@ Item {
             anchors.leftMargin: Math.round(18 * Theme.uiScale)
             anchors.rightMargin: Math.round(12 * Theme.uiScale)
             anchors.topMargin: Math.round(14 * Theme.uiScale)
-            text: "ON THIS PAGE"
+            text: qsTr("ON THIS PAGE")
             color: Theme.muted
             font.pointSize: Theme.fontSmall - 1
             font.weight: Font.DemiBold

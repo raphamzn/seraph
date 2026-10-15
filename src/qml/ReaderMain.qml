@@ -12,7 +12,7 @@ ApplicationWindow {
     visible: true
     color: Theme.base
     title: markdownView.title !== "" ? markdownView.title
-        : (readerDocument.fileName !== "" ? readerDocument.fileName : "Seraph Reader")
+        : (readerDocument.fileName !== "" ? readerDocument.fileName : qsTr("Seraph Reader"))
 
     readonly property var zoomSteps: [0.5, 0.67, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]
     readonly property bool showingError: readerDocument.errorMessage !== ""
@@ -182,7 +182,7 @@ ApplicationWindow {
 
         Text {
             anchors.centerIn: parent
-            text: "The file was deleted. Showing the last version until it comes back."
+            text: qsTr("The file was deleted. Showing the last version until it comes back.")
             color: Theme.text
             font.pointSize: Theme.fontSmall
         }
@@ -239,7 +239,7 @@ ApplicationWindow {
 
         Text {
             width: parent.width
-            text: readerDocument.errorMessage !== "" ? readerDocument.errorMessage : "File not found"
+            text: readerDocument.errorMessage !== "" ? readerDocument.errorMessage : qsTr("File not found")
             color: Theme.text
             font.pointSize: Theme.fontLarge
             font.weight: Font.DemiBold
@@ -257,7 +257,7 @@ ApplicationWindow {
         Text {
             width: parent.width
             visible: readerDocument.canGoBack
-            text: "Alt+Left goes back"
+            text: qsTr("Alt+Left goes back")
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
             horizontalAlignment: Text.AlignHCenter
