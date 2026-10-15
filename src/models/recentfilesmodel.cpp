@@ -43,11 +43,11 @@ QVariant RecentFilesModel::data(const QModelIndex &index, int role) const
         if (size < 1024)
             return QString("%1 B").arg(size);
         else if (size < 1024 * 1024)
-            return QString("%1 KB").arg(size / 1024.0, 0, 'f', 1);
+            return QString("%L1 KB").arg(size / 1024.0, 0, 'f', 1);
         else if (size < 1024LL * 1024 * 1024)
-            return QString("%1 MB").arg(size / (1024.0 * 1024.0), 0, 'f', 1);
+            return QString("%L1 MB").arg(size / (1024.0 * 1024.0), 0, 'f', 1);
         else
-            return QString("%1 GB").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
+            return QString("%L1 GB").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
     }
     case FileTypeRole:
         return info.isDir() ? QStringLiteral("folder") : info.suffix().toLower();

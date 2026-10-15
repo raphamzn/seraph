@@ -923,7 +923,7 @@ FocusScope {
                         Text {
                             width: root.colType
                             anchors.verticalCenter: parent.verticalCenter
-                            text: detRow.fileType
+                            text: detRow.fileType === "folder" ? qsTr("folder") : detRow.fileType
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             elide: Text.ElideRight

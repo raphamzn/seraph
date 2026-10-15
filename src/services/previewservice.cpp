@@ -1,6 +1,7 @@
 #include "services/previewservice.h"
 #include "services/bathighlighter.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -243,7 +244,7 @@ QVariantMap PreviewService::loadFontPreview(const QString &path)
     result["error"] = QString();
 
     if (path.isEmpty() || !QFileInfo::exists(path)) {
-        result["error"] = QStringLiteral("Font file not found");
+        result["error"] = QCoreApplication::translate("PreviewService", "Font file not found");
         return result;
     }
 
@@ -260,7 +261,7 @@ QVariantMap PreviewService::loadFontPreview(const QString &path)
 
         const int id = QFontDatabase::addApplicationFont(path);
         if (id < 0) {
-            result["error"] = QStringLiteral("Unable to load font file");
+            result["error"] = QCoreApplication::translate("PreviewService", "Unable to load font file");
             return result;
         }
         m_activeFontPreviewId = id;
@@ -269,7 +270,7 @@ QVariantMap PreviewService::loadFontPreview(const QString &path)
 
     const QStringList families = QFontDatabase::applicationFontFamilies(m_activeFontPreviewId);
     if (families.isEmpty()) {
-        result["error"] = QStringLiteral("Font contains no usable families");
+        result["error"] = QCoreApplication::translate("PreviewService", "Font contains no usable families");
         return result;
     }
 
@@ -305,19 +306,19 @@ QVariantMap PreviewService::loadPdfPreview(const QString &path) const
 
     const QString localPath = localPreviewPath(path);
     if (localPath.isEmpty()) {
-        result["error"] = QStringLiteral("Unable to prepare PDF preview");
+        result["error"] = QCoreApplication::translate("PreviewService", "Unable to prepare PDF preview");
         return result;
     }
 
     if (!pdfPreviewAvailable()) {
-        result["error"] = QStringLiteral("Install poppler-utils for PDF preview");
+        result["error"] = QCoreApplication::translate("PreviewService", "Install poppler-utils for PDF preview");
         return result;
     }
 
     QProcess proc;
     proc.start(QStringLiteral("pdfinfo"), {localPath});
     if (!proc.waitForFinished(5000) || proc.exitCode() != 0) {
-        result["error"] = QStringLiteral("Unable to open PDF document");
+        result["error"] = QCoreApplication::translate("PreviewService", "Unable to open PDF document");
         return result;
     }
 
@@ -326,7 +327,7 @@ QVariantMap PreviewService::loadPdfPreview(const QString &path) const
                                             QRegularExpression::MultilineOption);
     const auto m = pagesRe.match(out);
     if (!m.hasMatch()) {
-        result["error"] = QStringLiteral("Unable to read PDF page count");
+        result["error"] = QCoreApplication::translate("PreviewService", "Unable to read PDF page count");
         return result;
     }
 
@@ -345,7 +346,7 @@ QByteArray PreviewService::readPathBytes(const QString &path, qint64 maxBytes, b
 
     if (path.isEmpty()) {
         if (error)
-            *error = QStringLiteral("No file selected");
+            *error = QCoreApplication::translate("PreviewService", "No file selected");
         return {};
     }
 
@@ -356,7 +357,7 @@ QByteArray PreviewService::readPathBytes(const QString &path, qint64 maxBytes, b
         startGioCat(proc, encodedUri(path));
         if (!proc.waitForStarted(2000)) {
             if (error)
-                *error = QStringLiteral("Failed to start preview reader");
+                *error = QCoreApplication::translate("PreviewService", "Failed to start preview reader");
             return {};
         }
 
@@ -375,7 +376,7 @@ QByteArray PreviewService::readPathBytes(const QString &path, qint64 maxBytes, b
 
         if (proc.exitStatus() != QProcess::NormalExit && data.isEmpty()) {
             if (error)
-                *error = QStringLiteral("Failed to read preview data");
+                *error = QCoreApplication::translate("PreviewService", "Failed to read preview data");
             return {};
         }
 
@@ -413,7 +414,7 @@ QStringList PreviewService::listDirectoryEntries(const QString &path, int maxEnt
 
     if (path.isEmpty()) {
         if (error)
-            *error = QStringLiteral("No folder selected");
+            *error = QCoreApplication::translate("PreviewService", "No folder selected");
         return {};
     }
 
@@ -435,7 +436,7 @@ QStringList PreviewService::listDirectoryEntries(const QString &path, int maxEnt
     QDir dir(path);
     if (!dir.exists()) {
         if (error)
-            *error = QStringLiteral("Folder does not exist");
+            *error = QCoreApplication::translate("PreviewService", "Folder does not exist");
         return {};
     }
 

@@ -11,6 +11,7 @@
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QUrl>
+#include <QTranslator>
 #include <QUuid>
 #include <unistd.h>
 #include "testdir.h"
@@ -260,6 +261,24 @@ private slots:
         QVERIFY(spy.count() > 0 || spy.wait(5000));
         QCOMPARE(spy.at(0).at(0).toBool(), false);
         QVERIFY(!QFile::exists(root.path() + "/projeto/sub/projeto"));
+    }
+
+    void testIntoItselfErrorIsTranslated()
+    {
+        QTranslator translator;
+        QVERIFY(translator.load(QStringLiteral(":/i18n-test/fileops_pt_BR")));
+        QCoreApplication::installTranslator(&translator);
+
+        TestDir root;
+        root.createDir("projeto/sub");
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::operationFinished);
+        ops.moveFiles({root.path() + "/projeto"}, root.path() + "/projeto/sub");
+
+        QCoreApplication::removeTranslator(&translator);
+        QVERIFY(spy.count() > 0 || spy.wait(5000));
+        QCOMPARE(spy.at(0).at(1).toString(),
+                 QString::fromUtf8("Não é possível mover projeto para dentro dela mesma"));
     }
 
     void testMoveSymlinkIntoItsOwnTargetSucceeds()

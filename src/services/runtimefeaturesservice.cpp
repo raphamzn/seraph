@@ -1,5 +1,6 @@
 #include "services/runtimefeaturesservice.h"
 
+#include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QFile>
@@ -87,19 +88,19 @@ bool RuntimeFeaturesService::useIntegratedWindowControls() const
 QString RuntimeFeaturesService::installHint(const QString &feature) const
 {
     if (feature == QStringLiteral("videoPreview"))
-        return QStringLiteral("Install ffmpeg to enable video poster previews.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install ffmpeg to enable video poster previews.");
     if (feature == QStringLiteral("pdfPreview"))
-        return QStringLiteral("Install poppler-qt6 and rebuild Seraph to enable PDF previews.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install poppler-qt6 and rebuild Seraph to enable PDF previews.");
     if (feature == QStringLiteral("remoteAccess"))
-        return QStringLiteral("Install gvfs to browse remote filesystems through Connect to Server.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install gvfs to browse remote filesystems through Connect to Server.");
     if (feature == QStringLiteral("smbRemoteAccess"))
-        return QStringLiteral("Install gvfs-smb to browse SMB/CIFS shares.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install gvfs-smb to browse SMB/CIFS shares.");
     if (feature == QStringLiteral("deviceMount"))
-        return QStringLiteral("Install udisks2 to mount and unmount devices from the sidebar.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install udisks2 to mount and unmount devices from the sidebar.");
     if (feature == QStringLiteral("clipboardImage"))
-        return QStringLiteral("Install wl-clipboard to paste images and copy paths through Wayland.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install wl-clipboard to paste images and copy paths through Wayland.");
     if (feature == QStringLiteral("textHighlight"))
-        return QStringLiteral("Install bat for syntax-highlighted text previews.");
+        return QCoreApplication::translate("RuntimeFeaturesService", "Install bat for syntax-highlighted text previews.");
     return {};
 }
 

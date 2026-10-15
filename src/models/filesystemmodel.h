@@ -65,6 +65,9 @@ public:
     Q_INVOKABLE QString fileName(int row) const;
     Q_INVOKABLE void sortByColumn(const QString &column, bool ascending);
     Q_INVOKABLE void refresh();
+    // Re-lists from scratch so the cached size/date/count text picks up a new
+    // UI language; refresh() diffs and would keep unchanged rows as they were.
+    void retranslate();
     Q_INVOKABLE QVariantMap fileProperties(const QString &path) const;
     Q_INVOKABLE QVariantMap folderItemCounts(const QStringList &paths) const;
     Q_INVOKABLE QVariantList availableApps(const QString &mimeType) const;

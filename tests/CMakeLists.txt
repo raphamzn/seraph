@@ -55,6 +55,13 @@ add_executable(tst_fileoperations tst_fileoperations.cpp
 target_include_directories(tst_fileoperations PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_fileoperations PRIVATE Qt6::Test Qt6::Core Qt6::Gui PkgConfig::GIO)
 add_test(NAME tst_fileoperations COMMAND tst_fileoperations)
+qt_add_lrelease(tst_fileoperations
+    TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/i18n/fileops_pt_BR.ts
+    QM_FILES_OUTPUT_VARIABLE tst_fileoperations_qm)
+qt_add_resources(tst_fileoperations "tst_fileoperations_i18n"
+    PREFIX "/i18n-test"
+    BASE "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES ${tst_fileoperations_qm})
 # Shares gio trash state with tst_giotransferworker; serialize to avoid flakes.
 set_tests_properties(tst_fileoperations PROPERTIES
     RUN_SERIAL TRUE

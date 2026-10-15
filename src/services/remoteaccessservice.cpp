@@ -1,5 +1,6 @@
 #include "services/remoteaccessservice.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QUrl>
 
@@ -48,7 +49,7 @@ void RemoteAccessService::connectToLocation(const QString &uri)
 {
     const QString trimmedUri = uri.trimmed();
     if (trimmedUri.isEmpty()) {
-        emit connectionFinished(false, QString(), QStringLiteral("Enter a remote location"));
+        emit connectionFinished(false, QString(), QCoreApplication::translate("RemoteAccessService", "Enter a remote location"));
         return;
     }
 
@@ -75,7 +76,7 @@ void RemoteAccessService::connectToLocation(const QString &uri)
     });
 
     connect(m_process, &QProcess::errorOccurred, this, [this](QProcess::ProcessError) {
-        const QString error = m_process ? m_process->errorString() : QStringLiteral("Failed to start gio mount");
+        const QString error = m_process ? m_process->errorString() : QCoreApplication::translate("RemoteAccessService", "Failed to start gio mount");
         emit connectionFinished(false, m_pendingUri, error);
         if (m_process) {
             m_process->deleteLater();

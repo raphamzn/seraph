@@ -1,5 +1,6 @@
 #include "services/fileoperations.h"
 #include "services/giotransferworker.h"
+#include <QCoreApplication>
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -287,7 +288,7 @@ bool deleteGFileRecursive(GFile *file, QString *error, GCancellable *cancellable
         const bool ok = g_file_delete(file, cancellable, &delErr);
         if (!ok && error)
             *error = delErr ? QString::fromUtf8(delErr->message)
-                            : QStringLiteral("Failed to delete item");
+                            : QCoreApplication::translate("FileOperations", "Failed to delete item");
         if (delErr)
             g_error_free(delErr);
         return ok;
@@ -303,7 +304,7 @@ bool deleteGFileRecursive(GFile *file, QString *error, GCancellable *cancellable
     if (!enumerator) {
         if (error)
             *error = enumErr ? QString::fromUtf8(enumErr->message)
-                             : QStringLiteral("Failed to enumerate directory");
+                             : QCoreApplication::translate("FileOperations", "Failed to enumerate directory");
         if (enumErr)
             g_error_free(enumErr);
         return false;
@@ -330,7 +331,7 @@ bool deleteGFileRecursive(GFile *file, QString *error, GCancellable *cancellable
     const bool ok = g_file_delete(file, cancellable, &delErr);
     if (!ok && error)
         *error = delErr ? QString::fromUtf8(delErr->message)
-                        : QStringLiteral("Failed to delete directory");
+                        : QCoreApplication::translate("FileOperations", "Failed to delete directory");
     if (delErr)
         g_error_free(delErr);
     return ok;
@@ -393,7 +394,7 @@ bool moveLocationSync(const QString &sourcePath, const QString &targetPath, QStr
     if (!isUriPath(normalizedSource) && !isUriPath(normalizedTarget)) {
         const bool ok = QFile::rename(normalizedSource, normalizedTarget);
         if (!ok && error)
-            *error = QStringLiteral("Could not rename %1").arg(locationFileName(normalizedSource));
+            *error = QCoreApplication::translate("FileOperations", "Could not rename %1").arg(locationFileName(normalizedSource));
         return ok;
     }
 
@@ -402,7 +403,7 @@ bool moveLocationSync(const QString &sourcePath, const QString &targetPath, QStr
     GError *gErr = nullptr;
     const bool ok = g_file_move(src, dst, G_FILE_COPY_NONE, nullptr, nullptr, nullptr, &gErr);
     if (!ok && error)
-        *error = gErr ? QString::fromUtf8(gErr->message) : QStringLiteral("Move failed");
+        *error = gErr ? QString::fromUtf8(gErr->message) : QCoreApplication::translate("FileOperations", "Move failed");
     if (gErr) g_error_free(gErr);
     g_object_unref(src);
     g_object_unref(dst);
@@ -415,7 +416,7 @@ bool makeDirectorySync(const QString &path, QString *error = nullptr)
     if (!isUriPath(normalized)) {
         const bool ok = QDir().mkpath(normalized);
         if (!ok && error)
-            *error = QStringLiteral("Could not create folder");
+            *error = QCoreApplication::translate("FileOperations", "Could not create folder");
         return ok;
     }
 
@@ -424,7 +425,7 @@ bool makeDirectorySync(const QString &path, QString *error = nullptr)
     const bool ok = g_file_make_directory_with_parents(file, nullptr, &gErr);
     const bool alreadyExists = gErr && g_error_matches(gErr, G_IO_ERROR, G_IO_ERROR_EXISTS);
     if (!ok && !alreadyExists && error)
-        *error = gErr ? QString::fromUtf8(gErr->message) : QStringLiteral("Could not create folder");
+        *error = gErr ? QString::fromUtf8(gErr->message) : QCoreApplication::translate("FileOperations", "Could not create folder");
     if (gErr) g_error_free(gErr);
     g_object_unref(file);
     return ok || alreadyExists;
@@ -438,7 +439,7 @@ bool createEmptyFileSync(const QString &path, QString *error = nullptr)
         const bool ok = file.open(QIODevice::WriteOnly);
         file.close();
         if (!ok && error)
-            *error = QStringLiteral("Could not create file");
+            *error = QCoreApplication::translate("FileOperations", "Could not create file");
         return ok;
     }
 
@@ -450,7 +451,7 @@ bool createEmptyFileSync(const QString &path, QString *error = nullptr)
         g_object_unref(stream);
     } else {
         if (error)
-            *error = gErr ? QString::fromUtf8(gErr->message) : QStringLiteral("Could not create file");
+            *error = gErr ? QString::fromUtf8(gErr->message) : QCoreApplication::translate("FileOperations", "Could not create file");
         if (gErr) g_error_free(gErr);
         g_object_unref(file);
         return false;
@@ -897,11 +898,11 @@ QString renameTargetError(const QString &targetPath)
 {
     const QString fileName = locationFileName(targetPath);
     if (fileName.isEmpty() || fileName == "." || fileName == "..")
-        return QStringLiteral("Enter a valid target name");
+        return QCoreApplication::translate("FileOperations", "Enter a valid target name");
 
     const QString parentDir = parentLocation(targetPath);
     if (parentDir.isEmpty() || !pathExistsSync(parentDir))
-        return QStringLiteral("Target folder does not exist");
+        return QCoreApplication::translate("FileOperations", "Target folder does not exist");
 
     return {};
 }
@@ -1033,7 +1034,7 @@ void FileOperations::moveResolvedItems(const QVariantList &operations)
 void FileOperations::trashFiles(const QStringList &paths)
 {
     startSimpleOperation(
-        QString("Trashing %1 item(s)...").arg(paths.size()), paths,
+        QCoreApplication::translate("FileOperations", "Trashing %n item(s)...", nullptr, int(paths.size())), paths,
         [paths](ProgressReporter report) -> QString {
             QString lastError;
             const int total = paths.size();
@@ -1077,7 +1078,7 @@ void FileOperations::trashFiles(const QStringList &paths)
 void FileOperations::restoreFromTrash(const QStringList &paths)
 {
     startSimpleOperation(
-        QString("Restoring %1 item(s)...").arg(paths.size()), paths,
+        QCoreApplication::translate("FileOperations", "Restoring %n item(s)...", nullptr, int(paths.size())), paths,
         [paths](ProgressReporter report) -> QString {
             QString lastError;
             const int total = paths.size();
@@ -1120,7 +1121,7 @@ void FileOperations::restoreFromTrash(const QStringList &paths)
 
                 const char *origPath = g_file_info_get_attribute_byte_string(info, G_FILE_ATTRIBUTE_TRASH_ORIG_PATH);
                 if (!origPath) {
-                    lastError = QStringLiteral("Could not determine original path");
+                    lastError = QCoreApplication::translate("FileOperations", "Could not determine original path");
                     g_object_unref(info);
                     g_object_unref(trashFile);
                     continue;
@@ -1240,7 +1241,7 @@ QString FileOperations::uniqueNameForDestination(const QString &destinationDir, 
 void FileOperations::deleteFiles(const QStringList &paths)
 {
     startSimpleOperation(
-        QString("Deleting %1 item(s)...").arg(paths.size()), paths,
+        QCoreApplication::translate("FileOperations", "Deleting %n item(s)...", nullptr, int(paths.size())), paths,
         [paths](ProgressReporter report) -> QString {
             QString lastError;
             const int total = paths.size();
@@ -1258,10 +1259,10 @@ void FileOperations::deleteFiles(const QStringList &paths)
                     QFileInfo info(normalized);
                     if (info.isDir()) {
                         if (!QDir(normalized).removeRecursively())
-                            lastError = QStringLiteral("Failed to delete one or more items");
+                            lastError = QCoreApplication::translate("FileOperations", "Failed to delete one or more items");
                     } else {
                         if (!QFile::remove(normalized))
-                            lastError = QStringLiteral("Failed to delete one or more items");
+                            lastError = QCoreApplication::translate("FileOperations", "Failed to delete one or more items");
                     }
                 }
             }
@@ -1320,13 +1321,14 @@ void FileOperations::transferResolvedItems(const QVariantList &operations, bool 
         }
 
         if (sourcePath == targetPath) {
-            emit operationFinished(false, QString("Source and destination are the same for %1").arg(locationFileName(sourcePath)));
+            emit operationFinished(false, QCoreApplication::translate("FileOperations", "Source and destination are the same for %1").arg(locationFileName(sourcePath)));
             return;
         }
 
         if (transferTargetsOwnSubtree(sourcePath, targetPath)) {
-            emit operationFinished(false, QString("Cannot %1 %2 into itself")
-                .arg(moveOperation ? "move" : "copy", locationFileName(sourcePath)));
+            emit operationFinished(false, (moveOperation
+                ? tr("Cannot move %1 into itself")
+                : tr("Cannot copy %1 into itself")).arg(locationFileName(sourcePath)));
             return;
         }
 
@@ -1404,10 +1406,10 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
         const QString targetPath = normalizeLocation(item.value("targetPath").toString());
 
         if (sourcePath.isEmpty() || targetPath.isEmpty())
-            return renameResult(false, QStringLiteral("Rename operation is missing a path"));
+            return renameResult(false, QCoreApplication::translate("FileOperations", "Rename operation is missing a path"));
 
         if (sourcePaths.contains(sourcePath))
-            return renameResult(false, QStringLiteral("Cannot rename the same item twice in one batch"));
+            return renameResult(false, QCoreApplication::translate("FileOperations", "Cannot rename the same item twice in one batch"));
 
         sourcePaths.insert(sourcePath);
 
@@ -1416,7 +1418,7 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
             return renameResult(false, targetError);
 
         if (finalTargetPaths.contains(targetPath))
-            return renameResult(false, QStringLiteral("Two items cannot end with the same name"));
+            return renameResult(false, QCoreApplication::translate("FileOperations", "Two items cannot end with the same name"));
 
         finalTargetPaths.insert(targetPath);
 
@@ -1463,7 +1465,7 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
         QString error;
         if (!moveLocationSync(op.sourcePath, op.tempPath, &error)) {
             rollback();
-            return renameResult(false, QStringLiteral("Could not prepare %1 for renaming")
+            return renameResult(false, QCoreApplication::translate("FileOperations", "Could not prepare %1 for renaming")
                 .arg(locationFileName(op.sourcePath)));
         }
 
@@ -1475,7 +1477,7 @@ QVariantMap FileOperations::renameResolvedItems(const QVariantList &operations)
         QString error;
         if (!moveLocationSync(op.tempPath, op.targetPath, &error)) {
             rollback();
-            return renameResult(false, QStringLiteral("Could not rename %1")
+            return renameResult(false, QCoreApplication::translate("FileOperations", "Could not rename %1")
                 .arg(locationFileName(op.sourcePath)));
         }
 
@@ -1584,7 +1586,7 @@ QVariantList FileOperations::breadcrumbSegments(const QString &path) const
 void FileOperations::emptyTrash()
 {
     startSimpleOperation(
-        QStringLiteral("Emptying trash..."), {},
+        QCoreApplication::translate("FileOperations", "Emptying trash..."), {},
         [](ProgressReporter report) -> QString {
             // Inside a Flatpak the GLib trash:// URI resolves to the
             // sandbox's trash, not the host's. Shell out to host gio so we
@@ -1592,7 +1594,7 @@ void FileOperations::emptyTrash()
             // this branch (gio trash --empty is one shot) but the result
             // matches what the user expects.
             if (runningInFlatpak()) {
-                report(0, 1, QStringLiteral("Emptying trash..."));
+                report(0, 1, QCoreApplication::translate("FileOperations", "Emptying trash..."));
                 QProcess proc;
                 proc.start(QStringLiteral("flatpak-spawn"),
                            {QStringLiteral("--host"), QStringLiteral("gio"),
@@ -1625,7 +1627,7 @@ void FileOperations::emptyTrash()
                 QString err;
                 if (enumErr) { err = QString::fromUtf8(enumErr->message); g_error_free(enumErr); }
                 g_object_unref(trash);
-                return err.isEmpty() ? QStringLiteral("Could not enumerate trash") : err;
+                return err.isEmpty() ? QCoreApplication::translate("FileOperations", "Could not enumerate trash") : err;
             }
 
             // Second pass: delete with progress
@@ -1735,7 +1737,7 @@ void FileOperations::copyTextToClipboard(const QString &text)
 void FileOperations::openInTerminal(const QString &dirPath)
 {
     if (isUriPath(dirPath)) {
-        emit operationFinished(false, QStringLiteral("Open in Terminal is only available for local folders"));
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Open in Terminal is only available for local folders"));
         return;
     }
 
@@ -1750,7 +1752,7 @@ void FileOperations::openInTerminal(const QString &dirPath)
 void FileOperations::openInTerminalWith(const QString &dirPath, const QString &command)
 {
     if (isUriPath(dirPath)) {
-        emit operationFinished(false, QStringLiteral("Only available for local folders"));
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Only available for local folders"));
         return;
     }
 
@@ -1764,7 +1766,7 @@ void FileOperations::openInTerminalWith(const QString &dirPath, const QString &c
 
     const QString terminal = qEnvironmentVariable("TERMINAL", "kitty");
     if (QStandardPaths::findExecutable(terminal).isEmpty()) {
-        emit operationFinished(false, QStringLiteral("Terminal \"%1\" not found").arg(terminal));
+        emit operationFinished(false, QCoreApplication::translate("FileOperations", "Terminal \"%1\" not found").arg(terminal));
         return;
     }
 
@@ -1840,7 +1842,7 @@ void FileOperations::compressFiles(const QStringList &paths, const QString &form
         return;
     }
 
-    const QString statusText = QString("Compressing %1 item(s)...").arg(paths.size());
+    const QString statusText = QCoreApplication::translate("FileOperations", "Compressing %n item(s)...", nullptr, int(paths.size()));
     startSimpleOperation(statusText, {outputPath},
         [paths, cmd](ProgressReporter report) -> QString {
             // Pre-count files for progress
@@ -1864,7 +1866,7 @@ void FileOperations::compressFiles(const QStringList &paths, const QString &form
             proc.setProcessChannelMode(QProcess::MergedChannels);
             proc.start(QStringLiteral("sh"), {QStringLiteral("-c"), cmd});
             if (!proc.waitForStarted(5000))
-                return QStringLiteral("Failed to start compression");
+                return QCoreApplication::translate("FileOperations", "Failed to start compression");
 
             int processed = 0;
             while (proc.state() != QProcess::NotRunning || proc.canReadLine()) {
@@ -1881,7 +1883,7 @@ void FileOperations::compressFiles(const QStringList &paths, const QString &form
 
             proc.waitForFinished(5000);
             if (proc.exitCode() != 0)
-                return QStringLiteral("Compression failed");
+                return QCoreApplication::translate("FileOperations", "Compression failed");
             return {};
         });
 }
@@ -1925,7 +1927,7 @@ void FileOperations::extractArchive(const QString &archivePath, const QString &d
             proc.setProcessChannelMode(QProcess::MergedChannels);
             proc.start(program, verboseArgs);
             if (!proc.waitForStarted(5000))
-                return QStringLiteral("Failed to start extraction");
+                return QCoreApplication::translate("FileOperations", "Failed to start extraction");
 
             int processed = 0;
             while (proc.state() != QProcess::NotRunning || proc.canReadLine()) {
@@ -1942,7 +1944,7 @@ void FileOperations::extractArchive(const QString &archivePath, const QString &d
 
             proc.waitForFinished(5000);
             if (proc.exitCode() != 0)
-                return QStringLiteral("Extraction failed");
+                return QCoreApplication::translate("FileOperations", "Extraction failed");
             return {};
         });
 }
@@ -2104,7 +2106,9 @@ void FileOperations::startGioTransfer(const QVariantList &operations, bool moveO
     const int id = m_nextTransferId++;
     ActiveTransfer transfer;
     transfer.id = id;
-    transfer.statusText = QString(moveOperation ? "Moving %1 item(s)..." : "Copying %1 item(s)...").arg(itemCount);
+    transfer.statusText = moveOperation
+        ? QCoreApplication::translate("FileOperations", "Moving %n item(s)...", nullptr, itemCount)
+        : QCoreApplication::translate("FileOperations", "Copying %n item(s)...", nullptr, itemCount);
     transfer.progress = -1.0;
     transfer.changedPaths = changedPaths;
     transfer.targetPaths = targetPaths;

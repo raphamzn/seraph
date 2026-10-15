@@ -368,6 +368,21 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     languageManager->setEngine(&engine);
 
+    // Directory models cache their formatted sizes, dates and counts per entry,
+    // so a language switch re-lists them; the others format on demand and only
+    // need the views to ask again.
+    QObject::connect(languageManager, &LanguageManager::languageChanged, &app,
+                     [fsModel, splitFsModel, millerParentModel, millerPreviewModel,
+                      recentFiles, searchResults, splitSearchResults]() {
+        for (FileSystemModel *model : {fsModel, splitFsModel, millerParentModel, millerPreviewModel})
+            model->retranslate();
+        for (QAbstractItemModel *model : std::initializer_list<QAbstractItemModel *>{
+                 recentFiles, searchResults, splitSearchResults}) {
+            if (const int rows = model->rowCount(); rows > 0)
+                emit model->dataChanged(model->index(0, 0), model->index(rows - 1, 0));
+        }
+    });
+
     addSeraphImportPaths(engine, dataDir);
 
     // Set icon theme so QIcon::fromTheme() works (e.g. for drag pixmaps)

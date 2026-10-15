@@ -1,5 +1,6 @@
 #include "models/filesystemmodel.h"
 #include "services/gitstatusservice.h"
+#include <QCoreApplication>
 #include <QLocale>
 #include <QDateTime>
 #include <QDebug>
@@ -255,13 +256,13 @@ QString formattedSize(qint64 size, bool verbose = false)
         return verbose ? QString("%1 B (%2 bytes)").arg(size).arg(QLocale().toString(size))
                        : QString("%1 B").arg(size);
     if (size < 1024 * 1024)
-        return verbose ? QString("%1 KB (%2 bytes)").arg(size / 1024.0, 0, 'f', 1).arg(QLocale().toString(size))
-                       : QString("%1 KB").arg(size / 1024.0, 0, 'f', 1);
+        return verbose ? QString("%L1 KB (%2 bytes)").arg(size / 1024.0, 0, 'f', 1).arg(QLocale().toString(size))
+                       : QString("%L1 KB").arg(size / 1024.0, 0, 'f', 1);
     if (size < 1024LL * 1024 * 1024)
-        return verbose ? QString("%1 MB (%2 bytes)").arg(size / (1024.0 * 1024.0), 0, 'f', 1).arg(QLocale().toString(size))
-                       : QString("%1 MB").arg(size / (1024.0 * 1024.0), 0, 'f', 1);
-    return verbose ? QString("%1 GB (%2 bytes)").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 2).arg(QLocale().toString(size))
-                   : QString("%1 GB").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
+        return verbose ? QString("%L1 MB (%2 bytes)").arg(size / (1024.0 * 1024.0), 0, 'f', 1).arg(QLocale().toString(size))
+                       : QString("%L1 MB").arg(size / (1024.0 * 1024.0), 0, 'f', 1);
+    return verbose ? QString("%L1 GB (%2 bytes)").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 2).arg(QLocale().toString(size))
+                   : QString("%L1 GB").arg(size / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
 }
 
 // Resolve a MIME type name (e.g. "text/x-typescript", "video/mp2t") to a
@@ -892,6 +893,11 @@ void FileSystemModel::refresh()
     scheduleLocalReload(/*tryDiff=*/true);
 }
 
+void FileSystemModel::retranslate()
+{
+    reload();
+}
+
 QString FileSystemModel::filePath(int row) const
 {
     if (row < 0 || row >= rowCount())
@@ -1477,8 +1483,13 @@ QVariantMap FileSystemModel::fileProperties(const QString &path) const
         props["containedItems"] = allEntries.count();
         props["containedFiles"] = fileCount;
         props["containedFolders"] = folderCount;
-        props["contentText"] = QString("%1 items (%2 files, %3 folders)").arg(allEntries.count()).arg(fileCount).arg(folderCount);
-        props["sizeText"] = QString("%1 items").arg(allEntries.count());
+        const int itemCount = int(allEntries.count());
+        const QString items = QCoreApplication::translate("FileSystemModel", "%n item(s)", nullptr, itemCount);
+        props["contentText"] = QCoreApplication::translate("FileSystemModel", "%1 (%2, %3)")
+            .arg(items,
+                 QCoreApplication::translate("FileSystemModel", "%n file(s)", nullptr, fileCount),
+                 QCoreApplication::translate("FileSystemModel", "%n folder(s)", nullptr, folderCount));
+        props["sizeText"] = items;
         props["size"] = QVariant(static_cast<qint64>(-1));
     } else {
         qint64 size = info.size();
@@ -1497,9 +1508,9 @@ QVariantMap FileSystemModel::fileProperties(const QString &path) const
 
         auto fmtSize = [](qint64 s) -> QString {
             if (s < 1024) return QString("%1 B").arg(s);
-            if (s < 1024LL * 1024) return QString("%1 KB").arg(s / 1024.0, 0, 'f', 1);
-            if (s < 1024LL * 1024 * 1024) return QString("%1 MB").arg(s / (1024.0 * 1024.0), 0, 'f', 1);
-            return QString("%1 GB").arg(s / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
+            if (s < 1024LL * 1024) return QString("%L1 KB").arg(s / 1024.0, 0, 'f', 1);
+            if (s < 1024LL * 1024 * 1024) return QString("%L1 MB").arg(s / (1024.0 * 1024.0), 0, 'f', 1);
+            return QString("%L1 GB").arg(s / (1024.0 * 1024.0 * 1024.0), 0, 'f', 1);
         };
         props["diskTotal"] = fmtSize(total);
         props["diskUsed"] = fmtSize(used);

@@ -2,6 +2,7 @@
 
 #include "services/previewservice.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -82,13 +83,13 @@ void ReaderDocument::load(const QString &reason, const QString &fragment, qreal 
     if (!missingNow) {
         QFile file(m_path);
         if (!file.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("Cannot open %1: %2").arg(info.fileName(), file.errorString());
+            error = QCoreApplication::translate("ReaderDocument", "Cannot open %1: %2").arg(info.fileName(), file.errorString());
         } else if (file.size() > MaxFileBytes) {
             error = QStringLiteral("%1 is too large to show (over 32 MB).").arg(info.fileName());
         } else {
             const QByteArray data = file.readAll();
             if (PreviewService::looksBinary(data))
-                error = QStringLiteral("This file looks binary and cannot be previewed as text.");
+                error = QCoreApplication::translate("ReaderDocument", "This file looks binary and cannot be previewed as text.");
             else
                 text = PreviewService::decodeText(data);
         }

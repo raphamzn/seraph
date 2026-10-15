@@ -1,5 +1,6 @@
 #include "services/dependencychecker.h"
 
+#include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDir>
@@ -57,7 +58,7 @@ QVariantMap buildHints(const QString &defaultPkg,
         out[id] = substitute(QString::fromLatin1(d.installCmd), pkg);
     }
     out[QStringLiteral("generic")] =
-        QStringLiteral("Install '%1' via your distribution's package manager.")
+        QCoreApplication::translate("DependencyChecker", "Install '%1' via your distribution's package manager.")
             .arg(defaultPkg);
     return out;
 }
@@ -167,8 +168,8 @@ void DependencyChecker::populate()
     // ── Required runtime tools ────────────────────────────────────────────
     m_deps.append({
         QStringLiteral("gio"),
-        QStringLiteral("GIO command-line tool"),
-        QStringLiteral("Move, copy, and trash files via GVFS."),
+        QCoreApplication::translate("DependencyChecker", "GIO command-line tool"),
+        QCoreApplication::translate("DependencyChecker", "Move, copy, and trash files via GVFS."),
         Kind::Tool, true, hasExecutable(QStringLiteral("gio")),
         {QStringLiteral("gio")},
         buildHints(QStringLiteral("glib2"), {
@@ -188,7 +189,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("fd"),
         QStringLiteral("fd (file finder)"),
-        QStringLiteral("Fast recursive file search in the search bar."),
+        QCoreApplication::translate("DependencyChecker", "Fast recursive file search in the search bar."),
         Kind::Tool, false,
         hasExecutable(QStringLiteral("fd")) || hasExecutable(QStringLiteral("fdfind")),
         {QStringLiteral("fd"), QStringLiteral("fdfind")},
@@ -203,7 +204,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("wl-clipboard"),
         QStringLiteral("wl-clipboard"),
-        QStringLiteral("Copy and paste files and images under Wayland."),
+        QCoreApplication::translate("DependencyChecker", "Copy and paste files and images under Wayland."),
         Kind::Tool, false,
         hasExecutable(QStringLiteral("wl-copy")) && hasExecutable(QStringLiteral("wl-paste")),
         {QStringLiteral("wl-copy"), QStringLiteral("wl-paste")},
@@ -213,7 +214,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("ffmpeg"),
         QStringLiteral("FFmpeg"),
-        QStringLiteral("Generate video thumbnails in grid and list views."),
+        QCoreApplication::translate("DependencyChecker", "Generate video thumbnails in grid and list views."),
         Kind::Tool, false, hasExecutable(QStringLiteral("ffmpeg")),
         {QStringLiteral("ffmpeg")},
         buildHints(QStringLiteral("ffmpeg"))
@@ -222,7 +223,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("bat"),
         QStringLiteral("bat"),
-        QStringLiteral("Syntax-highlighted text previews."),
+        QCoreApplication::translate("DependencyChecker", "Syntax-highlighted text previews."),
         Kind::Tool, false,
         hasExecutable(QStringLiteral("bat")) || hasExecutable(QStringLiteral("batcat")),
         {QStringLiteral("bat"), QStringLiteral("batcat")},
@@ -237,7 +238,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("git"),
         QStringLiteral("git"),
-        QStringLiteral("Show git status badges on files and folders."),
+        QCoreApplication::translate("DependencyChecker", "Show git status badges on files and folders."),
         Kind::Tool, false, hasExecutable(QStringLiteral("git")),
         {QStringLiteral("git")},
         buildHints(QStringLiteral("git"))
@@ -255,7 +256,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("ntfs-3g"),
         QStringLiteral("ntfs-3g (NTFS mount helper)"),
-        QStringLiteral("Mount Windows NTFS partitions from the device sidebar."),
+        QCoreApplication::translate("DependencyChecker", "Mount Windows NTFS partitions from the device sidebar."),
         Kind::Tool, false, ntfsHelperAvailable,
         {QStringLiteral("mount.ntfs"), QStringLiteral("mount.ntfs-3g")},
         buildHints(QStringLiteral("ntfs-3g"))
@@ -263,8 +264,8 @@ void DependencyChecker::populate()
 
     m_deps.append({
         QStringLiteral("gvfs"),
-        QStringLiteral("GVFS backends"),
-        QStringLiteral("Connect to remote file systems (SFTP, SMB, WebDAV)."),
+        QCoreApplication::translate("DependencyChecker", "GVFS backends"),
+        QCoreApplication::translate("DependencyChecker", "Connect to remote file systems (SFTP, SMB, WebDAV)."),
         Kind::Tool, false, hasExecutable(QStringLiteral("gio"))
             && QDir(QStringLiteral("/usr/lib/gvfs")).exists(),
         {QStringLiteral("gio")},
@@ -278,8 +279,8 @@ void DependencyChecker::populate()
     });
     m_deps.append({
         QStringLiteral("gvfs-afc"),
-        QStringLiteral("GVFS AFC backend"),
-        QStringLiteral("Browse iPhone and iPad files from the device sidebar over USB."),
+        QCoreApplication::translate("DependencyChecker", "GVFS AFC backend"),
+        QCoreApplication::translate("DependencyChecker", "Browse iPhone and iPad files from the device sidebar over USB."),
         Kind::Tool, false, gvfsAfcAvailable,
         {QStringLiteral("afc.mount"), QStringLiteral("gvfsd-afc")},
         buildHints(QStringLiteral("gvfs-afc"), {
@@ -297,8 +298,8 @@ void DependencyChecker::populate()
     });
     m_deps.append({
         QStringLiteral("gvfs-gphoto2"),
-        QStringLiteral("GVFS gphoto2 backend"),
-        QStringLiteral("Browse iPhone photos and videos through the camera/PTP backend."),
+        QCoreApplication::translate("DependencyChecker", "GVFS gphoto2 backend"),
+        QCoreApplication::translate("DependencyChecker", "Browse iPhone photos and videos through the camera/PTP backend."),
         Kind::Tool, false, gvfsGphoto2Available,
         {QStringLiteral("gphoto2.mount"), QStringLiteral("gvfsd-gphoto2")},
         buildHints(QStringLiteral("gvfs-gphoto2"), {
@@ -312,7 +313,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("usbmuxd"),
         QStringLiteral("usbmuxd"),
-        QStringLiteral("Detect and broker USB connections to iPhone and iPad devices."),
+        QCoreApplication::translate("DependencyChecker", "Detect and broker USB connections to iPhone and iPad devices."),
         Kind::Tool, false, hasExecutable(QStringLiteral("usbmuxd"))
             || hasHostExecutable(QStringLiteral("usbmuxd")),
         {QStringLiteral("usbmuxd")},
@@ -322,7 +323,7 @@ void DependencyChecker::populate()
     m_deps.append({
         QStringLiteral("libimobiledevice"),
         QStringLiteral("libimobiledevice tools"),
-        QStringLiteral("Provide pairing and recovery tools such as idevicepair for iPhone and iPad access."),
+        QCoreApplication::translate("DependencyChecker", "Provide pairing and recovery tools such as idevicepair for iPhone and iPad access."),
         Kind::Tool, false, hasExecutable(QStringLiteral("idevicepair"))
             || hasHostExecutable(QStringLiteral("idevicepair")),
         {QStringLiteral("idevicepair")},
@@ -337,8 +338,8 @@ void DependencyChecker::populate()
     // ── DBus services ─────────────────────────────────────────────────────
     m_deps.append({
         QStringLiteral("udisks2"),
-        QStringLiteral("UDisks2 service"),
-        QStringLiteral("Detect, mount, and unmount storage devices."),
+        QCoreApplication::translate("DependencyChecker", "UDisks2 service"),
+        QCoreApplication::translate("DependencyChecker", "Detect, mount, and unmount storage devices."),
         Kind::Service, false, udisks2Reachable(),
         {},
         buildHints(QStringLiteral("udisks2"))
@@ -351,8 +352,8 @@ void DependencyChecker::populate()
     // the package picks them up at runtime — no rebuild needed.
     m_deps.append({
         QStringLiteral("poppler-utils"),
-        QStringLiteral("PDF preview (poppler-utils)"),
-        QStringLiteral("Render PDF thumbnails and the PDF quick-preview panel."),
+        QCoreApplication::translate("DependencyChecker", "PDF preview (poppler-utils)"),
+        QCoreApplication::translate("DependencyChecker", "Render PDF thumbnails and the PDF quick-preview panel."),
         Kind::Tool, false,
         hasExecutable(QStringLiteral("pdftoppm"))
             && hasExecutable(QStringLiteral("pdfinfo")),
@@ -375,8 +376,8 @@ void DependencyChecker::populate()
 
     m_deps.append({
         QStringLiteral("exiftool"),
-        QStringLiteral("EXIF metadata (exiftool)"),
-        QStringLiteral("Read camera, GPS and timestamp metadata from images."),
+        QCoreApplication::translate("DependencyChecker", "EXIF metadata (exiftool)"),
+        QCoreApplication::translate("DependencyChecker", "Read camera, GPS and timestamp metadata from images."),
         Kind::Tool, false, hasExecutable(QStringLiteral("exiftool")),
         {QStringLiteral("exiftool")},
         buildHints(QStringLiteral("perl-image-exiftool"), {
@@ -397,8 +398,8 @@ void DependencyChecker::populate()
 
     m_deps.append({
         QStringLiteral("ffprobe"),
-        QStringLiteral("Audio/video metadata (ffprobe)"),
-        QStringLiteral("Read tags, duration, codec, and resolution from audio and video."),
+        QCoreApplication::translate("DependencyChecker", "Audio/video metadata (ffprobe)"),
+        QCoreApplication::translate("DependencyChecker", "Read tags, duration, codec, and resolution from audio and video."),
         Kind::Tool, false, hasExecutable(QStringLiteral("ffprobe")),
         {QStringLiteral("ffprobe")},
         buildHints(QStringLiteral("ffmpeg"))
@@ -411,8 +412,8 @@ void DependencyChecker::populate()
 #endif
     m_deps.append({
         QStringLiteral("kwindowsystem"),
-        QStringLiteral("Window blur (KWindowSystem)"),
-        QStringLiteral("Enable background blur and contrast under KWin."),
+        QCoreApplication::translate("DependencyChecker", "Window blur (KWindowSystem)"),
+        QCoreApplication::translate("DependencyChecker", "Enable background blur and contrast under KWin."),
         Kind::Feature, false, hasKWin, {},
         buildFeatureHint(QStringLiteral("kwindowsystem"))
     });

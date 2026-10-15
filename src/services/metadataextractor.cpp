@@ -1,5 +1,6 @@
 #include "services/metadataextractor.h"
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QImageReader>
 #include <QJsonArray>
@@ -103,13 +104,13 @@ QVariantMap MetadataExtractor::extract(const QString &path) const
 QString MetadataExtractor::missingDepsHint(const QString &mimeType) const
 {
     if (mimeType.startsWith("image/") && !hasExifSupport())
-        return QStringLiteral("Install exiftool for camera metadata (make/model, ISO, aperture, GPS)");
+        return QCoreApplication::translate("MetadataExtractor", "Install exiftool for camera metadata (make/model, ISO, aperture, GPS)");
     if (mimeType.startsWith("audio/") && !hasTagLibSupport())
-        return QStringLiteral("Install ffmpeg for audio metadata (artist, album, genre, duration)");
+        return QCoreApplication::translate("MetadataExtractor", "Install ffmpeg for audio metadata (artist, album, genre, duration)");
     if (mimeType.startsWith("video/") && !hasVideoSupport())
-        return QStringLiteral("Install ffmpeg for video metadata (duration, codec, resolution)");
+        return QCoreApplication::translate("MetadataExtractor", "Install ffmpeg for video metadata (duration, codec, resolution)");
     if (mimeType == "application/pdf" && !hasPdfSupport())
-        return QStringLiteral("Install poppler-utils for PDF metadata (author, title, page count)");
+        return QCoreApplication::translate("MetadataExtractor", "Install poppler-utils for PDF metadata (author, title, page count)");
     return {};
 }
 

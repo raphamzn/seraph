@@ -331,6 +331,117 @@
     </message>
 </context>
 <context>
+    <name>DependencyChecker</name>
+    <message>
+        <source>Install &apos;%1&apos; via your distribution&apos;s package manager.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GIO command-line tool</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move, copy, and trash files via GVFS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fast recursive file search in the search bar.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy and paste files and images under Wayland.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generate video thumbnails in grid and list views.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Syntax-highlighted text previews.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show git status badges on files and folders.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mount Windows NTFS partitions from the device sidebar.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GVFS backends</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connect to remote file systems (SFTP, SMB, WebDAV).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GVFS AFC backend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browse iPhone and iPad files from the device sidebar over USB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>GVFS gphoto2 backend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Browse iPhone photos and videos through the camera/PTP backend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Detect and broker USB connections to iPhone and iPad devices.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provide pairing and recovery tools such as idevicepair for iPhone and iPad access.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UDisks2 service</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Detect, mount, and unmount storage devices.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>PDF preview (poppler-utils)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Render PDF thumbnails and the PDF quick-preview panel.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>EXIF metadata (exiftool)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Read camera, GPS and timestamp metadata from images.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Audio/video metadata (ffprobe)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Read tags, duration, codec, and resolution from audio and video.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Window blur (KWindowSystem)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable background blur and contrast under KWin.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DeviceModel</name>
     <message>
         <source>Could not mount %1: unlock the iPhone or iPad, tap Trust on the device, and try again.</source>
@@ -350,6 +461,10 @@
     </message>
     <message>
         <source>Unknown error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mobile Device</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -417,6 +532,10 @@
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
+    </message>
+    <message>
+        <source>folder</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -599,6 +718,187 @@ abcdefghijklmnopqrstuvwxyz
     </message>
 </context>
 <context>
+    <name>FileOperations</name>
+    <message>
+        <source>Failed to delete item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to enumerate directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to delete directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not rename %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not create folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not create file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter a valid target name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Target folder does not exist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Trashing %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Restoring %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Could not determine original path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Deleting %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Failed to delete one or more items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source and destination are the same for %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot move %1 into itself</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot copy %1 into itself</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename operation is missing a path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cannot rename the same item twice in one batch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Two items cannot end with the same name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not prepare %1 for renaming</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Emptying trash...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not enumerate trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in Terminal is only available for local folders</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only available for local folders</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Terminal &quot;%1&quot; not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Compressing %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Failed to start compression</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Compression failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to start extraction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extraction failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Moving %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Copying %n item(s)...</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>FileSystemModel</name>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1 (%2, %3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n folder(s)</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>FileTabBar</name>
     <message>
         <source>File tabs</source>
@@ -715,6 +1015,22 @@ abcdefghijklmnopqrstuvwxyz
     <name>GioTransferWorker</name>
     <message>
         <source>Could not read symbolic link target</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not mount destination volume</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not enough disk space</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Permission denied</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source file not found</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1182,6 +1498,25 @@ abcdefghijklmnopqrstuvwxyz
     </message>
 </context>
 <context>
+    <name>MetadataExtractor</name>
+    <message>
+        <source>Install exiftool for camera metadata (make/model, ISO, aperture, GPS)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install ffmpeg for audio metadata (artist, album, genre, duration)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install ffmpeg for video metadata (duration, codec, resolution)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install poppler-utils for PDF metadata (author, title, page count)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MissingDependenciesDialog</name>
     <message>
         <source>Missing dependencies</source>
@@ -1260,6 +1595,57 @@ abcdefghijklmnopqrstuvwxyz
     </message>
     <message>
         <source>Done</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>PreviewService</name>
+    <message>
+        <source>Font file not found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to load font file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Font contains no usable families</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to prepare PDF preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install poppler-utils for PDF preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to open PDF document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to read PDF page count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No file selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to start preview reader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to read preview data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No folder selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Folder does not exist</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1469,6 +1855,17 @@ abcdefghijklmnopqrstuvwxyz
     </message>
 </context>
 <context>
+    <name>ReaderDocument</name>
+    <message>
+        <source>Cannot open %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>This file looks binary and cannot be previewed as text.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ReaderMain</name>
     <message>
         <source>Seraph Reader</source>
@@ -1499,6 +1896,17 @@ abcdefghijklmnopqrstuvwxyz
     </message>
     <message>
         <source>%1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RemoteAccessService</name>
+    <message>
+        <source>Enter a remote location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to start gio mount</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1598,6 +2006,37 @@ abcdefghijklmnopqrstuvwxyz
     </message>
     <message>
         <source>Connect</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>RuntimeFeaturesService</name>
+    <message>
+        <source>Install ffmpeg to enable video poster previews.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install poppler-qt6 and rebuild Seraph to enable PDF previews.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install gvfs to browse remote filesystems through Connect to Server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install gvfs-smb to browse SMB/CIFS shares.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install udisks2 to mount and unmount devices from the sidebar.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install wl-clipboard to paste images and copy paths through Wayland.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Install bat for syntax-highlighted text previews.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1896,6 +2335,173 @@ abcdefghijklmnopqrstuvwxyz
     </message>
     <message>
         <source>Reset</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Shortcuts</name>
+    <message>
+        <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Forward</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Go to Parent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Home</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reopen Closed Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in Split View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Move to Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Permanent Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Hidden Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quick Preview</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Search</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Quick Open (fuzzy find)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Show Context Menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in Terminal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus Path Bar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Sidebar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Toggle Split View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus Next Pane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus Previous Pane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus Left Pane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Focus Right Pane</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Grid View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Miller View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Detailed View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Undo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Redo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open Keyboard Shortcuts</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -122,7 +122,7 @@ void SearchResultsModel::clear()
 QString SearchResultsModel::formatSize(qint64 bytes)
 {
     if (bytes < 1024) return QString::number(bytes) + " B";
-    if (bytes < 1024 * 1024) return QString::number(bytes / 1024.0, 'f', 1) + " KB";
-    if (bytes < 1024 * 1024 * 1024) return QString::number(bytes / (1024.0 * 1024.0), 'f', 1) + " MB";
-    return QString::number(bytes / (1024.0 * 1024.0 * 1024.0), 'f', 1) + " GB";
+    if (bytes < 1024 * 1024) return QLocale().toString(bytes / 1024.0, 'f', 1) + QStringLiteral(" KB");
+    if (bytes < 1024 * 1024 * 1024) return QLocale().toString(bytes / (1024.0 * 1024.0), 'f', 1) + QStringLiteral(" MB");
+    return QLocale().toString(bytes / (1024.0 * 1024.0 * 1024.0), 'f', 1) + QStringLiteral(" GB");
 }

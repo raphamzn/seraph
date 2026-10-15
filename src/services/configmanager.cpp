@@ -1,4 +1,5 @@
 #include "services/configmanager.h"
+#include <QCoreApplication>
 
 #define TOML_HEADER_ONLY 1
 #include "third_party/toml.hpp"
@@ -22,47 +23,47 @@ struct ShortcutSpec {
 };
 
 const ShortcutSpec kShortcutSpecs[] = {
-    {"open", "Open"},
-    {"back", "Back"},
-    {"forward", "Forward"},
-    {"parent", "Go to Parent"},
-    {"home", "Home"},
-    {"refresh", "Refresh"},
-    {"new_tab", "New Tab"},
-    {"close_tab", "Close Tab"},
-    {"reopen_tab", "Reopen Closed Tab"},
-    {"open_in_new_tab", "Open in New Tab"},
-    {"open_in_split", "Open in Split View"},
-    {"copy", "Copy"},
-    {"cut", "Cut"},
-    {"paste", "Paste"},
-    {"rename", "Rename"},
-    {"new_folder", "New Folder"},
-    {"new_file", "New File"},
-    {"trash", "Move to Trash"},
-    {"permanent_delete", "Permanent Delete"},
-    {"toggle_hidden", "Toggle Hidden Files"},
-    {"quick_preview", "Quick Preview"},
-    {"search", "Search"},
-    {"quick_open", "Quick Open (fuzzy find)"},
-    {"context_menu", "Show Context Menu"},
-    {"open_terminal", "Open in Terminal"},
-    {"properties", "Properties"},
-    {"path_bar", "Focus Path Bar"},
-    {"toggle_sidebar", "Toggle Sidebar"},
-    {"split_view", "Toggle Split View"},
-    {"focus_next_pane", "Focus Next Pane"},
-    {"focus_previous_pane", "Focus Previous Pane"},
-    {"focus_left_pane", "Focus Left Pane"},
-    {"focus_right_pane", "Focus Right Pane"},
-    {"grid_view", "Grid View"},
-    {"miller_view", "Miller View"},
-    {"detailed_view", "Detailed View"},
-    {"select_all", "Select All"},
-    {"undo", "Undo"},
-    {"redo", "Redo"},
-    {"settings", "Open Settings"},
-    {"keyboard_shortcuts", "Open Keyboard Shortcuts"},
+    {"open", QT_TRANSLATE_NOOP("Shortcuts", "Open")},
+    {"back", QT_TRANSLATE_NOOP("Shortcuts", "Back")},
+    {"forward", QT_TRANSLATE_NOOP("Shortcuts", "Forward")},
+    {"parent", QT_TRANSLATE_NOOP("Shortcuts", "Go to Parent")},
+    {"home", QT_TRANSLATE_NOOP("Shortcuts", "Home")},
+    {"refresh", QT_TRANSLATE_NOOP("Shortcuts", "Refresh")},
+    {"new_tab", QT_TRANSLATE_NOOP("Shortcuts", "New Tab")},
+    {"close_tab", QT_TRANSLATE_NOOP("Shortcuts", "Close Tab")},
+    {"reopen_tab", QT_TRANSLATE_NOOP("Shortcuts", "Reopen Closed Tab")},
+    {"open_in_new_tab", QT_TRANSLATE_NOOP("Shortcuts", "Open in New Tab")},
+    {"open_in_split", QT_TRANSLATE_NOOP("Shortcuts", "Open in Split View")},
+    {"copy", QT_TRANSLATE_NOOP("Shortcuts", "Copy")},
+    {"cut", QT_TRANSLATE_NOOP("Shortcuts", "Cut")},
+    {"paste", QT_TRANSLATE_NOOP("Shortcuts", "Paste")},
+    {"rename", QT_TRANSLATE_NOOP("Shortcuts", "Rename")},
+    {"new_folder", QT_TRANSLATE_NOOP("Shortcuts", "New Folder")},
+    {"new_file", QT_TRANSLATE_NOOP("Shortcuts", "New File")},
+    {"trash", QT_TRANSLATE_NOOP("Shortcuts", "Move to Trash")},
+    {"permanent_delete", QT_TRANSLATE_NOOP("Shortcuts", "Permanent Delete")},
+    {"toggle_hidden", QT_TRANSLATE_NOOP("Shortcuts", "Toggle Hidden Files")},
+    {"quick_preview", QT_TRANSLATE_NOOP("Shortcuts", "Quick Preview")},
+    {"search", QT_TRANSLATE_NOOP("Shortcuts", "Search")},
+    {"quick_open", QT_TRANSLATE_NOOP("Shortcuts", "Quick Open (fuzzy find)")},
+    {"context_menu", QT_TRANSLATE_NOOP("Shortcuts", "Show Context Menu")},
+    {"open_terminal", QT_TRANSLATE_NOOP("Shortcuts", "Open in Terminal")},
+    {"properties", QT_TRANSLATE_NOOP("Shortcuts", "Properties")},
+    {"path_bar", QT_TRANSLATE_NOOP("Shortcuts", "Focus Path Bar")},
+    {"toggle_sidebar", QT_TRANSLATE_NOOP("Shortcuts", "Toggle Sidebar")},
+    {"split_view", QT_TRANSLATE_NOOP("Shortcuts", "Toggle Split View")},
+    {"focus_next_pane", QT_TRANSLATE_NOOP("Shortcuts", "Focus Next Pane")},
+    {"focus_previous_pane", QT_TRANSLATE_NOOP("Shortcuts", "Focus Previous Pane")},
+    {"focus_left_pane", QT_TRANSLATE_NOOP("Shortcuts", "Focus Left Pane")},
+    {"focus_right_pane", QT_TRANSLATE_NOOP("Shortcuts", "Focus Right Pane")},
+    {"grid_view", QT_TRANSLATE_NOOP("Shortcuts", "Grid View")},
+    {"miller_view", QT_TRANSLATE_NOOP("Shortcuts", "Miller View")},
+    {"detailed_view", QT_TRANSLATE_NOOP("Shortcuts", "Detailed View")},
+    {"select_all", QT_TRANSLATE_NOOP("Shortcuts", "Select All")},
+    {"undo", QT_TRANSLATE_NOOP("Shortcuts", "Undo")},
+    {"redo", QT_TRANSLATE_NOOP("Shortcuts", "Redo")},
+    {"settings", QT_TRANSLATE_NOOP("Shortcuts", "Open Settings")},
+    {"keyboard_shortcuts", QT_TRANSLATE_NOOP("Shortcuts", "Open Keyboard Shortcuts")},
 };
 
 QStringList iconSearchDirs()
@@ -504,7 +505,7 @@ QVariantList ConfigManager::shortcutDefinitions() const
         const QString action = QString::fromUtf8(spec.action);
         QVariantMap definition;
         definition.insert("action", action);
-        definition.insert("label", QString::fromUtf8(spec.label));
+        definition.insert("label", QCoreApplication::translate("Shortcuts", spec.label));
         definition.insert("defaultSequence", s_defaultShortcuts.value(action));
         definition.insert("sequence", m_shortcuts.value(action, s_defaultShortcuts.value(action)));
         definitions.append(definition);

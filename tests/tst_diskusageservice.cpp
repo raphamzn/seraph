@@ -35,6 +35,31 @@ class TestDiskUsageService : public QObject
     Q_OBJECT
 
 private slots:
+    void testFormattedSizeFollowsDefaultLocale()
+    {
+        // LanguageManager sets the default locale; sizes must use its decimal
+        // separator ("1,5 KB" in Portuguese) while the units stay the same.
+        if (QStandardPaths::findExecutable(QStringLiteral("du")).isEmpty())
+            QSKIP("du not found in PATH");
+
+        QTemporaryDir dir;
+        QFile file(dir.filePath("a.bin"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write(QByteArray(1536, 'x'));
+        file.close();
+
+        const QLocale previous;
+        QLocale::setDefault(QLocale(QLocale::Portuguese, QLocale::Brazil));
+        DiskUsageService service;
+        QSignalSpy spy(&service, &DiskUsageService::requestFinished);
+        service.requestSize({dir.filePath("a.bin")});
+        const bool finished = spy.wait(5000);
+        QLocale::setDefault(previous);
+
+        QVERIFY(finished);
+        QCOMPARE(spy.takeFirst().at(1).toMap().value("sizeText").toString(), QString("1,5 KB"));
+    }
+
     void testRequestSizeForNestedFolder()
     {
         if (QStandardPaths::findExecutable(QStringLiteral("du")).isEmpty())

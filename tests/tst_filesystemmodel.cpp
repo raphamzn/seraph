@@ -18,6 +18,9 @@ private slots:
     void initTestCase()
     {
         QStandardPaths::setTestModeEnabled(true);
+        // Formatted sizes follow the default locale; pin it so the expected
+        // strings don't depend on the machine running the tests.
+        QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
     }
 
     // 1. Initial state
@@ -61,6 +64,28 @@ private slots:
         QCOMPARE(model.rowCount(), 3);
         QCOMPARE(model.fileCount(), 2);
         QCOMPARE(model.folderCount(), 1);
+    }
+
+    // Sizes are formatted once per entry and cached; after a UI language
+    // switch retranslate() must re-format them with the new default locale.
+    void testRetranslateReformatsCachedSizes()
+    {
+        TestDir dir;
+        dir.createFile("a.bin", QByteArray(1536, 'x'));
+
+        const QLocale previous;
+        QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
+        FileSystemModel model;
+        model.setSynchronousReload(true);
+        model.setRootPath(dir.path());
+        QCOMPARE(model.data(model.index(0), FileSystemModel::FileSizeTextRole).toString(), QString("1.5 KB"));
+
+        QLocale::setDefault(QLocale(QLocale::Portuguese, QLocale::Brazil));
+        model.retranslate();
+        const QString after = model.data(model.index(0), FileSystemModel::FileSizeTextRole).toString();
+        QLocale::setDefault(previous);
+
+        QCOMPARE(after, QString("1,5 KB"));
     }
 
     // 4. setRootPath same path emits no signal

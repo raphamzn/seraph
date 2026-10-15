@@ -1,5 +1,7 @@
 #include "services/giotransferworker.h"
 
+#include <QCoreApplication>
+#include <QLocale>
 #include <QLoggingCategory>
 #include <QUrl>
 
@@ -308,7 +310,7 @@ void GioTransferWorker::execute(const QList<TransferItem> &items, bool moveOpera
                         m_cancellable, progressCallback, this, &cpErr);
                 } else {
                     errorMsg = mountErr.isEmpty()
-                        ? QStringLiteral("Could not mount destination volume")
+                        ? QCoreApplication::translate("GioTransferWorker", "Could not mount destination volume")
                         : mountErr;
                 }
             }
@@ -484,7 +486,7 @@ bool GioTransferWorker::copyRecursive(GFile *source, GFile *destination, GFileCo
                 << " code=" << mountCode
                 << " msg=" << mountErr;
             *error = humanizeMobileDeviceError(mountErr.isEmpty()
-                ? QStringLiteral("Could not mount destination volume") : mountErr);
+                ? QCoreApplication::translate("GioTransferWorker", "Could not mount destination volume") : mountErr);
             return false;
         }
     }
@@ -705,11 +707,11 @@ void GioTransferWorker::emitProgress()
 
         // Speed formatting
         if (bytesPerSec >= 1e9)
-            speed = QString::number(bytesPerSec / 1e9, 'f', 1) + " GB/s";
+            speed = QLocale().toString(bytesPerSec / 1e9, 'f', 1) + QStringLiteral(" GB/s");
         else if (bytesPerSec >= 1e6)
-            speed = QString::number(bytesPerSec / 1e6, 'f', 1) + " MB/s";
+            speed = QLocale().toString(bytesPerSec / 1e6, 'f', 1) + QStringLiteral(" MB/s");
         else if (bytesPerSec >= 1e3)
-            speed = QString::number(bytesPerSec / 1e3, 'f', 1) + " KB/s";
+            speed = QLocale().toString(bytesPerSec / 1e3, 'f', 1) + QStringLiteral(" KB/s");
         else
             speed = QString::number(static_cast<int>(bytesPerSec)) + " B/s";
 
@@ -746,11 +748,11 @@ QString GioTransferWorker::gErrorToUserMessage(GError *error)
     if (error->domain == G_IO_ERROR) {
         switch (error->code) {
         case G_IO_ERROR_NO_SPACE:
-            return QStringLiteral("Not enough disk space");
+            return QCoreApplication::translate("GioTransferWorker", "Not enough disk space");
         case G_IO_ERROR_PERMISSION_DENIED:
-            return QStringLiteral("Permission denied");
+            return QCoreApplication::translate("GioTransferWorker", "Permission denied");
         case G_IO_ERROR_NOT_FOUND:
-            return QStringLiteral("Source file not found");
+            return QCoreApplication::translate("GioTransferWorker", "Source file not found");
         case G_IO_ERROR_CANCELLED:
             return {};
         default:

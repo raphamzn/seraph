@@ -1,5 +1,6 @@
 #include "models/devicemodel.h"
 
+#include <QCoreApplication>
 #include <QDBusArgument>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -639,7 +640,7 @@ void DeviceModel::refresh()
                 g_object_unref(location);
 
             if (name.isEmpty())
-                name = QStringLiteral("Mobile Device");
+                name = QCoreApplication::translate("DeviceModel", "Mobile Device");
 
             gioDevices.append({name, key, uri, scheme,
                                total, free, usage, removable, true,
@@ -697,7 +698,7 @@ void DeviceModel::refresh()
                 g_object_unref(activationRoot);
 
             if (name.isEmpty())
-                name = QStringLiteral("Mobile Device");
+                name = QCoreApplication::translate("DeviceModel", "Mobile Device");
 
             gioDevices.append({name, key, QString(), scheme,
                                0, 0, 0, true, false,
