@@ -3,6 +3,7 @@ set(SERAPH_SOURCES
     appenvironment.cpp
     reader/readerapp.cpp
     services/configmanager.cpp
+    services/languagemanager.cpp
     services/themeloader.cpp
     services/systemappearance.cpp
     services/clipboardmanager.cpp
@@ -181,6 +182,13 @@ list(APPEND seraph_qml_module_args
 )
 
 qt_add_qml_module(seraph ${seraph_qml_module_args})
+
+# pt_BR translation, compiled to .qm and embedded at :/i18n/seraph_pt_BR.qm.
+# `cmake --build build --target update_translations` refreshes the .ts from the sources.
+qt_add_translations(seraph
+    TS_FILES ${CMAKE_SOURCE_DIR}/translations/seraph_pt_BR.ts
+    RESOURCE_PREFIX /i18n
+    LUPDATE_OPTIONS -no-obsolete -locations none)
 
 # Make Quill module discoverable at runtime
 set_target_properties(seraph PROPERTIES

@@ -194,3 +194,17 @@ add_executable(tst_imagefetcher tst_imagefetcher.cpp
 target_include_directories(tst_imagefetcher PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(tst_imagefetcher PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Network)
 add_test(NAME tst_imagefetcher COMMAND tst_imagefetcher)
+
+add_executable(tst_languagemanager tst_languagemanager.cpp
+    ${CMAKE_SOURCE_DIR}/src/services/languagemanager.cpp
+)
+target_include_directories(tst_languagemanager PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(tst_languagemanager PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
+qt_add_lrelease(tst_languagemanager
+    TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/i18n/test_pt_BR.ts
+    QM_FILES_OUTPUT_VARIABLE tst_languagemanager_qm)
+qt_add_resources(tst_languagemanager "tst_languagemanager_i18n"
+    PREFIX "/i18n-test"
+    BASE "${CMAKE_CURRENT_BINARY_DIR}"
+    FILES ${tst_languagemanager_qm})
+add_test(NAME tst_languagemanager COMMAND tst_languagemanager)
