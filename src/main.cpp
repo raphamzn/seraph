@@ -30,6 +30,7 @@
 #include "appenvironment.h"
 #include "reader/readerapp.h"
 #include "services/configmanager.h"
+#include "services/languagemanager.h"
 #include "services/themeloader.h"
 #include "services/systemappearance.h"
 #include "services/fileoperations.h"
@@ -204,6 +205,14 @@ int main(int argc, char *argv[])
 
     // Create backend instances
     ConfigManager *config = new ConfigManager(configPath, &app, themeDirs, systemDefaultTheme);
+
+    // Applied before any QML loads so the first frame is already translated;
+    // retranslate() only starts reaching the engine once setEngine() runs.
+    auto *languageManager = new LanguageManager(&app);
+    languageManager->apply(config->language());
+    QObject::connect(config, &ConfigManager::configChanged, languageManager, [config, languageManager]() {
+        languageManager->apply(config->language());
+    });
     mark("ConfigManager loaded");
     app.setFont(resolveUiFont(config->fontFamily()));
     SystemAppearance *appearance = new SystemAppearance(&app);
@@ -357,6 +366,7 @@ int main(int argc, char *argv[])
                      metadataExtractor, &MetadataExtractor::refreshSupport);
 
     QQmlApplicationEngine engine;
+    languageManager->setEngine(&engine);
 
     addSeraphImportPaths(engine, dataDir);
 
@@ -378,6 +388,7 @@ int main(int argc, char *argv[])
 
     // Register context properties
     engine.rootContext()->setContextProperty("config", config);
+    engine.rootContext()->setContextProperty("languageManager", languageManager);
     engine.rootContext()->setContextProperty("theme", theme);
     engine.rootContext()->setContextProperty("tabModel", tabModel);
     engine.rootContext()->setContextProperty("bookmarks", bookmarks);

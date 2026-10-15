@@ -5,6 +5,7 @@
 #include "services/editorlauncher.h"
 #include "services/fileoperations.h"
 #include "services/imagefetcher.h"
+#include "services/languagemanager.h"
 #include "services/markdownrenderer.h"
 #include "services/readerdocument.h"
 #include "services/runtimefeaturesservice.h"
@@ -30,6 +31,11 @@ int runReader(QGuiApplication &app, const QString &path, bool timingEnabled,
 
     const AppEnvironment env = resolveAppEnvironment();
     auto *config = new ConfigManager(env.configPath, &app, env.themeDirs, ThemeLoader::AutoTheme);
+    auto *languageManager = new LanguageManager(&app);
+    languageManager->apply(config->language());
+    QObject::connect(config, &ConfigManager::configChanged, languageManager, [config, languageManager]() {
+        languageManager->apply(config->language());
+    });
     app.setFont(resolveUiFont(config->fontFamily()));
     auto *appearance = new SystemAppearance(&app);
     auto *theme = new ThemeLoader(&app);
@@ -56,9 +62,11 @@ int runReader(QGuiApplication &app, const QString &path, bool timingEnabled,
     mark("reader: document read");
 
     QQmlApplicationEngine engine;
+    languageManager->setEngine(&engine);
     addSeraphImportPaths(engine, env.dataDir);
     QQmlContext *context = engine.rootContext();
     context->setContextProperty("config", config);
+    context->setContextProperty("languageManager", languageManager);
     context->setContextProperty("theme", theme);
     context->setContextProperty("readerDocument", document);
     context->setContextProperty("imageFetcher", imageFetcher);

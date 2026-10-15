@@ -20,6 +20,7 @@ makedepends=(
     'cmake'
     'ninja'
     'git'
+    'qt6-tools'
 )
 optdepends=(
     'wl-clipboard: clipboard support via wl-copy and wl-paste'

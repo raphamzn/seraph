@@ -9,6 +9,7 @@ pkgbase = seraph-git
 	makedepends = cmake
 	makedepends = ninja
 	makedepends = git
+	makedepends = qt6-tools
 	depends = glib2
 	depends = kwindowsystem
 	depends = qt6-base
