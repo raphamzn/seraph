@@ -6,6 +6,7 @@ import Quill as Q
 
 Window {
     id: root
+    // Not translated: syncHyprlandRounding() addresses this window by its title.
     title: "Seraph Settings"
     flags: Qt.Dialog | Qt.FramelessWindowHint
     color: "transparent"
@@ -32,7 +33,7 @@ Window {
     // "auto" tracks the system light/dark preference; only offered as the
     // default where the system actually reports one.
     readonly property string autoThemeValue: "auto"
-    readonly property string autoThemeLabel: "Follow System"
+    readonly property string autoThemeLabel: qsTr("Follow System")
     readonly property string defaultThemeName: autoThemeValue
     readonly property string defaultLightThemeName: "catppuccin-latte"
     readonly property string defaultDarkThemeName: "catppuccin-mocha"
@@ -62,7 +63,7 @@ Window {
     readonly property string defaultStartupLocation: "last"
 
     // Sort column dropdown: parallel label/value arrays.
-    readonly property var sortByLabels: ["Name", "Size", "Modified", "Type"]
+    readonly property var sortByLabels: [qsTr("Name"), qsTr("Size"), qsTr("Modified"), qsTr("Type")]
     readonly property var sortByValues: ["name", "size", "modified", "type"]
 
     readonly property string defaultLanguage: "auto"
@@ -76,7 +77,7 @@ Window {
     ]
 
     // Startup folder dropdown: parallel label/value arrays.
-    readonly property var startupLocationLabels: ["Last session", "Home folder"]
+    readonly property var startupLocationLabels: [qsTr("Last session"), qsTr("Home folder")]
     readonly property var startupLocationValues: ["last", "home"]
 
     property bool currentShowHidden: false
@@ -162,7 +163,7 @@ Window {
     signal keyboardShortcutsRequested()
     signal closed()
 
-    readonly property string systemFontLabel: "System Default"
+    readonly property string systemFontLabel: qsTr("System Default")
 
     Component { id: paletteSectionIcon; IconSettings {} }
     Component { id: layoutSectionIcon; IconPanelLeft {} }
@@ -172,16 +173,16 @@ Window {
     property int currentSectionIndex: 0
     readonly property bool compactNavigation: dialogWidth < 860
     readonly property var sectionNavItems: [
-        { title: "Look & Feel", iconComponent: paletteSectionIcon },
-        { title: "Layout", iconComponent: layoutSectionIcon },
-        { title: "Motion", iconComponent: motionSectionIcon },
-        { title: "Tools", iconComponent: toolsSectionIcon }
+        { title: qsTr("Look & Feel"), iconComponent: paletteSectionIcon },
+        { title: qsTr("Layout"), iconComponent: layoutSectionIcon },
+        { title: qsTr("Motion"), iconComponent: motionSectionIcon },
+        { title: qsTr("Tools"), iconComponent: toolsSectionIcon }
     ]
     readonly property var sectionItems: [
-        { title: "Look & Feel", subtitle: "Theme, typography, icons, and surface styling.", iconComponent: paletteSectionIcon },
-        { title: "Layout", subtitle: "Sidebar behavior, file visibility, and toolbar controls.", iconComponent: layoutSectionIcon },
-        { title: "Motion", subtitle: "Animation timing and easing across the interface.", iconComponent: motionSectionIcon },
-        { title: "Tools", subtitle: "Shortcuts, remote locations, and config behavior.", iconComponent: toolsSectionIcon }
+        { title: qsTr("Look & Feel"), subtitle: qsTr("Theme, typography, icons, and surface styling."), iconComponent: paletteSectionIcon },
+        { title: qsTr("Layout"), subtitle: qsTr("Sidebar behavior, file visibility, and toolbar controls."), iconComponent: layoutSectionIcon },
+        { title: qsTr("Motion"), subtitle: qsTr("Animation timing and easing across the interface."), iconComponent: motionSectionIcon },
+        { title: qsTr("Tools"), subtitle: qsTr("Shortcuts, remote locations, and config behavior."), iconComponent: toolsSectionIcon }
     ]
 
     function showSection(index) {
@@ -241,6 +242,17 @@ Window {
 
     function themeValueForLabel(label) {
         return label === autoThemeLabel ? autoThemeValue : label
+    }
+
+    // The theme and font lists hold the translated "Follow System"/"System
+    // Default" labels as sentinels, so they are rebuilt when the language
+    // changes while the panel is open.
+    Connections {
+        target: languageManager
+        function onLanguageChanged() {
+            root.themeOptions = root.buildThemeOptions()
+            root.fontOptions = root.buildFontOptions()
+        }
     }
 
     function buildThemeOptions() {
@@ -527,7 +539,7 @@ Window {
                     spacing: 2
 
                     Text {
-                        text: "Dark Mode"
+                        text: qsTr("Dark Mode")
                         color: Theme.text
                         font.pointSize: Theme.fontNormal + 2
                         font.bold: true
@@ -536,8 +548,8 @@ Window {
                     Text {
                         visible: root.followSystemTheme
                         text: theme.systemColorScheme === "unknown"
-                            ? "Following the system — no preference reported"
-                            : "Following the system"
+                            ? qsTr("Following the system — no preference reported")
+                            : qsTr("Following the system")
                         color: Theme.muted
                         font.pointSize: Theme.fontSmall
                     }
@@ -561,7 +573,7 @@ Window {
             Q.Separator { Layout.bottomMargin: 8 }
 
             Text {
-                text: "Theme"
+                text: qsTr("Theme")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -570,7 +582,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Theme"
+                label: qsTr("Theme")
                 model: root.themeOptions
                 currentIndex: root.optionIndex(root.themeOptions, root.themeLabelForValue(root.draftTheme), 0)
                 onSelected: (_, value) => {
@@ -582,7 +594,7 @@ Window {
             AnchoredDropdown {
                 visible: root.followSystemTheme
                 Layout.fillWidth: true
-                label: "Light Theme"
+                label: qsTr("Light Theme")
                 model: root.lightThemeOptions
                 currentIndex: root.optionIndex(root.lightThemeOptions, root.draftLightTheme, 0)
                 onSelected: (_, value) => {
@@ -594,7 +606,7 @@ Window {
             AnchoredDropdown {
                 visible: root.followSystemTheme
                 Layout.fillWidth: true
-                label: "Dark Theme"
+                label: qsTr("Dark Theme")
                 model: root.darkThemeOptions
                 currentIndex: root.optionIndex(root.darkThemeOptions, root.draftDarkTheme, 0)
                 onSelected: (_, value) => {
@@ -605,7 +617,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Font"
+                label: qsTr("Font")
                 model: root.fontOptions
                 currentIndex: root.optionIndex(root.fontOptions, root.draftFontFamily === "" ? root.systemFontLabel : root.draftFontFamily, 0)
                 onSelected: (_, value) => {
@@ -616,7 +628,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Icon Pack"
+                label: qsTr("Icon Pack")
                 model: root.iconThemeOptions
                 currentIndex: root.optionIndex(root.iconThemeOptions, root.draftIconTheme, 0)
                 onSelected: (_, value) => {
@@ -634,13 +646,13 @@ Window {
                     spacing: 2
 
                     Text {
-                        text: "Tint Folder Icons"
+                        text: qsTr("Tint Folder Icons")
                         color: Theme.text
                         font.pointSize: Theme.fontNormal
                     }
 
                     Text {
-                        text: "Re-hue folders to the accent, keeping the pack's shading"
+                        text: qsTr("Re-hue folders to the accent, keeping the pack's shading")
                         color: Theme.muted
                         font.pointSize: Theme.fontSmall
                     }
@@ -659,7 +671,7 @@ Window {
             }
 
             Text {
-                text: "Surface Styling"
+                text: qsTr("Surface Styling")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -669,7 +681,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Transparent containers"
+                label: qsTr("Transparent containers")
                 checked: root.draftTransparencyEnabled
                 onToggled: (value) => {
                     root.draftTransparencyEnabled = value
@@ -679,7 +691,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Transparency"
+                label: qsTr("Transparency")
                 from: 0
                 to: 100
                 stepSize: 1
@@ -694,7 +706,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Small radius"
+                label: qsTr("Small radius")
                 from: 0
                 to: 24
                 stepSize: 1
@@ -712,7 +724,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Medium radius"
+                label: qsTr("Medium radius")
                 from: root.draftRadiusSmall
                 to: 28
                 stepSize: 1
@@ -728,7 +740,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Large radius"
+                label: qsTr("Large radius")
                 from: root.draftRadiusMedium
                 to: 32
                 stepSize: 1
@@ -750,7 +762,7 @@ Window {
             spacing: 6
 
             Text {
-                text: "Browsing"
+                text: qsTr("Browsing")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -758,7 +770,7 @@ Window {
             }
 
             Q.Checkbox {
-                label: "Show hidden files"
+                label: qsTr("Show hidden files")
                 checked: root.draftShowHidden
                 onToggled: (value) => {
                     root.draftShowHidden = value
@@ -768,7 +780,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Show sidebar"
+                label: qsTr("Show sidebar")
                 checked: root.draftSidebarVisible
                 onToggled: (value) => {
                     root.draftSidebarVisible = value
@@ -778,7 +790,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Sidebar on right"
+                label: qsTr("Sidebar on right")
                 enabled: root.draftSidebarVisible
                 checked: root.draftSidebarPosition === "right"
                 onToggled: (value) => {
@@ -789,7 +801,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Sidebar width"
+                label: qsTr("Sidebar width")
                 from: 160
                 to: 480
                 stepSize: 10
@@ -804,7 +816,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Grid spacing"
+                label: qsTr("Grid spacing")
                 from: 0
                 to: 48
                 stepSize: 2
@@ -817,7 +829,7 @@ Window {
             }
 
             Text {
-                text: "Startup"
+                text: qsTr("Startup")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -827,7 +839,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Open on launch"
+                label: qsTr("Open on launch")
                 model: root.startupLocationLabels
                 currentIndex: Math.max(0, root.startupLocationValues.indexOf(root.draftStartupLocation))
                 onSelected: (index, _) => {
@@ -837,7 +849,7 @@ Window {
             }
 
             Text {
-                text: "Sorting"
+                text: qsTr("Sorting")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -847,7 +859,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Default sort"
+                label: qsTr("Default sort")
                 model: root.sortByLabels
                 currentIndex: Math.max(0, root.sortByValues.indexOf(root.draftSortBy))
                 onSelected: (index, _) => {
@@ -858,7 +870,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Ascending order"
+                label: qsTr("Ascending order")
                 checked: root.draftSortAscending
                 onToggled: (value) => {
                     root.draftSortAscending = value
@@ -868,7 +880,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Remember sort per folder"
+                label: qsTr("Remember sort per folder")
                 checked: root.draftRememberSortPerFolder
                 onToggled: (value) => {
                     root.draftRememberSortPerFolder = value
@@ -877,7 +889,7 @@ Window {
             }
 
             Text {
-                text: "Window Controls"
+                text: qsTr("Window Controls")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -887,7 +899,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Show window controls"
+                label: qsTr("Show window controls")
                 checked: root.draftShowWindowControls
                 onToggled: (value) => {
                     root.draftShowWindowControls = value
@@ -897,7 +909,7 @@ Window {
 
             Q.Toggle {
                 Layout.fillWidth: true
-                label: "Buttons on left"
+                label: qsTr("Buttons on left")
                 enabled: root.draftShowWindowControls
                 checked: root._layoutParts.side === "left"
                 onToggled: (value) => {
@@ -911,7 +923,7 @@ Window {
             }
 
             Q.Checkbox {
-                label: "Close button"
+                label: qsTr("Close button")
                 enabled: root.draftShowWindowControls
                 checked: root._layoutParts.hasClose
                 onToggled: (value) => {
@@ -920,7 +932,7 @@ Window {
             }
 
             Q.Checkbox {
-                label: "Minimize button"
+                label: qsTr("Minimize button")
                 enabled: root.draftShowWindowControls
                 checked: root._layoutParts.hasMinimize
                 onToggled: (value) => {
@@ -929,7 +941,7 @@ Window {
             }
 
             Q.Checkbox {
-                label: "Maximize button"
+                label: qsTr("Maximize button")
                 enabled: root.draftShowWindowControls
                 checked: root._layoutParts.hasMaximize
                 onToggled: (value) => {
@@ -993,7 +1005,7 @@ Window {
                 spacing: 12
 
                 Text {
-                    text: "Animations"
+                    text: qsTr("Animations")
                     color: Theme.text
                     font.pointSize: Theme.fontNormal + 2
                     font.bold: true
@@ -1014,7 +1026,7 @@ Window {
             Q.Separator { Layout.bottomMargin: 8 }
 
             Text {
-                text: "Timing"
+                text: qsTr("Timing")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -1023,7 +1035,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Fast"
+                label: qsTr("Fast")
                 from: 0
                 to: 500
                 stepSize: 10
@@ -1038,7 +1050,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Normal"
+                label: qsTr("Normal")
                 from: 0
                 to: 1000
                 stepSize: 10
@@ -1053,7 +1065,7 @@ Window {
 
             Q.Slider {
                 Layout.fillWidth: true
-                label: "Slow"
+                label: qsTr("Slow")
                 from: 0
                 to: 1500
                 stepSize: 10
@@ -1067,7 +1079,7 @@ Window {
             }
 
             Text {
-                text: "Curves"
+                text: qsTr("Curves")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -1077,7 +1089,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Enter"
+                label: qsTr("Enter")
                 enabled: root.draftAnimationsEnabled
                 model: root.curveOptions
                 currentIndex: Math.max(0, root.curveOptions.indexOf(root.draftAnimCurveEnter))
@@ -1089,7 +1101,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Exit"
+                label: qsTr("Exit")
                 enabled: root.draftAnimationsEnabled
                 model: root.curveOptions
                 currentIndex: Math.max(0, root.curveOptions.indexOf(root.draftAnimCurveExit))
@@ -1101,7 +1113,7 @@ Window {
 
             AnchoredDropdown {
                 Layout.fillWidth: true
-                label: "Transition"
+                label: qsTr("Transition")
                 enabled: root.draftAnimationsEnabled
                 model: root.curveOptions
                 currentIndex: Math.max(0, root.curveOptions.indexOf(root.draftAnimCurveTransition))
@@ -1121,7 +1133,7 @@ Window {
             spacing: 6
 
             Text {
-                text: "Utilities"
+                text: qsTr("Utilities")
                 color: Theme.accent
                 font.pointSize: Theme.fontSmall
                 font.bold: true
@@ -1134,13 +1146,13 @@ Window {
 
                 Q.Button {
                     Layout.fillWidth: true
-                    text: "Keyboard Shortcuts"
+                    text: qsTr("Keyboard Shortcuts")
                     onClicked: root.openKeyboardShortcuts()
                 }
 
                 Q.Button {
                     Layout.fillWidth: true
-                    text: "Connect to Network Location"
+                    text: qsTr("Connect to Network Location")
                     variant: "ghost"
                     onClicked: root.openRemoteConnect()
                 }
@@ -1218,7 +1230,7 @@ Window {
                                 }
 
                                 Text {
-                                    text: "Settings"
+                                    text: qsTr("Settings")
                                     color: Theme.text
                                     font.pointSize: Theme.fontNormal + 1
                                     font.bold: true
@@ -1244,7 +1256,7 @@ Window {
                                 Layout.leftMargin: 12
                                 Layout.rightMargin: 12
                                 Layout.topMargin: 8
-                                text: "Reset to Defaults"
+                                text: qsTr("Reset to Defaults")
                                 variant: "ghost"
                                 onClicked: resetConfirmDialog.open()
                             }
@@ -1318,7 +1330,7 @@ Window {
     Q.Dialog {
         id: resetConfirmDialog
         anchors.fill: parent
-        title: "Reset to Defaults?"
+        title: qsTr("Reset to Defaults?")
         dialogWidth: 400
         z: 1200
         initialFocusItem: resetCancelButton
@@ -1329,7 +1341,7 @@ Window {
         // would overflow the dialog, pushing the buttons outside it).
         Text {
             Layout.fillWidth: true
-            text: "This restores every appearance, layout, and behavior setting to its default. Bookmarks and files are not affected."
+            text: qsTr("This restores every appearance, layout, and behavior setting to its default. Bookmarks and files are not affected.")
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
             wrapMode: Text.WordWrap
@@ -1344,13 +1356,13 @@ Window {
 
             Q.Button {
                 id: resetCancelButton
-                text: "Cancel"
+                text: qsTr("Cancel")
                 variant: "ghost"
                 onClicked: resetConfirmDialog.reject()
             }
 
             Q.Button {
-                text: "Reset"
+                text: qsTr("Reset")
                 variant: "danger"
                 onClicked: resetConfirmDialog.accept()
             }

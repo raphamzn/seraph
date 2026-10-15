@@ -9,8 +9,8 @@ Q.Dialog {
     anchors.fill: parent
     z: 1001
     dialogWidth: Math.min(640, width - 40)
-    title: "Keyboard Shortcuts"
-    subtitle: "Click a shortcut to rebind it, then press the new key combination."
+    title: qsTr("Keyboard Shortcuts")
+    subtitle: qsTr("Click a shortcut to rebind it, then press the new key combination.")
 
     property var shortcutEntries: []
     property var draftShortcuts: ({})
@@ -265,7 +265,7 @@ Q.Dialog {
         id: searchField
         Layout.fillWidth: true
         variant: "filled"
-        placeholder: "Search shortcuts..."
+        placeholder: qsTr("Search shortcuts...")
         onTextChanged: root.searchQuery = text
     }
 
@@ -279,7 +279,7 @@ Q.Dialog {
         Text {
             anchors.centerIn: parent
             visible: root.filteredShortcuts.length === 0
-            text: "No shortcuts match \"" + root.searchQuery + "\""
+            text: qsTr("No shortcuts match \"%1\"").arg(root.searchQuery)
             color: Theme.subtext
             font.pointSize: Theme.fontNormal
         }
@@ -316,7 +316,7 @@ Q.Dialog {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Action"
+                            text: qsTr("Action")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             font.weight: Font.DemiBold
@@ -324,7 +324,7 @@ Q.Dialog {
 
                         Text {
                             Layout.preferredWidth: 180
-                            text: "Shortcut"
+                            text: qsTr("Shortcut")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             font.weight: Font.DemiBold
@@ -411,7 +411,7 @@ Q.Dialog {
                                     Text {
                                         Layout.fillWidth: true
                                         text: shortcutRow.isRecording
-                                            ? "Press keys..."
+                                            ? qsTr("Press keys...")
                                             : shortcutRow.modelData.sequence
                                         color: shortcutRow.isRecording ? Theme.accent : Theme.text
                                         font.pointSize: Theme.fontNormal
@@ -486,15 +486,15 @@ Q.Dialog {
         Text {
             Layout.fillWidth: true
             text: root.recordingAction !== ""
-                ? "Press Escape to cancel recording."
-                : "Click a shortcut to change it. Changes save automatically."
+                ? qsTr("Press Escape to cancel recording.")
+                : qsTr("Click a shortcut to change it. Changes save automatically.")
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
             wrapMode: Text.WordWrap
         }
 
         Q.Button {
-            text: "Done"
+            text: qsTr("Done")
             onClicked: root.closeDialog()
         }
     }

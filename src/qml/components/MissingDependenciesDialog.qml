@@ -8,8 +8,8 @@ Q.Dialog {
     anchors.fill: parent
     z: 1002
     dialogWidth: Math.min(720, width - 40)
-    title: "Missing dependencies"
-    subtitle: "Seraph works best when the following tools and features are available."
+    title: qsTr("Missing dependencies")
+    subtitle: qsTr("Seraph works best when the following tools and features are available.")
 
     // Three model arrays, fed from `dependencies.missingDependencies` on open().
     property var missingRequired: []
@@ -67,8 +67,8 @@ Q.Dialog {
                 Text {
                     Layout.fillWidth: true
                     text: dependencies
-                        ? "Detected distribution: <b>" + dependencies.distroName + "</b>"
-                        : "Detected distribution: unknown"
+                        ? qsTr("Detected distribution: <b>%1</b>").arg(dependencies.distroName)
+                        : qsTr("Detected distribution: unknown")
                     color: Theme.text
                     font.pointSize: Theme.fontNormal
                     textFormat: Text.RichText
@@ -102,15 +102,14 @@ Q.Dialog {
                         visible: root.missingRequired.length > 0
 
                         Text {
-                            text: "Required"
+                            text: qsTr("Required")
                             color: Theme.text
                             font.pointSize: Theme.fontNormal
                             font.weight: Font.DemiBold
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: "These are needed for core file operations. "
-                                + "Seraph may not work correctly until they are installed."
+                            text: qsTr("These are needed for core file operations. Seraph may not work correctly until they are installed.")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WordWrap
@@ -133,14 +132,14 @@ Q.Dialog {
                         visible: root.missingOptional.length > 0
 
                         Text {
-                            text: "Optional"
+                            text: qsTr("Optional")
                             color: Theme.text
                             font.pointSize: Theme.fontNormal
                             font.weight: Font.DemiBold
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: "These enable extra features. Seraph works without them but certain actions will be unavailable."
+                            text: qsTr("These enable extra features. Seraph works without them but certain actions will be unavailable.")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WordWrap
@@ -163,14 +162,14 @@ Q.Dialog {
                         visible: root.missingFeatures.length > 0
 
                         Text {
-                            text: "Build-time features"
+                            text: qsTr("Build-time features")
                             color: Theme.text
                             font.pointSize: Theme.fontNormal
                             font.weight: Font.DemiBold
                         }
                         Text {
                             Layout.fillWidth: true
-                            text: "These are compiled into Seraph at build time. To enable them, install the full (non-minimal) package or rebuild from source with the listed libraries available."
+                            text: qsTr("These are compiled into Seraph at build time. To enable them, install the full (non-minimal) package or rebuild from source with the listed libraries available.")
                             color: Theme.subtext
                             font.pointSize: Theme.fontSmall
                             wrapMode: Text.WordWrap
@@ -192,7 +191,7 @@ Q.Dialog {
                         visible: root.missingRequired.length === 0
                               && root.missingOptional.length === 0
                               && root.missingFeatures.length === 0
-                        text: "All dependencies are installed. You're good to go."
+                        text: qsTr("All dependencies are installed. You're good to go.")
                         color: Theme.subtext
                         font.pointSize: Theme.fontNormal
                         horizontalAlignment: Text.AlignHCenter
@@ -209,19 +208,19 @@ Q.Dialog {
 
             Text {
                 Layout.fillWidth: true
-                text: "Click 'Copy' to copy the install command, run it in a terminal, then click 'Re-check'."
+                text: qsTr("Click 'Copy' to copy the install command, run it in a terminal, then click 'Re-check'.")
                 color: Theme.subtext
                 font.pointSize: Theme.fontSmall
                 wrapMode: Text.WordWrap
             }
 
             Q.Button {
-                text: "Re-check"
+                text: qsTr("Re-check")
                 onClicked: root.refreshLists()
             }
 
             Q.Button {
-                text: "Close"
+                text: qsTr("Close")
                 onClicked: root.close()
             }
         }
@@ -304,11 +303,11 @@ Q.Dialog {
                 }
 
                 Q.Button {
-                    text: "Copy"
+                    text: qsTr("Copy")
                     visible: depRow.dep && depRow.dep.installCommand.length > 0
                     onClicked: {
                         clipboard.copyText(depRow.dep.installCommand)
-                        toast.show("Copied to clipboard", "success")
+                        toast.show(qsTr("Copied to clipboard"), "success")
                     }
                 }
             }

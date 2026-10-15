@@ -7,7 +7,7 @@ import Quill as Quill
 Rectangle {
     id: root
     Accessible.role: Accessible.Pane
-    Accessible.name: "Sidebar navigation"
+    Accessible.name: qsTr("Sidebar navigation")
 
     property string currentPath: ""
     property string trashPath: fsModel.homePath() + "/.local/share/Trash/files"
@@ -18,6 +18,20 @@ Rectangle {
     signal recentsClicked()
     signal collapseClicked()
     signal featureHintRequested(string message)
+
+    // Quick-access entries are identified by their English name (the
+    // click handlers compare against it); only the label is translated.
+    function displayName(name) {
+        switch (name) {
+        case "Home": return qsTr("Home")
+        case "Recents": return qsTr("Recents")
+        case "Trash": return qsTr("Trash")
+        case "Network": return qsTr("Network")
+        case "Pictures": return qsTr("Pictures")
+        case "Downloads": return qsTr("Downloads")
+        default: return name
+        }
+    }
 
     color: Theme.mantle
     clip: false
@@ -168,7 +182,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: model.name
+                            text: root.displayName(model.name)
                             color: quickAccessDelegate.isActive ? Theme.accent : Theme.text
                             font.pointSize: Theme.fontNormal
                             verticalAlignment: Text.AlignVCenter
@@ -266,9 +280,9 @@ Rectangle {
                 if (urls.length === 1)
                     externalDragName = displayName(decodedPath(urls[0]))
                 else if (urls.length > 1)
-                    externalDragName = urls.length + " items"
+                    externalDragName = qsTr("%n item(s)", "", urls.length)
                 else
-                    externalDragName = "New bookmark"
+                    externalDragName = qsTr("New bookmark")
             }
 
             function clearExternalDrop() {
@@ -578,11 +592,11 @@ Rectangle {
                     readonly property int tooltipMaxWidth:
                         Math.max(Math.round(root.width * 1.16), Math.round(Theme.spacing * 32))
                     readonly property string tooltipText: model.mounted
-                        ? Quill.Format.bytes(model.freeSpace)
-                          + " free of "
-                          + Quill.Format.bytes(model.totalSize)
-                          + " (" + Math.round(model.usagePercent) + "% used)"
-                        : "Not mounted — click to mount"
+                        ? qsTr("%1 free of %2 (%3% used)")
+                          .arg(Quill.Format.bytes(model.freeSpace))
+                          .arg(Quill.Format.bytes(model.totalSize))
+                          .arg(Math.round(model.usagePercent))
+                        : qsTr("Not mounted — click to mount")
 
                     function clamp(value, minValue, maxValue) {
                         return Math.max(minValue, Math.min(value, Math.max(minValue, maxValue)))

@@ -9,9 +9,9 @@ Q.Dialog {
     anchors.fill: parent
     z: 1000
     dialogWidth: 680
-    title: "Bulk Rename"
+    title: qsTr("Bulk Rename")
     subtitle: sourceItems.length > 0
-        ? sourceItems.length + (sourceItems.length === 1 ? " item selected" : " items selected")
+        ? qsTr("%n item(s) selected", "", sourceItems.length)
         : ""
     initialFocusItem: replaceFindField
 
@@ -94,11 +94,11 @@ Q.Dialog {
 
     function validateName(name) {
         if (name.trim() === "")
-            return "Invalid"
+            return qsTr("Invalid")
         if (name === "." || name === "..")
-            return "Invalid"
+            return qsTr("Invalid")
         if (name.indexOf("/") >= 0)
-            return "Invalid"
+            return qsTr("Invalid")
         return ""
     }
 
@@ -136,7 +136,7 @@ Q.Dialog {
         for (var previewIndex = 0; previewIndex < previews.length; ++previewIndex) {
             var preview = previews[previewIndex]
             if (preview.error === "" && targetCounts[preview.targetPath] > 1) {
-                preview.error = "Duplicate"
+                preview.error = qsTr("Duplicate")
                 continue
             }
 
@@ -148,7 +148,7 @@ Q.Dialog {
                 }
 
                 if (exists)
-                    preview.error = "Exists"
+                    preview.error = qsTr("Exists")
             }
         }
 
@@ -191,15 +191,13 @@ Q.Dialog {
             return preview.error
         if (!preview.changed)
             return ""
-        return "Renamed"
+        return qsTr("Renamed")
     }
 
     function actionText() {
         if (changedCount <= 0)
-            return "Rename Items"
-        if (changedCount === 1)
-            return "Rename Item"
-        return "Rename " + changedCount + " Items"
+            return qsTr("Rename Items")
+        return qsTr("Rename %n Item(s)", "", changedCount)
     }
 
     function focusActiveField() {
@@ -263,8 +261,8 @@ Q.Dialog {
 
         if (errorCount > 0) {
             applyError = errorCount === 1
-                ? "Resolve the remaining conflict before renaming."
-                : "Resolve the remaining conflicts before renaming."
+                ? qsTr("Resolve the remaining conflict before renaming.")
+                : qsTr("Resolve the remaining conflicts before renaming.")
             return
         }
 
@@ -281,13 +279,13 @@ Q.Dialog {
         }
 
         if (operations.length === 0) {
-            applyError = "Adjust the rules to rename at least one item."
+            applyError = qsTr("Adjust the rules to rename at least one item.")
             return
         }
 
         var result = undoManager.renameResolvedItems(operations)
         if (!result.success) {
-            applyError = result.error || "Couldn't rename the selected items."
+            applyError = result.error || qsTr("Couldn't rename the selected items.")
             return
         }
 
@@ -313,7 +311,7 @@ Q.Dialog {
     Q.Tabs {
         id: modeTabs
         Layout.fillWidth: true
-        model: ["Replace", "Add Text", "Sequence"]
+        model: [qsTr("Replace"), qsTr("Add Text"), qsTr("Sequence")]
         onTabChanged: {
             root.refreshPreview()
             Qt.callLater(function() {
@@ -358,7 +356,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Find"
+                        text: qsTr("Find")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -367,7 +365,7 @@ Q.Dialog {
                         id: replaceFindField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Text to find..."
+                        placeholder: qsTr("Text to find...")
                         onTextChanged: root.refreshPreview()
                     }
                 }
@@ -377,7 +375,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Replace with"
+                        text: qsTr("Replace with")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -386,7 +384,7 @@ Q.Dialog {
                         id: replaceWithField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Replacement..."
+                        placeholder: qsTr("Replacement...")
                         onTextChanged: root.refreshPreview()
                     }
                 }
@@ -409,7 +407,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Prefix"
+                        text: qsTr("Prefix")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -418,7 +416,7 @@ Q.Dialog {
                         id: addPrefixField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Before name..."
+                        placeholder: qsTr("Before name...")
                         onTextChanged: root.refreshPreview()
                     }
                 }
@@ -428,7 +426,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Suffix"
+                        text: qsTr("Suffix")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -437,7 +435,7 @@ Q.Dialog {
                         id: addSuffixField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "After name..."
+                        placeholder: qsTr("After name...")
                         onTextChanged: root.refreshPreview()
                     }
                 }
@@ -456,7 +454,7 @@ Q.Dialog {
                 spacing: 4
 
                 Text {
-                    text: "Base name"
+                    text: qsTr("Base name")
                     color: Theme.subtext
                     font.pointSize: Theme.fontSmall
                 }
@@ -465,7 +463,7 @@ Q.Dialog {
                     id: sequenceBaseField
                     Layout.fillWidth: true
                     variant: "filled"
-                    placeholder: "e.g. photo, document..."
+                    placeholder: qsTr("e.g. photo, document...")
                     onTextChanged: root.refreshPreview()
                 }
             }
@@ -479,7 +477,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Start at"
+                        text: qsTr("Start at")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -499,7 +497,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Padding"
+                        text: qsTr("Padding")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -519,7 +517,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Separator"
+                        text: qsTr("Separator")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -528,7 +526,7 @@ Q.Dialog {
                         id: sequenceSeparatorField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "_ or -"
+                        placeholder: qsTr("_ or -")
                         onTextChanged: root.refreshPreview()
                     }
                 }
@@ -540,7 +538,7 @@ Q.Dialog {
 
     Q.Toggle {
         id: preserveExtensionToggle
-        label: "Preserve file extensions"
+        label: qsTr("Preserve file extensions")
         checked: true
         onToggled: root.refreshPreview()
     }
@@ -559,8 +557,8 @@ Q.Dialog {
             Layout.fillWidth: true
             text: {
                 if (changedCount === 0)
-                    return "Preview"
-                return "Preview — " + changedCount + (changedCount === 1 ? " change" : " changes")
+                    return qsTr("Preview")
+                return qsTr("Preview — %n change(s)", "", changedCount)
             }
             color: Theme.text
             font.pointSize: Theme.fontNormal
@@ -569,7 +567,7 @@ Q.Dialog {
 
         Q.Badge {
             visible: errorCount > 0
-            text: errorCount + (errorCount === 1 ? " conflict" : " conflicts")
+            text: qsTr("%n conflict(s)", "", errorCount)
             variant: "error"
         }
     }
@@ -696,7 +694,7 @@ Q.Dialog {
     Q.Label {
         visible: previewItems.length === 0
         Layout.alignment: Qt.AlignHCenter
-        text: "Select at least two items to start a batch rename."
+        text: qsTr("Select at least two items to start a batch rename.")
         variant: "body"
     }
 
@@ -718,7 +716,7 @@ Q.Dialog {
         spacing: 12
 
         Q.Button {
-            text: "Cancel"
+            text: qsTr("Cancel")
             variant: "ghost"
             size: "small"
             onClicked: root.reject()

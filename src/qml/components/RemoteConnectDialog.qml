@@ -9,8 +9,8 @@ Q.Dialog {
     anchors.fill: parent
     z: 1000
     dialogWidth: 520
-    title: "Connect to Server"
-    subtitle: "Browse SFTP, SMB, and FTP locations through GVFS"
+    title: qsTr("Connect to Server")
+    subtitle: qsTr("Browse SFTP, SMB, and FTP locations through GVFS")
     initialFocusItem: hostField
 
     property string errorText: ""
@@ -48,8 +48,8 @@ Q.Dialog {
         var uri = currentUri()
         if (!uri) {
             errorText = modeTabs.currentIndex === 3
-                ? "Enter a remote URI."
-                : "Enter a host before connecting."
+                ? qsTr("Enter a remote URI.")
+                : qsTr("Enter a host before connecting.")
             return
         }
         remoteAccessService.connectToLocation(uri)
@@ -65,7 +65,7 @@ Q.Dialog {
                 return
 
             if (!success) {
-                root.errorText = error || "Couldn't connect to that location."
+                root.errorText = error || qsTr("Couldn't connect to that location.")
                 return
             }
 
@@ -115,7 +115,7 @@ Q.Dialog {
                 spacing: 4
 
                 Text {
-                    text: "Host"
+                    text: qsTr("Host")
                     color: Theme.subtext
                     font.pointSize: Theme.fontSmall
                 }
@@ -138,7 +138,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Username"
+                        text: qsTr("Username")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -147,7 +147,7 @@ Q.Dialog {
                         id: userField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Optional"
+                        placeholder: qsTr("Optional")
                         onTextChanged: root.errorText = ""
                     }
                 }
@@ -157,7 +157,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Port"
+                        text: qsTr("Port")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -178,7 +178,7 @@ Q.Dialog {
                 spacing: 4
 
                 Text {
-                    text: "Remote folder"
+                    text: qsTr("Remote folder")
                     color: Theme.subtext
                     font.pointSize: Theme.fontSmall
                 }
@@ -187,7 +187,7 @@ Q.Dialog {
                     id: pathField
                     Layout.fillWidth: true
                     variant: "filled"
-                    placeholder: "/home/user (optional)"
+                    placeholder: qsTr("/home/user (optional)")
                     onTextChanged: root.errorText = ""
                 }
             }
@@ -211,7 +211,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Host"
+                        text: qsTr("Host")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -220,7 +220,7 @@ Q.Dialog {
                         id: smbHostField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Server or NAS host"
+                        placeholder: qsTr("Server or NAS host")
                         onTextChanged: {
                             hostField.text = text
                             root.errorText = ""
@@ -235,7 +235,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Port"
+                        text: qsTr("Port")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -263,7 +263,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Username"
+                        text: qsTr("Username")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -272,7 +272,7 @@ Q.Dialog {
                         id: smbUserField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "Optional"
+                        placeholder: qsTr("Optional")
                         onTextChanged: {
                             userField.text = text
                             root.errorText = ""
@@ -285,7 +285,7 @@ Q.Dialog {
                     spacing: 4
 
                     Text {
-                        text: "Share name"
+                        text: qsTr("Share name")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
                     }
@@ -294,7 +294,7 @@ Q.Dialog {
                         id: shareField
                         Layout.fillWidth: true
                         variant: "filled"
-                        placeholder: "e.g. public, media"
+                        placeholder: qsTr("e.g. public, media")
                         onTextChanged: root.errorText = ""
                     }
                 }
@@ -305,7 +305,7 @@ Q.Dialog {
                 spacing: 4
 
                 Text {
-                    text: "Folder inside share"
+                    text: qsTr("Folder inside share")
                     color: Theme.subtext
                     font.pointSize: Theme.fontSmall
                 }
@@ -314,7 +314,7 @@ Q.Dialog {
                     id: smbPathField
                     Layout.fillWidth: true
                     variant: "filled"
-                    placeholder: "Optional"
+                    placeholder: qsTr("Optional")
                     onTextChanged: {
                         pathField.text = text
                         root.errorText = ""
@@ -336,7 +336,7 @@ Q.Dialog {
                 spacing: 4
 
                 Text {
-                    text: "Remote URI"
+                    text: qsTr("Remote URI")
                     color: Theme.subtext
                     font.pointSize: Theme.fontSmall
                 }
@@ -356,7 +356,7 @@ Q.Dialog {
 
     Q.Toggle {
         id: addBookmarkToggle
-        label: "Add to bookmarks after connecting"
+        label: qsTr("Add to bookmarks after connecting")
         checked: true
     }
 
@@ -372,7 +372,7 @@ Q.Dialog {
 
         Text {
             Layout.fillWidth: true
-            text: "Preview"
+            text: qsTr("Preview")
             color: Theme.text
             font.pointSize: Theme.fontNormal
             font.bold: true
@@ -381,7 +381,7 @@ Q.Dialog {
 
     Q.Label {
         Layout.fillWidth: true
-        text: currentUri() || "Complete the fields to generate the target URI."
+        text: currentUri() || qsTr("Complete the fields to generate the target URI.")
         variant: "body"
         wrapMode: Text.WrapAnywhere
         color: currentUri() ? Theme.text : Theme.subtext
@@ -390,8 +390,8 @@ Q.Dialog {
     Q.Label {
         Layout.fillWidth: true
         text: modeTabs.currentIndex === 3
-            ? "Use a full GVFS-compatible URI if you already have one."
-            : "GVFS will prompt for credentials if the remote server requires them."
+            ? qsTr("Use a full GVFS-compatible URI if you already have one.")
+            : qsTr("GVFS will prompt for credentials if the remote server requires them.")
         variant: "caption"
         color: Theme.subtext
         wrapMode: Text.WordWrap
@@ -432,7 +432,7 @@ Q.Dialog {
         spacing: 12
 
         Q.Button {
-            text: "Cancel"
+            text: qsTr("Cancel")
             variant: "ghost"
             size: "small"
             enabled: !remoteAccessService.busy
@@ -440,7 +440,7 @@ Q.Dialog {
         }
 
         Q.Button {
-            text: remoteAccessService.busy ? "Connecting..." : "Connect"
+            text: remoteAccessService.busy ? qsTr("Connecting...") : qsTr("Connect")
             variant: "primary"
             size: "small"
             enabled: !remoteAccessService.busy
