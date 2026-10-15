@@ -295,7 +295,10 @@ QString friendlyGioActionError(const QString &action, const QString &label,
             "Could not mount %1: unlock the iPhone or iPad, tap Trust on the device, and try again.")
             .arg(label);
     }
-    return DeviceModel::tr("Could not %1 %2: %3").arg(action, label, err);
+    return (action == QLatin1String("mount")
+                ? DeviceModel::tr("Could not mount %1: %2")
+                : DeviceModel::tr("Could not unmount %1: %2"))
+        .arg(label, err);
 }
 
 QString runGioMountCommand(const QStringList &arguments, QString *error)

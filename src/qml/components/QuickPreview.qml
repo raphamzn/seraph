@@ -1214,7 +1214,7 @@ Item {
                                     model: root.fontPreview.valid ? [12, 18, 24, 32, 48] : []
                                     delegate: Text {
                                         width: fontPreviewColumn.width
-                                        text: qsTr("The quick brown fox jumps over the lazy dog")
+                                        text: "The quick brown fox jumps over the lazy dog"
                                         color: Theme.text
                                         font.family: root.fontPreview.family || ""
                                         font.styleName: root.fontPreview.styleName || ""
@@ -1228,7 +1228,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     visible: root.fontPreview.valid
-                                    text: qsTr("ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789  !@#$%^&*()")
+                                    text: "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789  !@#$%^&*()"
                                     color: Theme.text
                                     font.family: root.fontPreview.family || ""
                                     font.styleName: root.fontPreview.styleName || ""

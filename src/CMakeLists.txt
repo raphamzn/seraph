@@ -86,8 +86,7 @@ if(NOT SERAPH_ENABLE_QML_CACHEGEN)
     list(APPEND seraph_qml_module_args NO_CACHEGEN)
 endif()
 
-list(APPEND seraph_qml_module_args
-    QML_FILES
+set(SERAPH_QML_FILES
         qml/Main.qml
         qml/ReaderMain.qml
         qml/theme/Theme.qml
@@ -181,6 +180,10 @@ list(APPEND seraph_qml_module_args
         qml/components/SettingsPanel.qml
 )
 
+list(APPEND seraph_qml_module_args
+    QML_FILES ${SERAPH_QML_FILES}
+)
+
 qt_add_qml_module(seraph ${seraph_qml_module_args})
 
 # pt_BR translation, compiled to .qm and embedded at :/i18n/seraph_pt_BR.qm.
@@ -189,6 +192,13 @@ qt_add_translations(seraph
     TS_FILES ${CMAKE_SOURCE_DIR}/translations/seraph_pt_BR.ts
     RESOURCE_PREFIX /i18n
     LUPDATE_OPTIONS -no-obsolete -locations none)
+
+# Every source lupdate scans, for tests/tst_translations (icons carry no text).
+set(seraph_i18n_sources ${SERAPH_SOURCES} ${SERAPH_QML_FILES})
+list(FILTER seraph_i18n_sources EXCLUDE REGEX "^qml/icons/")
+list(TRANSFORM seraph_i18n_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+string(REPLACE ";" "\n" seraph_i18n_list "${seraph_i18n_sources}")
+file(WRITE "${CMAKE_BINARY_DIR}/seraph_i18n_sources.lst" "${seraph_i18n_list}\n")
 
 # Make Quill module discoverable at runtime
 set_target_properties(seraph PROPERTIES

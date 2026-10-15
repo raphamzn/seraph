@@ -2020,7 +2020,7 @@ FocusScope {
                                 model: previewColumn.fontPreview.valid ? [12, 16, 22, 30] : []
                                 delegate: Text {
                                     width: millerFontColumn.width
-                                    text: qsTr("The quick brown fox jumps over the lazy dog")
+                                    text: "The quick brown fox jumps over the lazy dog"
                                     color: Theme.text
                                     font.family: previewColumn.fontPreview.family || ""
                                     font.styleName: previewColumn.fontPreview.styleName || ""
@@ -2034,7 +2034,7 @@ FocusScope {
                             Text {
                                 width: parent.width
                                 visible: previewColumn.fontPreview.valid
-                                text: qsTr("ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789")
+                                text: "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789"
                                 color: Theme.text
                                 font.family: previewColumn.fontPreview.family || ""
                                 font.styleName: previewColumn.fontPreview.styleName || ""

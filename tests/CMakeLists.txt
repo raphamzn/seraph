@@ -215,3 +215,16 @@ qt_add_resources(tst_languagemanager "tst_languagemanager_i18n"
     BASE "${CMAKE_CURRENT_BINARY_DIR}"
     FILES ${tst_languagemanager_qm})
 add_test(NAME tst_languagemanager COMMAND tst_languagemanager)
+
+add_executable(tst_translations tst_translations.cpp)
+target_link_libraries(tst_translations PRIVATE Qt6::Test Qt6::Core)
+get_target_property(seraph_lupdate_path Qt6::lupdate IMPORTED_LOCATION)
+if(NOT seraph_lupdate_path)
+    get_target_property(seraph_lupdate_path Qt6::lupdate IMPORTED_LOCATION_RELEASE)
+endif()
+get_filename_component(seraph_qt_host_bins "${seraph_lupdate_path}" DIRECTORY)
+target_compile_definitions(tst_translations PRIVATE
+    SERAPH_TS_FILE="${CMAKE_SOURCE_DIR}/translations/seraph_pt_BR.ts"
+    SERAPH_I18N_LIST="${CMAKE_BINARY_DIR}/seraph_i18n_sources.lst"
+    QT_HOST_BINS="${seraph_qt_host_bins}")
+add_test(NAME tst_translations COMMAND tst_translations)
