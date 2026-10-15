@@ -1269,6 +1269,35 @@ void FileOperations::deleteFiles(const QStringList &paths)
         });
 }
 
+// Whether `targetPath` lands inside the folder `sourcePath` once symlinks are
+// resolved. A plain prefix check misses a link that points back into the
+// source ("banco -> projeto/banco"), and the recursive copy then descends into
+// its own output until the path grows too long.
+static bool transferTargetsOwnSubtree(const QString &sourcePath, const QString &targetPath)
+{
+    if (isUriPath(sourcePath) || isUriPath(targetPath))
+        return false;
+
+    // Moving a symlink only relocates the link, never what it points at.
+    const QFileInfo sourceInfo(sourcePath);
+    if (!sourceInfo.isDir() || sourceInfo.isSymLink())
+        return false;
+
+    const QString canonicalSource = sourceInfo.canonicalFilePath();
+    if (canonicalSource.isEmpty())
+        return false;
+
+    // The target itself does not exist yet, and the worker may create missing
+    // parents, so resolve the nearest ancestor that does.
+    QString existing = QFileInfo(targetPath).absolutePath();
+    while (!QFileInfo::exists(existing) && existing != QStringLiteral("/"))
+        existing = QFileInfo(existing).absolutePath();
+
+    const QString canonicalTargetDir = QFileInfo(existing).canonicalFilePath();
+    return canonicalTargetDir == canonicalSource
+        || canonicalTargetDir.startsWith(canonicalSource + QLatin1Char('/'));
+}
+
 void FileOperations::transferResolvedItems(const QVariantList &operations, bool moveOperation)
 {
     if (operations.isEmpty()) {
@@ -1292,6 +1321,12 @@ void FileOperations::transferResolvedItems(const QVariantList &operations, bool 
 
         if (sourcePath == targetPath) {
             emit operationFinished(false, QString("Source and destination are the same for %1").arg(locationFileName(sourcePath)));
+            return;
+        }
+
+        if (transferTargetsOwnSubtree(sourcePath, targetPath)) {
+            emit operationFinished(false, QString("Cannot %1 %2 into itself")
+                .arg(moveOperation ? "move" : "copy", locationFileName(sourcePath)));
             return;
         }
 

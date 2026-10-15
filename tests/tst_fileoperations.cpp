@@ -225,6 +225,61 @@ private slots:
         QVERIFY(!QFile::exists(srcPath));
     }
 
+    // A symlink beside a folder that points into it ("banco ->
+    // projeto/banco") hides the nesting from a path-prefix check. Moving the
+    // folder through that link used to copy it into its own copy until the
+    // path grew too long, leaving gigabytes of nested duplicates behind.
+    void testMoveDirectoryIntoItselfThroughSymlinkFails()
+    {
+        TestDir root;
+        root.createDir("projeto/banco");
+        root.createFile("projeto/banco/data.txt", "x");
+        QVERIFY(QFile::link(root.path() + "/projeto/banco", root.path() + "/banco"));
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::operationFinished);
+
+        ops.moveFiles({root.path() + "/projeto"}, root.path() + "/banco");
+
+        QVERIFY(spy.count() > 0 || spy.wait(5000));
+        QCOMPARE(spy.at(0).at(0).toBool(), false);
+        QVERIFY(QFile::exists(root.path() + "/projeto/banco/data.txt"));
+        QVERIFY(!QFile::exists(root.path() + "/projeto/banco/projeto"));
+    }
+
+    void testCopyDirectoryIntoItsOwnSubfolderFails()
+    {
+        TestDir root;
+        root.createDir("projeto/sub");
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::operationFinished);
+
+        ops.copyFiles({root.path() + "/projeto"}, root.path() + "/projeto/sub");
+
+        QVERIFY(spy.count() > 0 || spy.wait(5000));
+        QCOMPARE(spy.at(0).at(0).toBool(), false);
+        QVERIFY(!QFile::exists(root.path() + "/projeto/sub/projeto"));
+    }
+
+    void testMoveSymlinkIntoItsOwnTargetSucceeds()
+    {
+        // Moving the link itself only relocates the link, never its target,
+        // so it must not trip the into-itself guard.
+        TestDir root;
+        root.createDir("projeto/banco");
+        QVERIFY(QFile::link(root.path() + "/projeto", root.path() + "/atalho"));
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::operationFinished);
+
+        ops.moveFiles({root.path() + "/atalho"}, root.path() + "/projeto/banco");
+
+        QVERIFY(spy.count() > 0 || spy.wait(5000));
+        QCOMPARE(spy.at(0).at(0).toBool(), true);
+        QVERIFY(QFileInfo(root.path() + "/projeto/banco/atalho").isSymLink());
+    }
+
     void testTransferPlanDetectsConflict()
     {
         TestDir src, dst;
