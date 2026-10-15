@@ -69,6 +69,16 @@ private slots:
         QCOMPARE(fixtureText(), QString::fromUtf8("Configurações"));
     }
 
+    void testEnglishLoadsPluralForms()
+    {
+        // English is the source language, but "%n file(s)" still needs its
+        // plural forms from a plurals-only translation to read "2 files".
+        LanguageManager mgr(nullptr, QStringLiteral(":/i18n-test/test_"));
+        mgr.apply(QStringLiteral("en"), QLocale(QStringLiteral("en_US")));
+        QCOMPARE(QCoreApplication::translate("LanguageFixture", "%n file(s)", nullptr, 1), QString("1 file"));
+        QCOMPARE(QCoreApplication::translate("LanguageFixture", "%n file(s)", nullptr, 2), QString("2 files"));
+    }
+
     void testDecimalSeparatorFollowsLanguage()
     {
         LanguageManager mgr(nullptr, QStringLiteral(":/i18n-test/test_"));

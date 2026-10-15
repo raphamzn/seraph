@@ -56,15 +56,15 @@ void LanguageManager::apply(const QString &setting, const QLocale &system)
         m_translator = nullptr;
     }
 
-    if (effective == kPortuguese) {
-        auto *translator = new QTranslator(this);
-        if (translator->load(m_qmPrefix + kPortuguese)) {
-            QCoreApplication::installTranslator(translator);
-            m_translator = translator;
-        } else {
-            qWarning() << "Could not load translation" << m_qmPrefix + kPortuguese;
-            delete translator;
-        }
+    // English is the source language, but it still loads a plurals-only
+    // translation so "%n item(s)" reads "1 item" / "2 items".
+    auto *translator = new QTranslator(this);
+    if (translator->load(m_qmPrefix + effective)) {
+        QCoreApplication::installTranslator(translator);
+        m_translator = translator;
+    } else {
+        qWarning() << "Could not load translation" << m_qmPrefix + effective;
+        delete translator;
     }
 
     QLocale::setDefault(effective == kPortuguese

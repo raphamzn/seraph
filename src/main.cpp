@@ -628,5 +628,22 @@ int main(int argc, char *argv[])
     if (!initialOpenPath.isEmpty())
         QTimer::singleShot(0, &app, [=]() { openPath(initialOpenPath, restoredSession); });
 
+#ifndef NDEBUG
+    // Dev aid, left out of Release builds (same as the reader's): SERAPH_GRAB=<file.png>
+    // saves the main window a moment after it is shown and quits, so the UI can
+    // be checked offscreen (QT_QPA_PLATFORM=offscreen) without the desktop.
+    const QString grabPath = qEnvironmentVariable("SERAPH_GRAB");
+    if (!grabPath.isEmpty()) {
+        if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
+            const int delay = qEnvironmentVariableIsSet("SERAPH_GRAB_DELAY")
+                ? qEnvironmentVariableIntValue("SERAPH_GRAB_DELAY") : 2500;
+            QTimer::singleShot(delay, win, [win, grabPath, &app]() {
+                win->grabWindow().save(grabPath);
+                app.quit();
+            });
+        }
+    }
+#endif
+
     return app.exec();
 }

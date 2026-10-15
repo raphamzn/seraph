@@ -186,10 +186,12 @@ list(APPEND seraph_qml_module_args
 
 qt_add_qml_module(seraph ${seraph_qml_module_args})
 
-# pt_BR translation, compiled to .qm and embedded at :/i18n/seraph_pt_BR.qm.
-# `cmake --build build --target update_translations` refreshes the .ts from the sources.
+# pt_BR translation, compiled to .qm and embedded at :/i18n/seraph_pt_BR.qm, plus
+# the English plural forms ("%n item(s)" -> "1 item"/"2 items") in seraph_en.qm.
+# `cmake --build build --target update_translations` refreshes both from the sources.
 qt_add_translations(seraph
     TS_FILES ${CMAKE_SOURCE_DIR}/translations/seraph_pt_BR.ts
+    PLURALS_TS_FILE ${CMAKE_SOURCE_DIR}/translations/seraph_en.ts
     RESOURCE_PREFIX /i18n
     LUPDATE_OPTIONS -no-obsolete -locations none)
 

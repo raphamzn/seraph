@@ -7,5 +7,9 @@
         <source>Cannot move %1 into itself</source>
         <translation>Não é possível mover %1 para dentro dela mesma</translation>
     </message>
+    <message>
+        <source>Home</source>
+        <translation>Pasta pessoal</translation>
+    </message>
 </context>
 </TS>

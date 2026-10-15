@@ -734,6 +734,10 @@
         <translation>Não foi possível criar o arquivo</translation>
     </message>
     <message>
+        <source>Home</source>
+        <translation>Pasta pessoal</translation>
+    </message>
+    <message>
         <source>Enter a valid target name</source>
         <translation>Informe um nome de destino válido</translation>
     </message>
@@ -1068,6 +1072,13 @@
     <message>
         <source>Settings</source>
         <translation>Configurações</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n file(s)</source>
+        <translation>
+            <numerusform>%n arquivo</numerusform>
+            <numerusform>%n arquivos</numerusform>
+        </translation>
     </message>
 </context>
 <context>

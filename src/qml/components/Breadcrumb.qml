@@ -147,8 +147,10 @@ Item {
                 sourceComponent: {
                     if (fileOps.isRemotePath(root.path)) return bcIconMonitor
                     if (segmentsRepeater.count === 0) return bcIconFolder
-                    var firstLabel = segmentsRepeater.model[0] ? segmentsRepeater.model[0].label : ""
-                    return root.iconForLabel(firstLabel)
+                    var first = segmentsRepeater.model[0]
+                    // The home crumb's label is translated, so match it by path.
+                    if (first && first.fullPath === fsModel.homePath()) return bcIconHome
+                    return root.iconForLabel(first ? first.label : "")
                 }
             }
 
@@ -158,6 +160,9 @@ Item {
                     if (root.isRecentsView) return [{ label: qsTr("Recents"), fullPath: "" }]
                     if (!root.path || root.path === "/") return []
 
+                    // Re-run on a language switch: the home crumb's label is
+                    // translated on the C++ side, out of reach of retranslate().
+                    languageManager.effectiveLanguage
                     return fileOps.breadcrumbSegments(root.path)
                 }
 

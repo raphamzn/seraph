@@ -532,7 +532,7 @@ QVariantList buildBreadcrumbs(const QString &path)
     const QString home = QDir::homePath();
     if (!home.isEmpty() && home != QStringLiteral("/")
         && (normalized == home || normalized.startsWith(home + QLatin1Char('/')))) {
-        segments.append(QVariantMap{{QStringLiteral("label"), QStringLiteral("Home")},
+        segments.append(QVariantMap{{QStringLiteral("label"), QCoreApplication::translate("FileOperations", "Home")},
                                     {QStringLiteral("fullPath"), home}});
         accumulated = home;
         parts = normalized.mid(home.size()).split('/', Qt::SkipEmptyParts);
