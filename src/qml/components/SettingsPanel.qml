@@ -65,6 +65,16 @@ Window {
     readonly property var sortByLabels: ["Name", "Size", "Modified", "Type"]
     readonly property var sortByValues: ["name", "size", "modified", "type"]
 
+    readonly property string defaultLanguage: "auto"
+    // Language names are endonyms on purpose: someone stuck in a language they
+    // can't read must still find their own. Only "Automatic" is translated.
+    readonly property var languageValues: ["auto", "pt_BR", "en"]
+    readonly property var languageLabels: [
+        qsTr("Automatic (%1)").arg(languageManager.effectiveLanguage === "pt_BR" ? "Português" : "English"),
+        "Português (Brasil)",
+        "English"
+    ]
+
     // Startup folder dropdown: parallel label/value arrays.
     readonly property var startupLocationLabels: ["Last session", "Home folder"]
     readonly property var startupLocationValues: ["last", "home"]
@@ -86,6 +96,7 @@ Window {
     property bool pendingSettingsDirty: false
 
     property string draftTheme: config.theme
+    property string draftLanguage: config.language
     property string draftLightTheme: config.lightTheme
     property string draftDarkTheme: config.darkTheme
     property string draftFontFamily: config.fontFamily
@@ -310,6 +321,7 @@ Window {
         draftSortAscending = defaultSortAscending
         draftRememberSortPerFolder = defaultRememberSortPerFolder
         draftStartupLocation = defaultStartupLocation
+        draftLanguage = defaultLanguage
         applySettingsNow()
     }
 
@@ -318,6 +330,7 @@ Window {
         syncingFromConfig = true
         try {
             draftTheme = config.theme
+            draftLanguage = config.language
             draftLightTheme = config.lightTheme
             draftDarkTheme = config.darkTheme
             draftDarkMode = isDarkTheme(draftTheme)
@@ -393,6 +406,7 @@ Window {
     function currentSettings() {
         return {
             theme: draftTheme,
+            language: draftLanguage,
             lightTheme: draftLightTheme,
             darkTheme: draftDarkTheme,
             fontFamily: draftFontFamily,
@@ -482,6 +496,27 @@ Window {
         ColumnLayout {
             width: pageLoader.width
             spacing: 6
+
+            Text {
+                text: qsTr("Language")
+                color: Theme.accent
+                font.pointSize: Theme.fontSmall
+                font.bold: true
+                Layout.bottomMargin: 4
+            }
+
+            AnchoredDropdown {
+                Layout.fillWidth: true
+                label: qsTr("Interface language")
+                model: root.languageLabels
+                currentIndex: Math.max(0, root.languageValues.indexOf(root.draftLanguage))
+                onSelected: (index, _) => {
+                    root.draftLanguage = root.languageValues[index]
+                    root.applySettingsNow()
+                }
+            }
+
+            Q.Separator { Layout.topMargin: 8; Layout.bottomMargin: 8 }
 
             RowLayout {
                 Layout.fillWidth: true
