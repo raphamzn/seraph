@@ -226,6 +226,7 @@ void ConfigManager::setDefaults()
     m_theme = m_defaultThemeName.trimmed().isEmpty()
         ? QStringLiteral("catppuccin-mocha")
         : m_defaultThemeName.trimmed();
+    m_language = QStringLiteral("auto");
     m_lightTheme = QStringLiteral("catppuccin-latte");
     m_darkTheme = QStringLiteral("catppuccin-mocha");
     m_iconTheme = "Adwaita";
@@ -293,6 +294,8 @@ void ConfigManager::loadConfig()
 
         if (auto v = config["general"]["theme"].value<std::string>())
             m_theme = QString::fromStdString(*v);
+        if (auto v = config["general"]["language"].value<std::string>())
+            m_language = QString::fromStdString(*v);
         if (auto v = config["general"]["light_theme"].value<std::string>())
             m_lightTheme = QString::fromStdString(*v);
         if (auto v = config["general"]["dark_theme"].value<std::string>())
@@ -432,6 +435,7 @@ void ConfigManager::loadConfig()
 }
 
 QString ConfigManager::theme() const { return m_theme; }
+QString ConfigManager::language() const { return m_language; }
 QString ConfigManager::lightTheme() const { return m_lightTheme; }
 QString ConfigManager::darkTheme() const { return m_darkTheme; }
 bool ConfigManager::followSystemTheme() const { return m_theme.compare(QLatin1String("auto"), Qt::CaseInsensitive) == 0; }
@@ -541,6 +545,14 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         if (!theme.isEmpty()) {
             m_theme = theme;
             general.insert_or_assign("theme", theme.toStdString());
+        }
+    }
+
+    if (settings.contains("language")) {
+        const QString language = settings.value("language").toString().trimmed();
+        if (!language.isEmpty()) {
+            m_language = language;
+            general.insert_or_assign("language", language.toStdString());
         }
     }
 

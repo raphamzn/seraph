@@ -15,6 +15,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(QStringList availableIconThemes READ availableIconThemes CONSTANT)
     Q_PROPERTY(QStringList availableThemes READ availableThemes CONSTANT)
     Q_PROPERTY(QString theme READ theme NOTIFY configChanged)
+    Q_PROPERTY(QString language READ language NOTIFY configChanged)
     Q_PROPERTY(QString lightTheme READ lightTheme NOTIFY configChanged)
     Q_PROPERTY(QString darkTheme READ darkTheme NOTIFY configChanged)
     Q_PROPERTY(bool followSystemTheme READ followSystemTheme NOTIFY configChanged)
@@ -70,6 +71,8 @@ public:
     // May be "auto", meaning lightTheme()/darkTheme() are picked according to
     // the system color scheme (resolved by ThemeLoader).
     QString theme() const;
+    // "auto" (follow the system locale), "pt_BR" or "en"; resolved by LanguageManager.
+    QString language() const;
     QString lightTheme() const;
     QString darkTheme() const;
     bool followSystemTheme() const;
@@ -163,6 +166,7 @@ private:
     QFileSystemWatcher m_watcher;
 
     QString m_theme;
+    QString m_language;
     QString m_lightTheme;
     QString m_darkTheme;
     QString m_iconTheme;

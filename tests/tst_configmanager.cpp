@@ -117,6 +117,34 @@ private slots:
         QCOMPARE(reloaded.darkTheme(), QString("my-dark"));
     }
 
+    void testLanguageDefaultsToAuto()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        QCOMPARE(mgr.language(), QString("auto"));
+    }
+
+    void testLanguageRoundTrip()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/config.toml";
+        {
+            ConfigManager mgr(path);
+            mgr.saveSettings({{"language", "pt_BR"}});
+            QCOMPARE(mgr.language(), QString("pt_BR"));
+        }
+        ConfigManager reloaded(path);
+        QCOMPARE(reloaded.language(), QString("pt_BR"));
+    }
+
+    void testLanguageEmptyValueIsIgnored()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        mgr.saveSettings({{"language", "  "}});
+        QCOMPARE(mgr.language(), QString("auto"));
+    }
+
     void testDefaultRadius()
     {
         QTemporaryDir dir;
