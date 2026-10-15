@@ -34,6 +34,15 @@ Item {
 
     readonly property real scrollY: flick.contentY
 
+    // The visible slice of the reading column, in its coordinates, padded by
+    // a screen on each side so blocks are already drawn when they scroll in.
+    // Snapped to half-screen steps: every block re-checks itself only when
+    // the slice moves a step, not on every pixel scrolled.
+    readonly property real _viewportStep: Math.max(1, Math.round(flick.height / 2))
+    readonly property real _viewportAnchor: Math.floor(flick.contentY / _viewportStep) * _viewportStep
+    readonly property real viewportTop: _viewportAnchor - content.y - flick.height
+    readonly property real viewportBottom: _viewportAnchor - content.y + 2 * flick.height + _viewportStep
+
     readonly property var outline: document && document.outline ? document.outline : []
     readonly property var blocks: document && document.blocks ? document.blocks : []
     readonly property var frontMatter: document && document.frontMatter ? document.frontMatter : []
@@ -454,6 +463,7 @@ Item {
                 MarkdownBlock {
                     required property var modelData
                     block: modelData
+                    inViewport: y + height >= root.viewportTop && y <= root.viewportBottom
                     columnWidth: content.width
                     inlineCodeBackground: root.inlineCodeBackground
                     remoteImages: root.remoteImages

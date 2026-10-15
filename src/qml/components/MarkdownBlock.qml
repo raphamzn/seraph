@@ -13,6 +13,9 @@ Item {
     // url -> {path, width, height} | {failed: true} from the reader's
     // ImageFetcher: image blocks pick a fetched file up in place.
     property var remoteImages: ({})
+    // Off-screen blocks keep their size but leave the scene graph, so a long
+    // document costs the renderer only what is on screen.
+    property bool inViewport: true
 
     signal linkActivated(string link)
     signal copyRequested(string text)
@@ -56,6 +59,7 @@ Item {
     Loader {
         id: loader
         y: root.topInset
+        visible: root.inViewport
         width: root.columnWidth
         sourceComponent: {
             switch (root.blockType) {
