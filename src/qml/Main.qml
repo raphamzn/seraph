@@ -3368,7 +3368,6 @@ ApplicationWindow {
                     onRecentsClicked: {
                         root.setPaneRecents(root.activePane, true)
                     }
-                    onCollapseClicked: root.sidebarVisible = !root.sidebarVisible
                     onFeatureHintRequested: (message) => toast.show(message, "info")
                 }
 
@@ -3456,6 +3455,7 @@ ApplicationWindow {
                 searchDateFilter: root.searchProxyForPane(activePane).dateFilter
                 searchSizeFilter: root.searchProxyForPane(activePane).sizeFilter
                 filterPanelOpen: root.paneFilterPanelOpen(activePane)
+                onSidebarToggleRequested: root.sidebarVisible = !root.sidebarVisible
                 onBackRequested: root.goActivePaneBack()
                 onForwardRequested: root.goActivePaneForward()
                 onUpRequested: root.goActivePaneUp()

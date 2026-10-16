@@ -58,6 +58,7 @@ Rectangle {
     signal searchClosed()
     signal searchEnterPressed()
     signal searchNavigateDown()
+    signal sidebarToggleRequested()
     signal backRequested()
     signal forwardRequested()
     signal upRequested()
@@ -142,6 +143,18 @@ Rectangle {
                     visible: root.showWindowControls && root._parsedLayout.left.length > 0
                     width: visible ? 4 : 0
                     height: 1
+                }
+
+                // Sidebar toggle: lives here, not in the sidebar, so it stays
+                // reachable after the sidebar collapses
+                HoverRect {
+                    // Pulled toward the left edge and the back button
+                    Layout.leftMargin: root.showWindowControls && root._parsedLayout.left.length > 0
+                        ? 0 : -(Theme.spacing - 2)
+                    Layout.rightMargin: -5
+                    width: Theme.controlSize - 4; height: Theme.controlSize
+                    onClicked: root.sidebarToggleRequested()
+                    IconPanelLeft { anchors.centerIn: parent; size: 16; color: Theme.text }
                 }
 
                 // Back button

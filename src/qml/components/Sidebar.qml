@@ -16,7 +16,6 @@ Rectangle {
     signal bookmarkClicked(string path)
     signal sidebarContextMenuRequested(var item, point position)
     signal recentsClicked()
-    signal collapseClicked()
     signal featureHintRequested(string message)
 
     // Quick-access entries are identified by their English name (the
@@ -86,33 +85,27 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        // App header: "seraph" + collapse button
+        // App header: small logo in the top corner
         Item {
             Layout.fillWidth: true
-            height: 44
+            height: Theme.toolbarRowHeight
 
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
+            Image {
+                anchors.left: parent.left
+                anchors.leftMargin: Theme.spacing + 4
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Seraph"
-                color: Theme.text
-                font.pointSize: Theme.fontLarge
-                font.weight: Font.Bold
-            }
-
-            HoverRect {
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.spacing
-                anchors.verticalCenter: parent.verticalCenter
-                width: 28; height: 28
-                onClicked: root.collapseClicked()
-                IconPanelLeft { anchors.centerIn: parent; size: 16; color: Theme.subtext }
+                source: "qrc:/logo/io.github.raphamzn.Seraph.svg"
+                width: 22; height: 22
+                sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
+                fillMode: Image.PreserveAspectFit
+                smooth: true
             }
         }
 
         // Quick access section
         Column {
             Layout.fillWidth: true
+            Layout.topMargin: Theme.spacing * 2
 
             // Quick access entries
             Repeater {

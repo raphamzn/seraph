@@ -186,6 +186,12 @@ list(APPEND seraph_qml_module_args
 
 qt_add_qml_module(seraph ${seraph_qml_module_args})
 
+# App logo for the sidebar header, embedded at :/logo/io.github.raphamzn.Seraph.svg.
+qt_add_resources(seraph "seraph_logo"
+    PREFIX /logo
+    BASE "${CMAKE_SOURCE_DIR}/dist"
+    FILES "${CMAKE_SOURCE_DIR}/dist/io.github.raphamzn.Seraph.svg")
+
 # pt_BR translation, compiled to .qm and embedded at :/i18n/seraph_pt_BR.qm, plus
 # the English plural forms ("%n item(s)" -> "1 item"/"2 items") in seraph_en.qm.
 # `cmake --build build --target update_translations` refreshes both from the sources.
