@@ -384,6 +384,7 @@ Q.Dialog {
                                 text: shortcutRow.modelData.label
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
+                                elide: Text.ElideRight
                             }
 
                             // Shortcut badge / recording indicator

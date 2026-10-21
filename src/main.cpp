@@ -17,6 +17,9 @@
 #include <QQuickWindow>
 #include <QSaveFile>
 #include <QTimer>
+#include <QKeyEvent>
+#include <QKeySequence>
+#include <algorithm>
 #include <QFontDatabase>
 #include <QFileInfo>
 #include <QLocalServer>
@@ -632,11 +635,40 @@ int main(int argc, char *argv[])
     // Dev aid, left out of Release builds (same as the reader's): SERAPH_GRAB=<file.png>
     // saves the main window a moment after it is shown and quits, so the UI can
     // be checked offscreen (QT_QPA_PLATFORM=offscreen) without the desktop.
+    // SERAPH_GRAB_KEYS="Down,Shift+F10" first types those key sequences into the
+    // window (300 ms apart, from 1200 ms on), so menus and dialogs opened from
+    // the keyboard can be grabbed too; the grab then waits for the last key.
     const QString grabPath = qEnvironmentVariable("SERAPH_GRAB");
     if (!grabPath.isEmpty()) {
         if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().first())) {
+            const QStringList grabKeys = qEnvironmentVariable("SERAPH_GRAB_KEYS")
+                .split(QLatin1Char(','), Qt::SkipEmptyParts);
+            const int keysStart = 1200;
+            const int keysGap = 300;
+            for (int i = 0; i < grabKeys.size(); ++i) {
+                const QKeySequence seq(grabKeys.at(i).trimmed());
+                if (seq.isEmpty())
+                    continue;
+                const QKeyCombination combo = seq[0];
+                QTimer::singleShot(keysStart + i * keysGap, win, [win, combo]() {
+                    const int key = combo.key();
+                    const Qt::KeyboardModifiers mods = combo.keyboardModifiers();
+                    QString text;
+                    if (key >= Qt::Key_Space && key <= Qt::Key_AsciiTilde
+                        && !(mods & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier))) {
+                        text = QString(QChar(key));
+                        if (!(mods & Qt::ShiftModifier))
+                            text = text.toLower();
+                    }
+                    QKeyEvent press(QEvent::KeyPress, key, mods, text);
+                    QCoreApplication::sendEvent(win, &press);
+                    QKeyEvent release(QEvent::KeyRelease, key, mods, text);
+                    QCoreApplication::sendEvent(win, &release);
+                });
+            }
+            const int keysDone = grabKeys.isEmpty() ? 0 : keysStart + grabKeys.size() * keysGap + 600;
             const int delay = qEnvironmentVariableIsSet("SERAPH_GRAB_DELAY")
-                ? qEnvironmentVariableIntValue("SERAPH_GRAB_DELAY") : 2500;
+                ? qEnvironmentVariableIntValue("SERAPH_GRAB_DELAY") : std::max(2500, keysDone);
             QTimer::singleShot(delay, win, [win, grabPath, &app]() {
                 win->grabWindow().save(grabPath);
                 app.quit();

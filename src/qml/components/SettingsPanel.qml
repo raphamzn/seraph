@@ -536,26 +536,29 @@ Window {
                 spacing: 12
 
                 ColumnLayout {
+                    Layout.fillWidth: true
                     spacing: 2
 
                     Text {
+                        Layout.fillWidth: true
                         text: qsTr("Dark Mode")
                         color: Theme.text
                         font.pointSize: Theme.fontNormal + 2
                         font.bold: true
+                        wrapMode: Text.WordWrap
                     }
 
                     Text {
+                        Layout.fillWidth: true
                         visible: root.followSystemTheme
                         text: theme.systemColorScheme === "unknown"
                             ? qsTr("Following the system — no preference reported")
                             : qsTr("Following the system")
                         color: Theme.muted
                         font.pointSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
                     }
                 }
-
-                Item { Layout.fillWidth: true }
 
                 Q.Toggle {
                     label: ""
@@ -643,22 +646,25 @@ Window {
                 spacing: 12
 
                 ColumnLayout {
+                    Layout.fillWidth: true
                     spacing: 2
 
                     Text {
+                        Layout.fillWidth: true
                         text: qsTr("Tint Folder Icons")
                         color: Theme.text
                         font.pointSize: Theme.fontNormal
+                        wrapMode: Text.WordWrap
                     }
 
                     Text {
+                        Layout.fillWidth: true
                         text: qsTr("Re-hue folders to the accent, keeping the pack's shading")
                         color: Theme.muted
                         font.pointSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
                     }
                 }
-
-                Item { Layout.fillWidth: true }
 
                 Q.Toggle {
                     label: ""

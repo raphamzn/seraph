@@ -19,7 +19,21 @@ Item {
     property var selectedPaths: []
     property var customItems: []
     property var contextData: ({})
+    // Minimum body width. The menu grows to its widest row (translations run
+    // longer than the English strings) up to the window, past which rows elide.
     property int menuWidth: 260
+    readonly property int maxMenuWidth: Math.max(menuWidth, Window.width - 28)
+
+    function _widestRow(repeater) {
+        var w = 0
+        for (var i = 0; i < repeater.count; ++i) {
+            var loader = repeater.itemAt(i)
+            var row = loader ? loader.item : null
+            if (row)
+                w = Math.max(w, row.implicitWidth)
+        }
+        return w
+    }
     property bool splitViewEnabled: false
     property bool isTrashView: false
 
@@ -416,10 +430,11 @@ Item {
         Column {
             id: menuColumn
             anchors.centerIn: parent
-            width: root.menuWidth
+            width: Math.max(root.menuWidth, Math.min(root.maxMenuWidth, root._widestRow(menuRepeater)))
             spacing: 2
 
             Repeater {
+                id: menuRepeater
                 model: root.visible ? root.buildModel() : []
                 delegate: Loader {
                     id: delegateLoader
@@ -560,10 +575,11 @@ Item {
             id: submenuColumn
             x: submenuContainer.bodyX + 6
             y: 6
-            width: root.menuWidth
+            width: Math.max(root.menuWidth, Math.min(root.maxMenuWidth, root._widestRow(submenuRepeater)))
             spacing: 2
 
             Repeater {
+                id: submenuRepeater
                 model: submenuContainer.visible ? root.submenuItems : []
                 delegate: Loader {
                     width: submenuColumn.width
@@ -576,12 +592,15 @@ Item {
 
     Connections {
         target: submenuColumn
-        function onHeightChanged() {
-            if (root._pendingSubmenuPopup)
-                root._showPendingSubmenu()
-            else if (root.submenuVisible)
-                root._positionSubmenu()
-        }
+        function onHeightChanged() { root._submenuSizeChanged() }
+        function onWidthChanged() { root._submenuSizeChanged() }
+    }
+
+    function _submenuSizeChanged() {
+        if (_pendingSubmenuPopup)
+            _showPendingSubmenu()
+        else if (submenuVisible)
+            _positionSubmenu()
     }
 
     function buildModel() {
@@ -768,6 +787,7 @@ Item {
         Rectangle {
             height: 32
             width: parent ? parent.width : 260
+            implicitWidth: itemRow.implicitWidth + itemRow.anchors.leftMargin + itemRow.anchors.rightMargin
             radius: Theme.radiusMedium
             color: itemMa.containsMouse
                 ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
@@ -776,6 +796,7 @@ Item {
                 ColorAnimation { duration: 100; easing.type: Theme.animEasingEnter; easing.bezierCurve: Theme.animBezierCurve }
             }
             RowLayout {
+                id: itemRow
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
@@ -796,6 +817,7 @@ Item {
                     font.pointSize: Theme.fontNormal
                     color: itemData && itemData.destructive ? Theme.error : Theme.text
                     Layout.fillWidth: true
+                    elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                 }
                 Text {
@@ -803,6 +825,7 @@ Item {
                     font.pointSize: Theme.fontSmall
                     color: Theme.muted
                     visible: text !== ""
+                    Layout.minimumWidth: implicitWidth
                     verticalAlignment: Text.AlignVCenter
                 }
             }
@@ -827,6 +850,7 @@ Item {
             id: submenuTrigger
             height: 32
             width: parent ? parent.width : 260
+            implicitWidth: triggerRow.implicitWidth + triggerRow.anchors.leftMargin + triggerRow.anchors.rightMargin
             radius: Theme.radiusMedium
             readonly property bool isActive: root.submenuVisible && root.activeSubmenuKey === root.submenuKeyForItem(itemData)
             color: (submenuMa.containsMouse || isActive)
@@ -836,6 +860,7 @@ Item {
                 ColorAnimation { duration: 100; easing.type: Theme.animEasingEnter; easing.bezierCurve: Theme.animBezierCurve }
             }
             RowLayout {
+                id: triggerRow
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
@@ -856,6 +881,7 @@ Item {
                     font.pointSize: Theme.fontNormal
                     color: Theme.text
                     Layout.fillWidth: true
+                    elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                 }
                 Text {
@@ -863,6 +889,7 @@ Item {
                     font.pointSize: Theme.fontSmall
                     color: Theme.muted
                     visible: text !== ""
+                    Layout.minimumWidth: implicitWidth
                     verticalAlignment: Text.AlignVCenter
                 }
                 IconChevronRight {
@@ -887,6 +914,7 @@ Item {
         Rectangle {
             width: parent ? parent.width : 260
             height: 30
+            implicitWidth: subItemRow.implicitWidth + subItemRow.anchors.leftMargin + subItemRow.anchors.rightMargin
             radius: Theme.radiusMedium
             opacity: 1
             color: subItemMa.containsMouse
@@ -896,6 +924,7 @@ Item {
                 ColorAnimation { duration: 100; easing.type: Theme.animEasingEnter; easing.bezierCurve: Theme.animBezierCurve }
             }
             RowLayout {
+                id: subItemRow
                 anchors.fill: parent
                 anchors.leftMargin: 24
                 anchors.rightMargin: 12
@@ -926,6 +955,7 @@ Item {
                     font.pointSize: Theme.fontSmall
                     color: Theme.text
                     Layout.fillWidth: true
+                    elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                 }
                 Text {
@@ -933,6 +963,7 @@ Item {
                     font.pixelSize: 11
                     color: Theme.muted
                     visible: text !== ""
+                    Layout.minimumWidth: implicitWidth
                     verticalAlignment: Text.AlignVCenter
                 }
                 IconCheck {

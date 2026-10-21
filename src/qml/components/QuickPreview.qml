@@ -1088,6 +1088,7 @@ Item {
                                 color: Theme.text
                                 font.pointSize: Theme.fontNormal
                                 font.bold: true
+                                elide: Text.ElideRight
                             }
 
                             Text {

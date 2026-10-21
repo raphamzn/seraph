@@ -78,6 +78,7 @@ Rectangle {
             color: Theme.subtext
             font.pointSize: Theme.fontSmall
             verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
         }
 
         Text {

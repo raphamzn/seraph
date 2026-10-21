@@ -55,7 +55,10 @@ Item {
             color: Q.Theme.textPrimary
             font.pixelSize: Q.Theme.fontSize
             font.family: Q.Theme.fontFamily
-            Layout.preferredWidth: 140
+            // Aligns the buttons across rows; a longer label widens its column
+            // rather than running under the button.
+            Layout.preferredWidth: Math.max(140, implicitWidth)
+            elide: Text.ElideRight
         }
         Rectangle {
             id: buttonRect
