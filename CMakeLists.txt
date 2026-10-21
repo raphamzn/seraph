@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(seraph VERSION 0.4.26 LANGUAGES CXX)
+project(seraph VERSION 0.7.0 LANGUAGES CXX)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0 gio-unix-2.0)
