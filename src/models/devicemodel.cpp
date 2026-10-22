@@ -577,7 +577,7 @@ void DeviceModel::refresh()
             total = b.size;
         }
 
-        m_devices.append({name, b.device, mountPoint, b.idType.toLower(),
+        m_devices.append({name, b.device, mountPoint, b.idType.toLower(), drive.connectionBus,
                           total, free, usage, removable, mounted,
                           QString(), DeviceBackend::UDisks2, nullptr, nullptr});
     }
@@ -645,7 +645,7 @@ void DeviceModel::refresh()
             if (name.isEmpty())
                 name = QCoreApplication::translate("DeviceModel", "Mobile Device");
 
-            gioDevices.append({name, key, uri, scheme,
+            gioDevices.append({name, key, uri, scheme, QString(),
                                total, free, usage, removable, true,
                                QString(), DeviceBackend::Gio, nullptr,
                                G_MOUNT(g_object_ref(mount))});
@@ -703,7 +703,7 @@ void DeviceModel::refresh()
             if (name.isEmpty())
                 name = QCoreApplication::translate("DeviceModel", "Mobile Device");
 
-            gioDevices.append({name, key, QString(), scheme,
+            gioDevices.append({name, key, QString(), scheme, QString(),
                                0, 0, 0, true, false,
                                QString(), DeviceBackend::Gio,
                                G_VOLUME(g_object_ref(volume)), nullptr});
@@ -723,7 +723,7 @@ void DeviceModel::refresh()
             if (name.isEmpty())
                 name = QStringLiteral("iPhone");
 
-            gioDevices.append({name, rootUri, QString(), QStringLiteral("afc"),
+            gioDevices.append({name, rootUri, QString(), QStringLiteral("afc"), QString(),
                                0, 0, 0, true, false,
                                buildAfcUri(udid, 3), DeviceBackend::Gio, nullptr, nullptr});
         }
@@ -999,8 +999,24 @@ QVariant DeviceModel::data(const QModelIndex &index, int role) const
     case BackendRole:      return d.backend == DeviceBackend::Gio
                                 ? QStringLiteral("gio")
                                 : QStringLiteral("udisks2");
+    case FsTypeRole:       return d.fsType;
+    case BusLabelRole:     return busLabel(d.connectionBus);
     }
     return {};
+}
+
+QString DeviceModel::busLabel(const QString &bus)
+{
+    const QString b = bus.toLower();
+    if (b == QLatin1String("usb"))
+        return QStringLiteral("USB");
+    if (b == QLatin1String("nvme"))
+        return QStringLiteral("NVMe");
+    if (b == QLatin1String("sata") || b == QLatin1String("ata"))
+        return QStringLiteral("SATA");
+    if (b == QLatin1String("sdio") || b == QLatin1String("mmc"))
+        return QStringLiteral("SD");
+    return QString();
 }
 
 QHash<int, QByteArray> DeviceModel::roleNames() const
@@ -1015,5 +1031,7 @@ QHash<int, QByteArray> DeviceModel::roleNames() const
         {RemovableRole,    "removable"},
         {MountedRole,      "mounted"},
         {BackendRole,      "backend"},
+        {FsTypeRole,       "fsType"},
+        {BusLabelRole,     "busLabel"},
     };
 }

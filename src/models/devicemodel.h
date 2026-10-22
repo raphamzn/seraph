@@ -17,7 +17,8 @@ struct DeviceEntry {
     QString deviceName;
     QString devicePath;   // block device path, e.g. /dev/nvme0n1p5
     QString mountPoint;   // empty if unmounted
-    QString fsType;       // e.g. "ntfs", "ext4" — used for error messages
+    QString fsType;       // e.g. "ntfs", "ext4" — shown on the card, used for error messages
+    QString connectionBus; // UDisks2 Drive.ConnectionBus: usb, nvme, sata, …; empty for gvfs
     qint64  totalSize;
     qint64  freeSpace;
     int     usagePercent;
@@ -44,6 +45,8 @@ public:
         RemovableRole,
         MountedRole,
         BackendRole,
+        FsTypeRole,
+        BusLabelRole,
     };
 
     explicit DeviceModel(QObject *parent = nullptr, bool deferInitialRefresh = false);
@@ -55,6 +58,9 @@ public:
 
     Q_INVOKABLE void unmount(int index);
     Q_INVOKABLE void mount(int index);
+    // Human label for a UDisks2 connection bus: usb → "USB", nvme → "NVMe",
+    // sata/ata → "SATA", sdio/mmc → "SD", anything else → "".
+    static QString busLabel(const QString &bus);
 
 public slots:
     void refresh();

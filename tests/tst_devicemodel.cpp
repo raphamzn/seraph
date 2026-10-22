@@ -36,8 +36,10 @@ private slots:
         QCOMPARE(roles.value(DeviceModel::RemovableRole),    QByteArray("removable"));
         QCOMPARE(roles.value(DeviceModel::MountedRole),      QByteArray("mounted"));
         QCOMPARE(roles.value(DeviceModel::BackendRole),      QByteArray("backend"));
+        QCOMPARE(roles.value(DeviceModel::FsTypeRole),       QByteArray("fsType"));
+        QCOMPARE(roles.value(DeviceModel::BusLabelRole),     QByteArray("busLabel"));
 
-        QCOMPARE(roles.size(), 9);
+        QCOMPARE(roles.size(), 11);
     }
 
     void testRootDevicePresent()
@@ -65,6 +67,19 @@ private slots:
         int usage = model.data(idx, DeviceModel::UsagePercentRole).toInt();
         QVERIFY(usage >= 0);
         QVERIFY(usage <= 100);
+        QVERIFY2(!model.data(idx, DeviceModel::FsTypeRole).toString().isEmpty(), "root filesystem type unknown");
+    }
+
+    void testBusLabelMapping()
+    {
+        QCOMPARE(DeviceModel::busLabel("usb"), QString("USB"));
+        QCOMPARE(DeviceModel::busLabel("nvme"), QString("NVMe"));
+        QCOMPARE(DeviceModel::busLabel("sata"), QString("SATA"));
+        QCOMPARE(DeviceModel::busLabel("ata"), QString("SATA"));
+        QCOMPARE(DeviceModel::busLabel("sdio"), QString("SD"));
+        QCOMPARE(DeviceModel::busLabel("mmc"), QString("SD"));
+        QCOMPARE(DeviceModel::busLabel(""), QString());
+        QCOMPARE(DeviceModel::busLabel("ieee1394"), QString());
     }
 
     void testNoVirtualFilesystems()
