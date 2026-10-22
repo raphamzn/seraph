@@ -12,6 +12,9 @@ Item {
     property string baseDir: ""
     property string fileName: ""
     property bool showOutline: true
+    // Narrow hosts such as the Miller preview column: tighter margins and
+    // no meta strip, since the host already shows the file's details.
+    property bool compact: false
     // Space kept clear above the outline for overlays the host draws there.
     property real outlineTopInset: 0
     // Width of overlays the host draws at the top-right; the meta strip
@@ -58,7 +61,7 @@ Item {
     readonly property bool outlineVisible: showOutline && outlineAvailable
     readonly property real outlineWidth: outlineVisible ? outlineRailWidth : 0
     readonly property real readingWidth: Math.round(720 * Theme.uiScale)
-    readonly property real horizontalMargin: Math.round((outlineVisible ? 20 : 28) * Theme.uiScale)
+    readonly property real horizontalMargin: Math.round((compact ? 10 : (outlineVisible ? 20 : 28)) * Theme.uiScale)
 
     readonly property color dividerColor: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.10)
     readonly property color cardColor: Qt.rgba(Theme.crust.r, Theme.crust.g, Theme.crust.b, 0.55)
@@ -378,7 +381,7 @@ Item {
             id: content
             width: Math.min(flick.width - 2 * root.horizontalMargin, root.readingWidth)
             x: Math.round((flick.width - width) / 2)
-            y: Math.round(18 * Theme.uiScale)
+            y: Math.round((root.compact ? 6 : 18) * Theme.uiScale)
             spacing: Math.round(14 * Theme.uiScale)
 
             // Meta strip: what the reader is about to read. Narrowed by
@@ -386,6 +389,7 @@ Item {
             Flow {
                 readonly property real intrusion: Math.max(0,
                     (content.x + content.width) - (root.width - root.headerRightInset))
+                visible: !root.compact
                 width: parent.width - intrusion
                 spacing: 6
 

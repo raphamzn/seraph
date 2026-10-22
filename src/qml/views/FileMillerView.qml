@@ -1348,9 +1348,8 @@ FocusScope {
                                "patch", "cmake", "qml", "mk", "desktop"]
                 return textExt.indexOf(ext) >= 0
             }
-            // Markdown gets rendered (headings, bold, lists) instead of shown
-            // as raw source. Qt's TextEdit renders CommonMark natively via
-            // TextEdit.MarkdownText, so no external tool is involved.
+            // Markdown gets rendered as a document (MarkdownView, the same
+            // component as the quick preview) instead of shown as raw source.
             readonly property bool isMarkdown: {
                 if (!isText) return false
                 if (_mime === "text/markdown" || _mime === "text/x-markdown") return true
@@ -1360,6 +1359,8 @@ FocusScope {
             }
             // Let the user peek at the raw source of a rendered markdown file.
             property bool markdownShowSource: false
+            readonly property bool markdownRendered: isText && isMarkdown && !markdownShowSource
+                && textPreview.error === "" && !textPreview.isBinary
 
             // Directory of the markdown file — used to resolve relative image paths.
             readonly property string markdownBaseDir: {
@@ -1367,23 +1368,6 @@ FocusScope {
                     return ""
                 var idx = previewFilePath.lastIndexOf("/")
                 return idx > 0 ? previewFilePath.substring(0, idx) : ""
-            }
-
-            // Rewrite relative image paths (![alt](rel.png)) to absolute file:// URLs
-            // so TextEdit.MarkdownText can load images sitting next to the document.
-            function resolveMarkdownImages(content, baseDir) {
-                if (!content || !baseDir)
-                    return content
-                return content.replace(/(!\[[^\]]*\]\()\s*([^)\s]+)([^)]*\))/g,
-                    function(match, pre, url, post) {
-                        if (/^([a-zA-Z][a-zA-Z0-9+.\-]*:|\/|#)/.test(url))
-                            return match
-                        // Only baseDir is a filesystem path and needs encoding;
-                        // rel comes from the document and is already URL syntax,
-                        // so re-encoding it would double any escape the author wrote.
-                        var rel = url.replace(/^\.\//, "")
-                        return pre + MediaUrl.file(baseDir) + "/" + rel + post
-                    })
             }
 
             readonly property string previewFileName: {
@@ -1776,6 +1760,23 @@ FocusScope {
                     }
 
                     // Text preview
+                    // Rendered markdown: the same document view as the quick
+                    // preview, in compact form for the narrow column. The
+                    // flickable below keeps the raw source and every other text file.
+                    MarkdownView {
+                        id: millerMarkdownView
+                        anchors.fill: parent
+                        anchors.margins: 6
+                        anchors.topMargin: mdPills.occupied ? mdPills.height + mdPills.anchors.topMargin + 6 : 6
+                        visible: previewColumn.markdownRendered
+                        compact: true
+                        showOutline: false
+                        source: visible ? previewColumn.textPreview.content : ""
+                        baseDir: previewColumn.markdownBaseDir
+                        fileName: previewColumn.previewFileName
+                        onCopyRequested: (text) => fileOps.copyTextToClipboard(text)
+                    }
+
                     Flickable {
                         id: textPreviewFlick
                         anchors.fill: parent
@@ -1786,6 +1787,7 @@ FocusScope {
                         anchors.topMargin: mdPills.occupied ? mdPills.height + mdPills.anchors.topMargin + 6 : 6
                         visible: previewColumn.isText && !previewColumn.hasVisualPreview
                             && !previewColumn.previewIsDir && !previewColumn.isPdf && !previewColumn.isArchive
+                            && !previewColumn.markdownRendered
                         clip: true
                         interactive: true
                         boundsMovement: Flickable.StopAtBounds
@@ -1795,36 +1797,26 @@ FocusScope {
 
                         TextEdit {
                             id: textArea
-                            // Rendered markdown when it's a .md file and the user
-                            // hasn't flipped to "view source".
-                            readonly property bool renderMarkdown: previewColumn.isMarkdown
-                                && !previewColumn.markdownShowSource
                             readOnly: true
                             selectByMouse: true
-                            // Rendered markdown wraps to the column; source/code
-                            // keeps its natural width and scrolls horizontally.
-                            width: renderMarkdown
-                                ? textPreviewFlick.width
-                                : Math.max(implicitWidth, textPreviewFlick.width)
+                            // Source and code keep their natural width and scroll
+                            // horizontally; rendered markdown is millerMarkdownView.
+                            width: Math.max(implicitWidth, textPreviewFlick.width)
                             height: Math.max(implicitHeight, textPreviewFlick.height)
-                            textFormat: renderMarkdown
-                                ? TextEdit.MarkdownText
-                                : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
-                                    ? TextEdit.RichText
-                                    : TextEdit.PlainText)
+                            textFormat: previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
+                                ? TextEdit.RichText
+                                : TextEdit.PlainText
                             text: previewColumn.textPreview.error !== ""
                                 ? previewColumn.textPreview.error
                                 : (previewColumn.textPreview.isBinary
                                     ? qsTr("This file looks binary and cannot be previewed as text.")
-                                    : (renderMarkdown
-                                        ? previewColumn.resolveMarkdownImages(previewColumn.textPreview.content, previewColumn.markdownBaseDir)
-                                        : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
-                                            ? previewColumn.textPreview.html
-                                            : previewColumn.textPreview.content)))
+                                    : (previewColumn.textPreview.usesBat && previewColumn.textPreview.html !== ""
+                                        ? previewColumn.textPreview.html
+                                        : previewColumn.textPreview.content))
                             color: Theme.text
-                            wrapMode: renderMarkdown ? TextEdit.Wrap : TextEdit.NoWrap
-                            font.family: renderMarkdown ? Qt.application.font.family : "monospace"
-                            font.pointSize: renderMarkdown ? Theme.fontNormal : Theme.fontSmall - 1
+                            wrapMode: TextEdit.NoWrap
+                            font.family: "monospace"
+                            font.pointSize: Theme.fontSmall - 1
 
                             onCursorRectangleChanged: {
                                 var r = cursorRectangle
@@ -1937,7 +1929,7 @@ FocusScope {
                             && !previewColumn.textPreview.isBinary
                             && !previewColumn.textPreview.usesBat
                             && !previewColumn.textHighlightAvailable
-                            && !textArea.renderMarkdown
+                            && !previewColumn.markdownRendered
                         text: runtimeFeatures.installHint("textHighlight")
                         color: Theme.subtext
                         font.pointSize: Theme.fontSmall
