@@ -1780,6 +1780,10 @@ FocusScope {
                         id: textPreviewFlick
                         anchors.fill: parent
                         anchors.margins: 6
+                        // The copy/source pills float top-right; start the text
+                        // below them so a long first line (an H1, a wide line of
+                        // code) is never hidden under them.
+                        anchors.topMargin: mdPills.occupied ? mdPills.height + mdPills.anchors.topMargin + 6 : 6
                         visible: previewColumn.isText && !previewColumn.hasVisualPreview
                             && !previewColumn.previewIsDir && !previewColumn.isPdf && !previewColumn.isArchive
                         clip: true
@@ -1846,12 +1850,14 @@ FocusScope {
 
                     // Copy + rendered/source pills for text/markdown previews.
                     Row {
+                        id: mdPills
                         anchors.top: parent.top
                         anchors.right: parent.right
                         anchors.topMargin: 10
                         anchors.rightMargin: 14
                         z: 5
                         spacing: 8
+                        readonly property bool occupied: mdCopyPill.visible || mdToggle.visible
 
                         // Copy the raw text/source to the clipboard.
                         Rectangle {
