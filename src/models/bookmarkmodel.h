@@ -29,6 +29,7 @@ public:
 
     void setBookmarks(const QStringList &paths);
     QStringList paths() const;
+    QStringList expandedPaths() const;   // as PathRole reports them
 
     // Styles keyed like ConfigManager::bookmarkStyles(); unknown colour roles
     // degrade to none. setStyle() is the user's edit and is reported through

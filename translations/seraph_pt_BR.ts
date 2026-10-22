@@ -2,6 +2,35 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pt_BR" sourcelanguage="en">
 <context>
+    <name>BookmarkStatsService</name>
+    <message>
+        <source>now</source>
+        <translation>agora</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n min</source>
+        <translation>
+            <numerusform>%n min</numerusform>
+            <numerusform>%n min</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>today</source>
+        <translation>hoje</translation>
+    </message>
+    <message>
+        <source>yesterday</source>
+        <translation>ontem</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n d</source>
+        <translation>
+            <numerusform>%n d</numerusform>
+            <numerusform>%n d</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>Breadcrumb</name>
     <message>
         <source>Breadcrumb navigation: %1</source>

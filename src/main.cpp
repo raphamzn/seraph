@@ -44,6 +44,7 @@
 #include "models/filesystemmodel.h"
 #include "models/tablistmodel.h"
 #include "models/bookmarkmodel.h"
+#include "services/bookmarkstatsservice.h"
 #include "models/devicemodel.h"
 #include "models/recentfilesmodel.h"
 #include "models/searchresultsmodel.h"
@@ -279,6 +280,15 @@ int main(int argc, char *argv[])
         config->saveBookmarkStyle(key, icon, color, label);
     });
 
+    // Item counts for the pinned-folder cards; follows the pinned list and
+    // the hidden-files setting.
+    auto *bookmarkStats = new BookmarkStatsService(&app);
+    bookmarkStats->setIncludeHidden(config->showHidden());
+    bookmarkStats->setPaths(bookmarks->expandedPaths());
+    QObject::connect(bookmarks, &BookmarkModel::bookmarksChanged, bookmarkStats, [=]() {
+        bookmarkStats->setPaths(bookmarks->expandedPaths());
+    });
+
     FileOperations *fileOps = new FileOperations(&app);
     UndoManager *undoManager = new UndoManager(fileOps, &app);
     ClipboardManager *clipboard = new ClipboardManager(&app);
@@ -345,6 +355,8 @@ int main(int argc, char *argv[])
         theme->setTheme(config->theme(), config->lightTheme(), config->darkTheme());
         bookmarks->setBookmarks(config->bookmarks());
         bookmarks->setStyles(config->bookmarkStyles());
+        bookmarkStats->setPaths(bookmarks->expandedPaths());
+        bookmarkStats->setIncludeHidden(config->showHidden());
         fsModel->setShowHidden(config->showHidden());
         splitFsModel->setShowHidden(config->showHidden());
         millerParentModel->setShowHidden(config->showHidden());
@@ -416,6 +428,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("theme", theme);
     engine.rootContext()->setContextProperty("tabModel", tabModel);
     engine.rootContext()->setContextProperty("bookmarks", bookmarks);
+    engine.rootContext()->setContextProperty("bookmarkStats", bookmarkStats);
     engine.rootContext()->setContextProperty("fileOps", fileOps);
     engine.rootContext()->setContextProperty("undoManager", undoManager);
     engine.rootContext()->setContextProperty("clipboard", clipboard);

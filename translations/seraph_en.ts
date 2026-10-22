@@ -2,6 +2,23 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en">
 <context>
+    <name>BookmarkStatsService</name>
+    <message numerus="yes">
+        <source>%n min</source>
+        <translation>
+            <numerusform>%n min</numerusform>
+            <numerusform>%n min</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n d</source>
+        <translation>
+            <numerusform>%n d</numerusform>
+            <numerusform>%n d</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>BulkRenameDialog</name>
     <message numerus="yes">
         <source>%n item(s) selected</source>

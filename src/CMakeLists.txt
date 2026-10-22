@@ -19,6 +19,7 @@ set(SERAPH_SOURCES
     models/searchresultsmodel.cpp
     models/searchproxymodel.cpp
     services/searchservice.cpp
+    services/bookmarkstatsservice.cpp
     services/undomanager.cpp
     services/previewservice.cpp
     services/bathighlighter.cpp

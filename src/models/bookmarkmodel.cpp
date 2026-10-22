@@ -231,6 +231,14 @@ QStringList BookmarkModel::paths() const
     return result;
 }
 
+QStringList BookmarkModel::expandedPaths() const
+{
+    QStringList result;
+    for (const auto &bm : m_bookmarks)
+        result.append(bm.path);
+    return result;
+}
+
 void BookmarkModel::addBookmark(const QString &path)
 {
     QString expanded = expandPath(path);
