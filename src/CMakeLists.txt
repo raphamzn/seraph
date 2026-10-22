@@ -98,6 +98,7 @@ set(SERAPH_QML_FILES
         qml/components/Sidebar.qml
         qml/components/SidebarSectionHeader.qml
         qml/components/SidebarPinnedCard.qml
+        qml/components/SidebarDiskCard.qml
         qml/components/IconCatalog.qml
         qml/components/FileTabBar.qml
         qml/components/Breadcrumb.qml

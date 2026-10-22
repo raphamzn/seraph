@@ -1000,12 +1000,12 @@ QVariant DeviceModel::data(const QModelIndex &index, int role) const
                                 ? QStringLiteral("gio")
                                 : QStringLiteral("udisks2");
     case FsTypeRole:       return d.fsType;
-    case BusLabelRole:     return busLabel(d.connectionBus);
+    case BusLabelRole:     return busLabel(d.connectionBus, d.devicePath);
     }
     return {};
 }
 
-QString DeviceModel::busLabel(const QString &bus)
+QString DeviceModel::busLabel(const QString &bus, const QString &devicePath)
 {
     const QString b = bus.toLower();
     if (b == QLatin1String("usb"))
@@ -1016,6 +1016,16 @@ QString DeviceModel::busLabel(const QString &bus)
         return QStringLiteral("SATA");
     if (b == QLatin1String("sdio") || b == QLatin1String("mmc"))
         return QStringLiteral("SD");
+    if (!b.isEmpty())
+        return QString();
+
+    const QString node = devicePath.startsWith(QLatin1String("/dev/")) ? devicePath.mid(5) : QString();
+    if (node.startsWith(QLatin1String("nvme")))
+        return QStringLiteral("NVMe");
+    if (node.startsWith(QLatin1String("mmcblk")))
+        return QStringLiteral("SD");
+    if (node.startsWith(QLatin1String("sd")))
+        return QStringLiteral("SATA");
     return QString();
 }
 

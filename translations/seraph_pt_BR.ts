@@ -2843,13 +2843,20 @@
         <source>Disks</source>
         <translation>Discos</translation>
     </message>
+</context>
+<context>
+    <name>SidebarDiskCard</name>
     <message>
-        <source>%1 free of %2 (%3% used)</source>
-        <translation>%1 livres de %2 (%3% em uso)</translation>
+        <source>%1 free</source>
+        <translation>%1 livres</translation>
     </message>
     <message>
-        <source>Not mounted — click to mount</source>
-        <translation>Não montado — clique para montar</translation>
+        <source>Click to mount</source>
+        <translation>Clique para montar</translation>
+    </message>
+    <message>
+        <source>%1 used</source>
+        <translation>%1 usados</translation>
     </message>
 </context>
 <context>

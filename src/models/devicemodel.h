@@ -59,8 +59,10 @@ public:
     Q_INVOKABLE void unmount(int index);
     Q_INVOKABLE void mount(int index);
     // Human label for a UDisks2 connection bus: usb → "USB", nvme → "NVMe",
-    // sata/ata → "SATA", sdio/mmc → "SD", anything else → "".
-    static QString busLabel(const QString &bus);
+    // sata/ata → "SATA", sdio/mmc → "SD". UDisks2 leaves ConnectionBus empty
+    // for internal drives, so an empty bus is inferred from the device node
+    // (/dev/nvme* → NVMe, /dev/mmcblk* → SD, /dev/sd* → SATA); otherwise "".
+    static QString busLabel(const QString &bus, const QString &devicePath = QString());
 
 public slots:
     void refresh();

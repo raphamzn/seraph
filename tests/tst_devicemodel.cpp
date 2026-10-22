@@ -80,6 +80,12 @@ private slots:
         QCOMPARE(DeviceModel::busLabel("mmc"), QString("SD"));
         QCOMPARE(DeviceModel::busLabel(""), QString());
         QCOMPARE(DeviceModel::busLabel("ieee1394"), QString());
+        // UDisks2 reports an empty ConnectionBus for internal drives: infer from the device node
+        QCOMPARE(DeviceModel::busLabel("", "/dev/nvme0n1p2"), QString("NVMe"));
+        QCOMPARE(DeviceModel::busLabel("", "/dev/mmcblk0p1"), QString("SD"));
+        QCOMPARE(DeviceModel::busLabel("", "/dev/sda1"), QString("SATA"));
+        QCOMPARE(DeviceModel::busLabel("usb", "/dev/sdb1"), QString("USB"));
+        QCOMPARE(DeviceModel::busLabel("", "sftp://host/x"), QString());
     }
 
     void testNoVirtualFilesystems()

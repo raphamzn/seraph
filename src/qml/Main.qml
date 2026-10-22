@@ -3384,7 +3384,6 @@ ApplicationWindow {
                 Sidebar {
                     width: root.sidebarWidth
                     height: parent.height
-                    tooltipLayer: sidebarTooltipLayer
                     currentPath: panePath(activePane)
                     trashPath: root.unifiedTrashPath
                     isRecentsView: root.isRecentsView
