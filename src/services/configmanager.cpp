@@ -241,6 +241,7 @@ void ConfigManager::setDefaults()
     m_sortAscending = true;
     m_rememberSortPerFolder = true;
     m_rememberViewPerFolder = true;
+    m_sidebarItemCounts = true;
     m_sidebarPosition = "left";
     m_sidebarWidth = 200;
     m_sidebarVisible = true;
@@ -324,6 +325,8 @@ void ConfigManager::loadConfig()
             m_rememberSortPerFolder = *v;
         if (auto v = config["general"]["remember_view_per_folder"].value<bool>())
             m_rememberViewPerFolder = *v;
+        if (auto v = config["general"]["sidebar_item_counts"].value<bool>())
+            m_sidebarItemCounts = *v;
 
         if (auto v = config["sidebar"]["position"].value<std::string>())
             m_sidebarPosition = QString::fromStdString(*v);
@@ -396,6 +399,23 @@ void ConfigManager::loadConfig()
                     m_bookmarks.append(QString::fromStdString(*v));
             }
         }
+        m_bookmarkStyles.clear();
+        if (auto styles = config["bookmarks"]["style"].as_table()) {
+            for (const auto &[key, node] : *styles) {
+                if (auto entry = node.as_table()) {
+                    QVariantMap style;
+                    for (const char *field : {"icon", "color", "label"}) {
+                        if (auto v = (*entry)[field].value<std::string>()) {
+                            const QString value = QString::fromStdString(*v);
+                            if (!value.isEmpty())
+                                style.insert(QLatin1String(field), value);
+                        }
+                    }
+                    if (!style.isEmpty())
+                        m_bookmarkStyles.insert(QString::fromStdString(std::string(key)), style);
+                }
+            }
+        }
 
         m_customContextActions.clear();
         if (auto arr = config["context_menu"]["actions"].as_array()) {
@@ -454,6 +474,7 @@ QString ConfigManager::sortBy() const { return m_sortBy; }
 bool ConfigManager::sortAscending() const { return m_sortAscending; }
 bool ConfigManager::rememberSortPerFolder() const { return m_rememberSortPerFolder; }
 bool ConfigManager::rememberViewPerFolder() const { return m_rememberViewPerFolder; }
+bool ConfigManager::sidebarItemCounts() const { return m_sidebarItemCounts; }
 QString ConfigManager::sidebarPosition() const { return m_sidebarPosition; }
 int ConfigManager::sidebarWidth() const { return m_sidebarWidth; }
 bool ConfigManager::sidebarVisible() const { return m_sidebarVisible; }
@@ -467,6 +488,13 @@ int ConfigManager::detailedSizeWidth() const { return m_detailedSizeWidth; }
 int ConfigManager::detailedModifiedWidth() const { return m_detailedModifiedWidth; }
 int ConfigManager::detailedTypeWidth() const { return m_detailedTypeWidth; }
 QStringList ConfigManager::bookmarks() const { return m_bookmarks; }
+QVariantMap ConfigManager::bookmarkStyles() const
+{
+    QVariantMap out;
+    for (auto it = m_bookmarkStyles.cbegin(); it != m_bookmarkStyles.cend(); ++it)
+        out.insert(it.key(), it.value());
+    return out;
+}
 int ConfigManager::radiusSmall() const { return m_radiusSmall; }
 int ConfigManager::radiusMedium() const { return m_radiusMedium; }
 int ConfigManager::radiusLarge() const { return m_radiusLarge; }
@@ -645,6 +673,11 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     if (settings.contains("rememberViewPerFolder")) {
         m_rememberViewPerFolder = settings.value("rememberViewPerFolder").toBool();
         general.insert_or_assign("remember_view_per_folder", m_rememberViewPerFolder);
+    }
+
+    if (settings.contains("sidebarItemCounts")) {
+        m_sidebarItemCounts = settings.value("sidebarItemCounts").toBool();
+        general.insert_or_assign("sidebar_item_counts", m_sidebarItemCounts);
     }
 
     if (!general.empty())
@@ -1025,10 +1058,40 @@ void ConfigManager::saveShortcuts(const QVariantMap &shortcuts)
     emit configChanged();
 }
 
-void ConfigManager::saveBookmarks(const QStringList &paths)
+// The [bookmarks] table holds the pin order in `paths` and one optional
+// style sub-table per pinned path. Both writers rebuild the whole table from
+// m_bookmarks / m_bookmarkStyles so neither can wipe the other's part, and a
+// style whose path is no longer pinned is dropped on the way out.
+namespace {
+toml::table bookmarksTable(const QStringList &paths, const QMap<QString, QVariantMap> &styles)
 {
-    m_bookmarks = paths;
+    toml::array arr;
+    for (const auto &p : paths)
+        arr.push_back(p.toStdString());
 
+    toml::table styleTable;
+    for (auto it = styles.cbegin(); it != styles.cend(); ++it) {
+        if (!paths.contains(it.key()))
+            continue;
+        toml::table entry;
+        for (const char *field : {"icon", "color", "label"}) {
+            const QString value = it.value().value(QLatin1String(field)).toString();
+            if (!value.isEmpty())
+                entry.insert_or_assign(field, value.toStdString());
+        }
+        if (!entry.empty())
+            styleTable.insert_or_assign(it.key().toStdString(), std::move(entry));
+    }
+
+    toml::table table{{"paths", std::move(arr)}};
+    if (!styleTable.empty())
+        table.insert_or_assign("style", std::move(styleTable));
+    return table;
+}
+} // namespace
+
+void ConfigManager::writeBookmarksSection()
+{
     const bool wasWatchingConfig = m_watcher.files().contains(m_configPath);
     if (wasWatchingConfig)
         m_watcher.removePath(m_configPath);
@@ -1041,11 +1104,15 @@ void ConfigManager::saveBookmarks(const QStringList &paths)
         } catch (...) {}
     }
 
-    // Update bookmarks array
-    toml::array arr;
-    for (const auto &p : paths)
-        arr.push_back(p.toStdString());
-    config.insert_or_assign("bookmarks", toml::table{{"paths", std::move(arr)}});
+    // Prune styles of paths that are no longer pinned
+    for (auto it = m_bookmarkStyles.begin(); it != m_bookmarkStyles.end();) {
+        if (m_bookmarks.contains(it.key()))
+            ++it;
+        else
+            it = m_bookmarkStyles.erase(it);
+    }
+
+    config.insert_or_assign("bookmarks", bookmarksTable(m_bookmarks, m_bookmarkStyles));
 
     // Write back
     std::ofstream ofs(m_configPath.toStdString());
@@ -1056,6 +1123,35 @@ void ConfigManager::saveBookmarks(const QStringList &paths)
 
     if (QFile::exists(m_configPath))
         m_watcher.addPath(m_configPath);
+}
+
+void ConfigManager::saveBookmarks(const QStringList &paths)
+{
+    m_bookmarks = paths;
+    writeBookmarksSection();
+}
+
+void ConfigManager::saveBookmarkStyle(const QString &path, const QString &icon,
+                                      const QString &color, const QString &label)
+{
+    if (path.isEmpty())
+        return;
+
+    QVariantMap style;
+    if (!icon.isEmpty())
+        style.insert(QStringLiteral("icon"), icon);
+    if (!color.isEmpty())
+        style.insert(QStringLiteral("color"), color);
+    if (!label.isEmpty())
+        style.insert(QStringLiteral("label"), label);
+
+    if (style.isEmpty())
+        m_bookmarkStyles.remove(path);
+    else
+        m_bookmarkStyles.insert(path, style);
+
+    writeBookmarksSection();
+    emit configChanged();
 }
 
 void ConfigManager::saveSidebarWidth(int width)

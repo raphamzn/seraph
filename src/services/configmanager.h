@@ -30,6 +30,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(bool sortAscending READ sortAscending NOTIFY configChanged)
     Q_PROPERTY(bool rememberSortPerFolder READ rememberSortPerFolder NOTIFY configChanged)
     Q_PROPERTY(bool rememberViewPerFolder READ rememberViewPerFolder NOTIFY configChanged)
+    Q_PROPERTY(bool sidebarItemCounts READ sidebarItemCounts NOTIFY configChanged)
     Q_PROPERTY(QString sidebarPosition READ sidebarPosition NOTIFY configChanged)
     Q_PROPERTY(int sidebarWidth READ sidebarWidth NOTIFY configChanged)
     Q_PROPERTY(bool sidebarVisible READ sidebarVisible NOTIFY configChanged)
@@ -92,6 +93,7 @@ public:
     bool sortAscending() const;
     bool rememberSortPerFolder() const;
     bool rememberViewPerFolder() const;
+    bool sidebarItemCounts() const;
     QString sidebarPosition() const;
     int sidebarWidth() const;
     bool sidebarVisible() const;
@@ -113,6 +115,9 @@ public:
     double readerZoom() const;
     QString readerEditor() const;
     QStringList bookmarks() const;
+    // Per-bookmark style, keyed by the path exactly as it appears in
+    // bookmarks(); each value holds only the keys present: icon, color, label.
+    QVariantMap bookmarkStyles() const;
     int radiusSmall() const;
     int radiusMedium() const;
     int radiusLarge() const;
@@ -149,6 +154,9 @@ public:
     Q_INVOKABLE void setFolderView(const QString &path, const QString &view);
     Q_INVOKABLE void saveShortcuts(const QVariantMap &shortcuts);
     Q_INVOKABLE void saveBookmarks(const QStringList &paths);
+    // Empty strings drop that key; an entry left without keys is removed.
+    Q_INVOKABLE void saveBookmarkStyle(const QString &path, const QString &icon,
+                                       const QString &color, const QString &label);
     Q_INVOKABLE void saveSidebarWidth(int width);
     Q_INVOKABLE void savePreviewInfoPanel(int width, bool visible);
     Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
@@ -161,6 +169,7 @@ signals:
 private:
     void loadConfig();
     void setDefaults();
+    void writeBookmarksSection();
     QString folderPrefsStorePath() const;
     QString legacyFolderSortStorePath() const;
     void loadFolderPrefs();
@@ -190,6 +199,7 @@ private:
     bool m_sortAscending;
     bool m_rememberSortPerFolder;
     bool m_rememberViewPerFolder;
+    bool m_sidebarItemCounts;
     QString m_sidebarPosition;
     int m_sidebarWidth;
     bool m_sidebarVisible;
@@ -203,6 +213,7 @@ private:
     double m_readerZoom;
     QString m_readerEditor;
     QStringList m_bookmarks;
+    QMap<QString, QVariantMap> m_bookmarkStyles;
     int m_radiusSmall;
     int m_radiusMedium;
     int m_gridSpacing;

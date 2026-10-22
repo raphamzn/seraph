@@ -1105,6 +1105,100 @@ private slots:
         QCOMPARE(mgr2.folderSortBy(dir.path()), QString("size"));
     }
 
+    // --- Bookmark styles / sidebar item counts ---
+
+    void testBookmarkStylesParse()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[bookmarks]\n"
+                "paths = ['~/Projetos', '~/Videos']\n"
+                "[bookmarks.style.'~/Projetos']\n"
+                "icon = \"Terminal\"\n"
+                "color = \"accent\"\n"
+                "label = \"Code\"\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        const QVariantMap styles = mgr.bookmarkStyles();
+        QCOMPARE(styles.size(), 1);
+        const QVariantMap s = styles.value("~/Projetos").toMap();
+        QCOMPARE(s.value("icon").toString(), QString("Terminal"));
+        QCOMPARE(s.value("color").toString(), QString("accent"));
+        QCOMPARE(s.value("label").toString(), QString("Code"));
+    }
+
+    void testSaveBookmarkStyleRoundTrip()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        mgr.saveBookmarks({"~/Projetos"});
+        mgr.saveBookmarkStyle("~/Projetos", "Star", "warning", "");
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.bookmarks(), QStringList{"~/Projetos"});
+        const QVariantMap s = mgr2.bookmarkStyles().value("~/Projetos").toMap();
+        QCOMPARE(s.value("icon").toString(), QString("Star"));
+        QCOMPARE(s.value("color").toString(), QString("warning"));
+        QVERIFY(!s.contains("label"));
+    }
+
+    void testSaveBookmarksKeepsStyles()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        mgr.saveBookmarks({"~/A", "~/B"});
+        mgr.saveBookmarkStyle("~/B", "Music", "", "");
+        mgr.saveBookmarks({"~/B", "~/A"});
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.bookmarks(), QStringList({"~/B", "~/A"}));
+        QCOMPARE(mgr2.bookmarkStyles().value("~/B").toMap().value("icon").toString(), QString("Music"));
+    }
+
+    void testSaveBookmarksPrunesOrphanStyles()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        mgr.saveBookmarks({"~/A", "~/B"});
+        mgr.saveBookmarkStyle("~/B", "Music", "", "");
+        mgr.saveBookmarks({"~/A"});
+
+        ConfigManager mgr2(path);
+        QVERIFY(!mgr2.bookmarkStyles().contains("~/B"));
+    }
+
+    void testSaveBookmarkStyleEmptyRemovesEntry()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        mgr.saveBookmarks({"~/A"});
+        mgr.saveBookmarkStyle("~/A", "Star", "", "");
+        mgr.saveBookmarkStyle("~/A", "", "", "");
+
+        ConfigManager mgr2(path);
+        QVERIFY(!mgr2.bookmarkStyles().contains("~/A"));
+        QCOMPARE(mgr2.bookmarks(), QStringList{"~/A"});
+    }
+
+    void testSidebarItemCountsDefaultAndRoundTrip()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        ConfigManager mgr(path);
+        QCOMPARE(mgr.sidebarItemCounts(), true);
+        mgr.saveSettings(QVariantMap{{"sidebarItemCounts", false}});
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.sidebarItemCounts(), false);
+    }
+
     // --- File watcher reload ---
 
     void testConfigFileWatcherReload()
