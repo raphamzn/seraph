@@ -42,15 +42,15 @@
   <screenshots>
     <screenshot type="default">
       <caption>Grid view with themed sidebar</caption>
-      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/grid-view.png</image>
+      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.8.0/docs/screenshots/grid-view.png</image>
     </screenshot>
     <screenshot>
       <caption>Miller column view with syntax-highlighted preview</caption>
-      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/miller-view.png</image>
+      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.8.0/docs/screenshots/miller-view.png</image>
     </screenshot>
     <screenshot>
       <caption>Quick preview rendering Markdown as a document</caption>
-      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/quick-preview.png</image>
+      <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.8.0/docs/screenshots/quick-preview.png</image>
     </screenshot>
   </screenshots>
 
@@ -66,6 +66,11 @@
   </provides>
 
   <releases>
+    <release version="0.8.0" date="2026-10-21">
+      <description>
+        <p>Folders remember their view as well as their sort, Create Link in the context menu with undo, a Flatpak bundle on the release page, Markdown in the Miller preview rendered with the same document view as the quick preview, new screenshots, and fixes to the Miller preview pills and the release smoke test.</p>
+      </description>
+    </release>
     <release version="0.7.0" date="2026-10-21">
       <description>
         <p>First release under the Seraph name: a standalone Markdown reader (seraph --view) and document-style Markdown previews, an interface language setting with a Brazilian Portuguese translation, a theme that follows the system light/dark preference, fuzzy quick-open (Ctrl+P), git branch in the status bar, Open in editor, resizable columns, and many fixes.</p>
