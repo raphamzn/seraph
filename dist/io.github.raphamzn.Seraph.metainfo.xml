@@ -41,15 +41,15 @@
 
   <screenshots>
     <screenshot type="default">
-      <caption>Grid view with file preview</caption>
+      <caption>Grid view with themed sidebar</caption>
       <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/grid-view.png</image>
     </screenshot>
     <screenshot>
-      <caption>Miller column view</caption>
+      <caption>Miller column view with syntax-highlighted preview</caption>
       <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/miller-view.png</image>
     </screenshot>
     <screenshot>
-      <caption>Quick preview overlay</caption>
+      <caption>Quick preview rendering Markdown as a document</caption>
       <image>https://raw.githubusercontent.com/raphamzn/seraph/v0.7.0/docs/screenshots/quick-preview.png</image>
     </screenshot>
   </screenshots>

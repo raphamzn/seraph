@@ -20,7 +20,7 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland and niri: l
 <div align="center">
 
 ![Grid view](docs/screenshots/grid-view.png)
-*Grid view with built-in icon set, themed sidebar, and live preview blur*
+*Grid view with themed sidebar, git status badges, and window translucency*
 
 </div>
 
@@ -84,7 +84,7 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland and niri: l
 <div align="center">
 
 ![Quick preview](docs/screenshots/quick-preview.png)
-*Quick preview overlay (Space) — image preview with full metadata sidebar*
+*Quick preview overlay (Space): Markdown rendered as a document, with reading stats and a clickable outline*
 
 </div>
 
