@@ -17,6 +17,10 @@ Rectangle {
     signal sidebarContextMenuRequested(var item, point position)
     signal recentsClicked()
     signal featureHintRequested(string message)
+    // Header "+": pin the active pane's folder. Main binds whether that is
+    // possible (local folder, not pinned yet) and performs the pin.
+    property bool canPinCurrent: false
+    signal pinCurrentRequested()
 
     // Quick-access entries are identified by their English name (the
     // click handlers compare against it); only the label is translated.
@@ -244,13 +248,38 @@ Rectangle {
                     color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
                 }
 
+                SidebarSectionHeader {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Theme.spacing
+                    visible: bookmarks.count > 0 || root.canPinCurrent
+                    title: qsTr("Pinned")
+                    showAdd: true
+                    addEnabled: root.canPinCurrent
+                    onAddClicked: root.pinCurrentRequested()
+                }
+
                 // Bookmarks section — drag folders to add, drag items to reorder
                 Item {
                     id: bookmarksSection
                     Layout.fillWidth: true
                     implicitHeight: bookmarksList.height
 
-                    readonly property int rowHeight: 32
+                    // Every pinned card shares one height: 44 px with the stats
+                    // line, 32 px without, so the index arithmetic below holds.
+                    readonly property int rowHeight: config.sidebarItemCounts ? 44 : 32
+                    property string dragIcon: "Folder"
+                    property string dragColor: ""
+
+                    // Second line of a card once the stats service has scanned the
+                    // folder; the revision argument re-binds the text on updates.
+                    function statsText(path, revision) {
+                        var s = bookmarkStats.statsFor(path)
+                        if (!s || s.itemCount < 0)
+                            return ""
+                        var count = qsTr("%n item(s)", "", s.itemCount)
+                        var when = bookmarkStats.relativeTime(s.modified)
+                        return when ? count + " · " + when : count
+                    }
                     readonly property bool externalDragActive:
                         bookmarkDropArea.containsDrag
                         && bookmarkDropArea._extDropIndex >= 0
@@ -356,7 +385,7 @@ Rectangle {
                             width: bookmarksList.width
                             height: bookmarksSection.rowHeight
 
-                            Rectangle {
+                            SidebarPinnedCard {
                                 id: bmDelegate
                                 width: parent.width - Theme.spacing
                                 anchors.horizontalCenter: parent.horizontalCenter
@@ -367,41 +396,15 @@ Rectangle {
                                 opacity: bookmarksSection.dragCurrentIndex === index ? 0.35 : 1.0
                                 Behavior on opacity { NumberAnimation { duration: 120 } }
 
-                                readonly property bool isActive:
-                                    !root.isRecentsView && model.path === root.currentPath
-
-                                color: {
-                                    if (isActive) return Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
-                                    if (bmInteraction.hoverIndex === index && bookmarksSection.dragCurrentIndex < 0)
-                                        return Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.07)
-                                    return "transparent"
-                                }
-                                radius: Theme.radiusSmall
-                                Behavior on color { ColorAnimation { duration: Theme.animDuration } }
-
-                                Row {
-                                    anchors.left: parent.left
-                                    anchors.leftMargin: Theme.spacing
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: Theme.spacing
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: Theme.spacing
-
-                                    Loader {
-                                        width: 18; height: 18
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        sourceComponent: iconFolder
-                                    }
-
-                                    Text {
-                                        text: model.name
-                                        color: bmDelegate.isActive ? Theme.accent : Theme.text
-                                        font.pointSize: Theme.fontNormal
-                                        verticalAlignment: Text.AlignVCenter
-                                        elide: Text.ElideRight
-                                        width: parent.width - 18 - Theme.spacing
-                                    }
-                                }
+                                active: !root.isRecentsView && model.path === root.currentPath
+                                hovered: bmInteraction.hoverIndex === index && bookmarksSection.dragCurrentIndex < 0
+                                showSecondary: config.sidebarItemCounts
+                                label: model.name
+                                quillIcon: model.quillIcon
+                                colorRole: model.colorRole
+                                secondary: model.isRemote
+                                    ? model.remoteHint
+                                    : bookmarksSection.statsText(model.path, bookmarkStats.revision)
                             }
                         }
                     }
@@ -423,28 +426,11 @@ Rectangle {
                         Behavior on y { NumberAnimation { duration: 150; easing.type: Theme.animEasingEnter; easing.bezierCurve: Theme.animBezierCurve } }
                         Behavior on opacity { NumberAnimation { duration: 120 } }
 
-                        Row {
-                            anchors.left: parent.left
-                            anchors.leftMargin: Theme.spacing
-                            anchors.right: parent.right
-                            anchors.rightMargin: Theme.spacing
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: Theme.spacing
-
-                            Loader {
-                                width: 18; height: 18
-                                anchors.verticalCenter: parent.verticalCenter
-                                sourceComponent: iconFolder
-                            }
-
-                            Text {
-                                text: bookmarksSection.externalDragName
-                                color: Theme.text
-                                font.pointSize: Theme.fontNormal
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                                width: parent.width - 18 - Theme.spacing
-                            }
+                        SidebarPinnedCard {
+                            anchors.fill: parent
+                            showBackground: false
+                            showSecondary: false
+                            label: bookmarksSection.externalDragName
                         }
                     }
 
@@ -478,6 +464,10 @@ Rectangle {
                                 bookmarksSection.dragCurrentIndex = pressIndex
                                 bookmarksSection.dragName = bookmarks.data(
                                     bookmarks.index(pressIndex, 0), 257 /* NameRole */) || ""
+                                bookmarksSection.dragIcon = bookmarks.data(
+                                    bookmarks.index(pressIndex, 0), 261 /* QuillIconRole */) || "Folder"
+                                bookmarksSection.dragColor = bookmarks.data(
+                                    bookmarks.index(pressIndex, 0), 262 /* ColorRoleRole */) || ""
                             }
                             if (isDragging) {
                                 bookmarksSection.dragMouseY = mouse.y
@@ -549,34 +539,15 @@ Rectangle {
                                              bookmarksList.height - height))
                         opacity: 0.9
 
-                        Row {
-                            anchors.left: parent.left
-                            anchors.leftMargin: Theme.spacing
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: Theme.spacing
-
-                            Loader {
-                                width: 18; height: 18
-                                anchors.verticalCenter: parent.verticalCenter
-                                sourceComponent: iconFolder
-                            }
-                            Text {
-                                text: bookmarksSection.dragName
-                                color: Theme.text
-                                font.pointSize: Theme.fontNormal
-                            }
+                        SidebarPinnedCard {
+                            anchors.fill: parent
+                            showBackground: false
+                            showSecondary: false
+                            label: bookmarksSection.dragName
+                            quillIcon: bookmarksSection.dragIcon
+                            colorRole: bookmarksSection.dragColor
                         }
                     }
-                }
-
-                // Separator between bookmarks and devices
-                Rectangle {
-                    visible: bookmarks.count > 0
-                    Layout.fillWidth: true
-                    Layout.leftMargin: Theme.spacing
-                    Layout.rightMargin: Theme.spacing
-                    height: 1
-                    color: Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.08)
                 }
 
                 // Auto-navigate after mounting an unmounted device
@@ -587,11 +558,19 @@ Rectangle {
                     }
                 }
 
+                SidebarSectionHeader {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Theme.spacing
+                    visible: deviceRepeater.count > 0
+                    title: qsTr("Disks")
+                }
+
                 // Devices section
                 Column {
                     Layout.fillWidth: true
 
                     Repeater {
+                        id: deviceRepeater
                         model: devices
 
                         delegate: Rectangle {

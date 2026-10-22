@@ -134,6 +134,7 @@ Window {
     property bool draftRememberSortPerFolder: config.rememberSortPerFolder
     property string draftDefaultView: config.defaultView
     property bool draftRememberViewPerFolder: config.rememberViewPerFolder
+    property bool draftSidebarItemCounts: config.sidebarItemCounts
     property string draftStartupLocation: config.startupLocation
 
     // Helpers to decompose the layout string for the UI
@@ -385,6 +386,7 @@ Window {
             draftRememberSortPerFolder = config.rememberSortPerFolder
             draftDefaultView = config.defaultView
             draftRememberViewPerFolder = config.rememberViewPerFolder
+            draftSidebarItemCounts = config.sidebarItemCounts
             draftStartupLocation = config.startupLocation
         } finally {
             syncingFromConfig = false
@@ -454,6 +456,7 @@ Window {
             rememberSortPerFolder: draftRememberSortPerFolder,
             defaultView: draftDefaultView,
             rememberViewPerFolder: draftRememberViewPerFolder,
+            sidebarItemCounts: draftSidebarItemCounts,
             startupLocation: draftStartupLocation
         }
     }
@@ -830,6 +833,17 @@ Window {
                 checked: root.draftSidebarPosition === "right"
                 onToggled: (value) => {
                     root.draftSidebarPosition = value ? "right" : "left"
+                    root.applySettingsNow()
+                }
+            }
+
+            Q.Toggle {
+                Layout.fillWidth: true
+                label: qsTr("Show item counts in the sidebar")
+                enabled: root.draftSidebarVisible
+                checked: root.draftSidebarItemCounts
+                onToggled: (value) => {
+                    root.draftSidebarItemCounts = value
                     root.applySettingsNow()
                 }
             }

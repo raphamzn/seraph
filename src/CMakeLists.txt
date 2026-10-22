@@ -75,6 +75,7 @@ endif()
 
 set_source_files_properties(qml/theme/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/theme/MediaUrl.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/components/IconCatalog.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 option(SERAPH_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
 
@@ -95,6 +96,9 @@ set(SERAPH_QML_FILES
         qml/components/StatusBar.qml
         qml/components/OperationsBar.qml
         qml/components/Sidebar.qml
+        qml/components/SidebarSectionHeader.qml
+        qml/components/SidebarPinnedCard.qml
+        qml/components/IconCatalog.qml
         qml/components/FileTabBar.qml
         qml/components/Breadcrumb.qml
         qml/components/Toolbar.qml

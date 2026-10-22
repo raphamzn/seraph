@@ -2495,6 +2495,10 @@
         <translation>Barra lateral à direita</translation>
     </message>
     <message>
+        <source>Show item counts in the sidebar</source>
+        <translation>Mostrar contagem de itens na barra lateral</translation>
+    </message>
+    <message>
         <source>Sidebar width</source>
         <translation>Largura da barra lateral</translation>
     </message>
@@ -2820,6 +2824,10 @@
         <source>Downloads</source>
         <translation>Downloads</translation>
     </message>
+    <message>
+        <source>Pinned</source>
+        <translation>Fixadas</translation>
+    </message>
     <message numerus="yes">
         <source>%n item(s)</source>
         <translation>
@@ -2830,6 +2838,10 @@
     <message>
         <source>New bookmark</source>
         <translation>Novo favorito</translation>
+    </message>
+    <message>
+        <source>Disks</source>
+        <translation>Discos</translation>
     </message>
     <message>
         <source>%1 free of %2 (%3% used)</source>

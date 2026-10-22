@@ -3388,6 +3388,9 @@ ApplicationWindow {
                     currentPath: panePath(activePane)
                     trashPath: root.unifiedTrashPath
                     isRecentsView: root.isRecentsView
+                    canPinCurrent: (bookmarks.count, !root.isRecentsView && !root.isTrashView && !root.isRemoteView
+                        && panePath(activePane) !== "" && !bookmarks.containsPath(panePath(activePane)))
+                    onPinCurrentRequested: bookmarks.addBookmark(panePath(activePane))
                     onBookmarkClicked: (path) => {
                         root.navigateActivePaneTo(path)
                     }
