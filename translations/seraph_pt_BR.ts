@@ -1127,20 +1127,6 @@
     </message>
 </context>
 <context>
-    <name>LanguageFixture</name>
-    <message>
-        <source>Settings</source>
-        <translation>Configurações</translation>
-    </message>
-    <message numerus="yes">
-        <source>%n file(s)</source>
-        <translation>
-            <numerusform>%n arquivo</numerusform>
-            <numerusform>%n arquivos</numerusform>
-        </translation>
-    </message>
-</context>
-<context>
     <name>Main</name>
     <message>
         <source>Trash</source>
@@ -2308,6 +2294,18 @@
         <translation>Tipo</translation>
     </message>
     <message>
+        <source>Grid</source>
+        <translation>Grade</translation>
+    </message>
+    <message>
+        <source>Detailed</source>
+        <translation>Detalhada</translation>
+    </message>
+    <message>
+        <source>Miller</source>
+        <translation>Miller</translation>
+    </message>
+    <message>
         <source>Automatic (%1)</source>
         <translation>Automático (%1)</translation>
     </message>
@@ -2434,6 +2432,14 @@
     <message>
         <source>Show hidden files</source>
         <translation>Mostrar arquivos ocultos</translation>
+    </message>
+    <message>
+        <source>Default view</source>
+        <translation>Visualização padrão</translation>
+    </message>
+    <message>
+        <source>Remember view per folder</source>
+        <translation>Lembrar a visualização de cada pasta</translation>
     </message>
     <message>
         <source>Show sidebar</source>

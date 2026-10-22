@@ -29,6 +29,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString sortBy READ sortBy NOTIFY configChanged)
     Q_PROPERTY(bool sortAscending READ sortAscending NOTIFY configChanged)
     Q_PROPERTY(bool rememberSortPerFolder READ rememberSortPerFolder NOTIFY configChanged)
+    Q_PROPERTY(bool rememberViewPerFolder READ rememberViewPerFolder NOTIFY configChanged)
     Q_PROPERTY(QString sidebarPosition READ sidebarPosition NOTIFY configChanged)
     Q_PROPERTY(int sidebarWidth READ sidebarWidth NOTIFY configChanged)
     Q_PROPERTY(bool sidebarVisible READ sidebarVisible NOTIFY configChanged)
@@ -90,6 +91,7 @@ public:
     QString sortBy() const;
     bool sortAscending() const;
     bool rememberSortPerFolder() const;
+    bool rememberViewPerFolder() const;
     QString sidebarPosition() const;
     int sidebarWidth() const;
     bool sidebarVisible() const;
@@ -132,13 +134,19 @@ public:
     QVariantList customContextActions() const;
     Q_INVOKABLE QString shortcut(const QString &action) const;
     Q_INVOKABLE void saveSettings(const QVariantMap &settings);
-    // Per-folder sort memory. The getters resolve to the global default
+    // Per-folder memory. The sort getters resolve to the global default
     // (sortBy/sortAscending) when per-folder memory is off or the folder has
-    // no stored entry.
+    // no stored sort. folderView() returns an empty string in the same cases,
+    // meaning "keep the view you already have": unlike the sort, the view is
+    // never reset to the default when entering a folder without memory.
+    // Miller is a navigation mode of the tab, not a per-folder view, so
+    // setFolderView() ignores it.
     Q_INVOKABLE QString folderSortBy(const QString &path) const;
     Q_INVOKABLE bool folderSortAscending(const QString &path) const;
     Q_INVOKABLE void setFolderSort(const QString &path, const QString &sortBy,
                                    bool ascending);
+    Q_INVOKABLE QString folderView(const QString &path) const;
+    Q_INVOKABLE void setFolderView(const QString &path, const QString &view);
     Q_INVOKABLE void saveShortcuts(const QVariantMap &shortcuts);
     Q_INVOKABLE void saveBookmarks(const QStringList &paths);
     Q_INVOKABLE void saveSidebarWidth(int width);
@@ -153,12 +161,14 @@ signals:
 private:
     void loadConfig();
     void setDefaults();
-    QString folderSortStorePath() const;
-    void loadFolderSort();
-    void saveFolderSort() const;
+    QString folderPrefsStorePath() const;
+    QString legacyFolderSortStorePath() const;
+    void loadFolderPrefs();
+    void saveFolderPrefs() const;
 
-    // path -> {"by": QString, "ascending": bool}
-    QMap<QString, QVariantMap> m_folderSort;
+    // path -> {"by": QString, "ascending": bool, "view": QString}; every key
+    // is optional, so a folder can remember only its sort or only its view.
+    QMap<QString, QVariantMap> m_folderPrefs;
 
     QString m_configPath;
     QStringList m_themeDirs;
@@ -179,6 +189,7 @@ private:
     QString m_sortBy;
     bool m_sortAscending;
     bool m_rememberSortPerFolder;
+    bool m_rememberViewPerFolder;
     QString m_sidebarPosition;
     int m_sidebarWidth;
     bool m_sidebarVisible;

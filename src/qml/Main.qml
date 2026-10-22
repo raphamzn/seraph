@@ -40,6 +40,9 @@ ApplicationWindow {
     property string transferDestinationPath: ""
     property var transferReservedTargets: ({})
     property bool paneFocusScheduled: false
+    // Set while applyFolderView() pushes a remembered view onto the tab, so
+    // onViewModeChanged does not write it back as a user choice.
+    property bool applyingFolderView: false
     readonly property string unifiedTrashPath: "trash:///"
     readonly property bool isTrashView: fileOps.isTrashPath(panePath(activePane))
     readonly property bool isRemoteView: fileOps.isRemotePath(panePath(activePane))
@@ -59,6 +62,7 @@ ApplicationWindow {
                 if (tabModel.activeTab.splitViewEnabled)
                     splitFsModel.setRootPath(tabModel.activeTab.secondaryCurrentPath)
                 root.applyFolderSort(tabModel.activeTab.currentPath)
+                root.applyFolderView(tabModel.activeTab.currentPath)
                 root.applyActiveTabSort()
                 root.scheduleActivePaneFocus()
             }
@@ -78,6 +82,7 @@ ApplicationWindow {
                 root.setPaneRecents("primary", false)
                 root.clearPaneSearch("primary")
                 root.applyFolderSort(tabModel.activeTab.currentPath)
+                root.applyFolderView(tabModel.activeTab.currentPath)
                 root.scheduleActivePaneFocus()
             }
         }
@@ -95,11 +100,18 @@ ApplicationWindow {
         function onViewModeChanged() {
             if (tabModel.activeTab) {
                 root.syncMillerParentModel(tabModel.activeTab.currentPath)
-                // Persist as the global default so the next launch (and new
-                // tabs) open in this view. The guard skips a redundant write
-                // when the mode was just seeded from the saved default.
-                if (config.defaultView !== tabModel.activeTab.viewMode)
+                if (config.rememberViewPerFolder) {
+                    // A user switch is remembered for this folder (Miller is
+                    // skipped by setFolderView); the global default is only
+                    // changed from Settings.
+                    if (!root.applyingFolderView)
+                        config.setFolderView(tabModel.activeTab.currentPath, tabModel.activeTab.viewMode)
+                } else if (config.defaultView !== tabModel.activeTab.viewMode) {
+                    // Persist as the global default so the next launch (and new
+                    // tabs) open in this view. The guard skips a redundant write
+                    // when the mode was just seeded from the saved default.
                     config.saveSettings({ "defaultView": tabModel.activeTab.viewMode })
+                }
             }
             root.scheduleActivePaneFocus()
         }
@@ -129,6 +141,7 @@ ApplicationWindow {
             // Re-resolve sort in case the default or remember toggle changed.
             if (tabModel.activeTab) {
                 root.applyFolderSort(tabModel.activeTab.currentPath)
+                root.applyFolderView(tabModel.activeTab.currentPath)
                 root.applyActiveTabSort()
             }
         }
@@ -142,6 +155,7 @@ ApplicationWindow {
                 splitFsModel.setRootPath(tabModel.activeTab.secondaryCurrentPath)
             root.syncMillerParentModel(tabModel.activeTab.currentPath)
             root.applyFolderSort(tabModel.activeTab.currentPath)
+            root.applyFolderView(tabModel.activeTab.currentPath)
             root.applyActiveTabSort()
         }
 
@@ -879,6 +893,27 @@ ApplicationWindow {
 
         tabModel.activeTab.sortBy = config.folderSortBy(path)
         tabModel.activeTab.sortAscending = config.folderSortAscending(path)
+    }
+
+    // Switch the active tab to the view remembered for a folder, if any. No
+    // memory means the tab keeps the view it already has: unlike the sort,
+    // the view is never reset to the default, so browsing a tree in detailed
+    // view does not flip back to grid at every subfolder. Miller is a
+    // navigation mode of the tab: moving between folders inside it never
+    // switches the view out from under the user.
+    function applyFolderView(path) {
+        if (!tabModel.activeTab || !config || !config.rememberViewPerFolder)
+            return
+        if (tabModel.activeTab.viewMode === "miller")
+            return
+
+        var view = config.folderView(path)
+        if (!view || view === "miller" || view === tabModel.activeTab.viewMode)
+            return
+
+        root.applyingFolderView = true
+        tabModel.activeTab.viewMode = view
+        root.applyingFolderView = false
     }
 
     // Single entry point for a user-initiated sort change (context menu or

@@ -159,7 +159,7 @@ ConfigManager::ConfigManager(const QString &configPath, QObject *parent,
 {
     setDefaults();
     loadConfig();
-    loadFolderSort();
+    loadFolderPrefs();
 
     if (QFile::exists(m_configPath)) {
         m_watcher.addPath(m_configPath);
@@ -240,6 +240,7 @@ void ConfigManager::setDefaults()
     m_sortBy = "name";
     m_sortAscending = true;
     m_rememberSortPerFolder = true;
+    m_rememberViewPerFolder = true;
     m_sidebarPosition = "left";
     m_sidebarWidth = 200;
     m_sidebarVisible = true;
@@ -321,6 +322,8 @@ void ConfigManager::loadConfig()
             m_sortAscending = *v;
         if (auto v = config["general"]["remember_sort_per_folder"].value<bool>())
             m_rememberSortPerFolder = *v;
+        if (auto v = config["general"]["remember_view_per_folder"].value<bool>())
+            m_rememberViewPerFolder = *v;
 
         if (auto v = config["sidebar"]["position"].value<std::string>())
             m_sidebarPosition = QString::fromStdString(*v);
@@ -450,6 +453,7 @@ bool ConfigManager::showHidden() const { return m_showHidden; }
 QString ConfigManager::sortBy() const { return m_sortBy; }
 bool ConfigManager::sortAscending() const { return m_sortAscending; }
 bool ConfigManager::rememberSortPerFolder() const { return m_rememberSortPerFolder; }
+bool ConfigManager::rememberViewPerFolder() const { return m_rememberViewPerFolder; }
 QString ConfigManager::sidebarPosition() const { return m_sidebarPosition; }
 int ConfigManager::sidebarWidth() const { return m_sidebarWidth; }
 bool ConfigManager::sidebarVisible() const { return m_sidebarVisible; }
@@ -636,6 +640,11 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     if (settings.contains("rememberSortPerFolder")) {
         m_rememberSortPerFolder = settings.value("rememberSortPerFolder").toBool();
         general.insert_or_assign("remember_sort_per_folder", m_rememberSortPerFolder);
+    }
+
+    if (settings.contains("rememberViewPerFolder")) {
+        m_rememberViewPerFolder = settings.value("rememberViewPerFolder").toBool();
+        general.insert_or_assign("remember_view_per_folder", m_rememberViewPerFolder);
     }
 
     if (!general.empty())
@@ -842,18 +851,31 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
     emit configChanged();
 }
 
-QString ConfigManager::folderSortStorePath() const
+QString ConfigManager::folderPrefsStorePath() const
+{
+    return QFileInfo(m_configPath).dir().filePath(QStringLiteral("folder_prefs.json"));
+}
+
+// The store was called folder_sort.json while it only held the sort; it is
+// read once more so existing entries carry over, then folder_prefs.json takes
+// over. The old file is left alone.
+QString ConfigManager::legacyFolderSortStorePath() const
 {
     return QFileInfo(m_configPath).dir().filePath(QStringLiteral("folder_sort.json"));
 }
 
-void ConfigManager::loadFolderSort()
+void ConfigManager::loadFolderPrefs()
 {
-    m_folderSort.clear();
+    m_folderPrefs.clear();
 
-    QFile f(folderSortStorePath());
-    if (!f.open(QIODevice::ReadOnly))
-        return;
+    bool migrated = false;
+    QFile f(folderPrefsStorePath());
+    if (!f.open(QIODevice::ReadOnly)) {
+        f.setFileName(legacyFolderSortStorePath());
+        if (!f.open(QIODevice::ReadOnly))
+            return;
+        migrated = true;
+    }
 
     const QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
     f.close();
@@ -871,27 +893,38 @@ void ConfigManager::loadFolderSort()
             continue;
         }
         const QJsonObject entry = it.value().toObject();
-        m_folderSort.insert(path, QVariantMap{
-            {QStringLiteral("by"), entry.value(QStringLiteral("by")).toString(QStringLiteral("name"))},
-            {QStringLiteral("ascending"), entry.value(QStringLiteral("ascending")).toBool(true)},
-        });
+        QVariantMap prefs;
+        if (entry.contains(QStringLiteral("by"))) {
+            prefs.insert(QStringLiteral("by"), entry.value(QStringLiteral("by")).toString(QStringLiteral("name")));
+            prefs.insert(QStringLiteral("ascending"), entry.value(QStringLiteral("ascending")).toBool(true));
+        }
+        const QString view = entry.value(QStringLiteral("view")).toString();
+        if (!view.isEmpty())
+            prefs.insert(QStringLiteral("view"), view);
+        if (!prefs.isEmpty())
+            m_folderPrefs.insert(path, prefs);
     }
 
-    if (pruned)
-        saveFolderSort();
+    if (pruned || migrated)
+        saveFolderPrefs();
 }
 
-void ConfigManager::saveFolderSort() const
+void ConfigManager::saveFolderPrefs() const
 {
     QJsonObject obj;
-    for (auto it = m_folderSort.constBegin(); it != m_folderSort.constEnd(); ++it) {
-        obj.insert(it.key(), QJsonObject{
-            {QStringLiteral("by"), it.value().value(QStringLiteral("by")).toString()},
-            {QStringLiteral("ascending"), it.value().value(QStringLiteral("ascending")).toBool()},
-        });
+    for (auto it = m_folderPrefs.constBegin(); it != m_folderPrefs.constEnd(); ++it) {
+        const QVariantMap &prefs = it.value();
+        QJsonObject entry;
+        if (prefs.contains(QStringLiteral("by"))) {
+            entry.insert(QStringLiteral("by"), prefs.value(QStringLiteral("by")).toString());
+            entry.insert(QStringLiteral("ascending"), prefs.value(QStringLiteral("ascending")).toBool());
+        }
+        if (prefs.contains(QStringLiteral("view")))
+            entry.insert(QStringLiteral("view"), prefs.value(QStringLiteral("view")).toString());
+        obj.insert(it.key(), entry);
     }
 
-    QSaveFile f(folderSortStorePath());
+    QSaveFile f(folderPrefsStorePath());
     if (f.open(QIODevice::WriteOnly)) {
         f.write(QJsonDocument(obj).toJson(QJsonDocument::Compact));
         f.commit();
@@ -900,15 +933,21 @@ void ConfigManager::saveFolderSort() const
 
 QString ConfigManager::folderSortBy(const QString &path) const
 {
-    if (m_rememberSortPerFolder && m_folderSort.contains(path))
-        return m_folderSort.value(path).value(QStringLiteral("by")).toString();
+    if (m_rememberSortPerFolder) {
+        const QVariantMap prefs = m_folderPrefs.value(path);
+        if (prefs.contains(QStringLiteral("by")))
+            return prefs.value(QStringLiteral("by")).toString();
+    }
     return m_sortBy;
 }
 
 bool ConfigManager::folderSortAscending(const QString &path) const
 {
-    if (m_rememberSortPerFolder && m_folderSort.contains(path))
-        return m_folderSort.value(path).value(QStringLiteral("ascending")).toBool();
+    if (m_rememberSortPerFolder) {
+        const QVariantMap prefs = m_folderPrefs.value(path);
+        if (prefs.contains(QStringLiteral("by")))
+            return prefs.value(QStringLiteral("ascending")).toBool();
+    }
     return m_sortAscending;
 }
 
@@ -918,11 +957,29 @@ void ConfigManager::setFolderSort(const QString &path, const QString &sortBy,
     if (path.isEmpty())
         return;
 
-    m_folderSort.insert(path, QVariantMap{
-        {QStringLiteral("by"), sortBy},
-        {QStringLiteral("ascending"), ascending},
-    });
-    saveFolderSort();
+    QVariantMap prefs = m_folderPrefs.value(path);
+    prefs.insert(QStringLiteral("by"), sortBy);
+    prefs.insert(QStringLiteral("ascending"), ascending);
+    m_folderPrefs.insert(path, prefs);
+    saveFolderPrefs();
+}
+
+QString ConfigManager::folderView(const QString &path) const
+{
+    if (!m_rememberViewPerFolder)
+        return QString();
+    return m_folderPrefs.value(path).value(QStringLiteral("view")).toString();
+}
+
+void ConfigManager::setFolderView(const QString &path, const QString &view)
+{
+    if (path.isEmpty() || view.isEmpty() || view == QLatin1String("miller"))
+        return;
+
+    QVariantMap prefs = m_folderPrefs.value(path);
+    prefs.insert(QStringLiteral("view"), view);
+    m_folderPrefs.insert(path, prefs);
+    saveFolderPrefs();
 }
 
 void ConfigManager::saveShortcuts(const QVariantMap &shortcuts)

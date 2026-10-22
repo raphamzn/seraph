@@ -65,6 +65,8 @@ Window {
     // Sort column dropdown: parallel label/value arrays.
     readonly property var sortByLabels: [qsTr("Name"), qsTr("Size"), qsTr("Modified"), qsTr("Type")]
     readonly property var sortByValues: ["name", "size", "modified", "type"]
+    readonly property var viewLabels: [qsTr("Grid"), qsTr("Detailed"), qsTr("Miller")]
+    readonly property var viewValues: ["grid", "detailed", "miller"]
 
     readonly property string defaultLanguage: "auto"
     // Language names are endonyms on purpose: someone stuck in a language they
@@ -130,6 +132,8 @@ Window {
     property string draftSortBy: config.sortBy
     property bool draftSortAscending: config.sortAscending
     property bool draftRememberSortPerFolder: config.rememberSortPerFolder
+    property string draftDefaultView: config.defaultView
+    property bool draftRememberViewPerFolder: config.rememberViewPerFolder
     property string draftStartupLocation: config.startupLocation
 
     // Helpers to decompose the layout string for the UI
@@ -379,6 +383,8 @@ Window {
             draftSortBy = config.sortBy
             draftSortAscending = config.sortAscending
             draftRememberSortPerFolder = config.rememberSortPerFolder
+            draftDefaultView = config.defaultView
+            draftRememberViewPerFolder = config.rememberViewPerFolder
             draftStartupLocation = config.startupLocation
         } finally {
             syncingFromConfig = false
@@ -446,6 +452,8 @@ Window {
             sortBy: draftSortBy,
             sortAscending: draftSortAscending,
             rememberSortPerFolder: draftRememberSortPerFolder,
+            defaultView: draftDefaultView,
+            rememberViewPerFolder: draftRememberViewPerFolder,
             startupLocation: draftStartupLocation
         }
     }
@@ -780,6 +788,27 @@ Window {
                 checked: root.draftShowHidden
                 onToggled: (value) => {
                     root.draftShowHidden = value
+                    root.applySettingsNow()
+                }
+            }
+
+            AnchoredDropdown {
+                Layout.fillWidth: true
+                label: qsTr("Default view")
+                model: root.viewLabels
+                currentIndex: Math.max(0, root.viewValues.indexOf(root.draftDefaultView))
+                onSelected: (index, _) => {
+                    root.draftDefaultView = root.viewValues[index]
+                    root.applySettingsNow()
+                }
+            }
+
+            Q.Toggle {
+                Layout.fillWidth: true
+                label: qsTr("Remember view per folder")
+                checked: root.draftRememberViewPerFolder
+                onToggled: (value) => {
+                    root.draftRememberViewPerFolder = value
                     root.applySettingsNow()
                 }
             }

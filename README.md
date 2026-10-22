@@ -36,6 +36,7 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland and niri: l
 - **Image and video thumbnails** in detailed and Miller views
 - **Quick preview** (`Space`) — full-screen overlay for images, video, PDFs, text, with metadata sidebar. Markdown renders as a document: reading column, syntax-highlighted code cards with copy buttons, tables, task lists, front matter, and a clickable outline
 - **Split pane** (`F3`) — work in two directories side by side
+- **Per-folder memory** for sort order and view mode, so Pictures can stay a grid while Downloads stays a detailed list (each toggleable in Settings)
 
 <div align="center">
 

@@ -129,16 +129,6 @@
     </message>
 </context>
 <context>
-    <name>LanguageFixture</name>
-    <message numerus="yes">
-        <source>%n file(s)</source>
-        <translation>
-            <numerusform>%n file</numerusform>
-            <numerusform>%n files</numerusform>
-        </translation>
-    </message>
-</context>
-<context>
     <name>Main</name>
     <message numerus="yes">
         <source>%n item(s) will be permanently deleted. This cannot be undone.</source>

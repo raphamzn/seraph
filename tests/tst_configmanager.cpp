@@ -2,6 +2,7 @@
 #include <QTemporaryDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include "services/configmanager.h"
@@ -947,7 +948,7 @@ private slots:
     {
         QTemporaryDir dir;
         QString path = dir.path() + "/config.toml";
-        QString storePath = dir.path() + "/folder_sort.json";
+        QString storePath = dir.path() + "/folder_prefs.json";
         QString deadPath = dir.path() + "/gone";
 
         QFile f(storePath);
@@ -968,6 +969,140 @@ private slots:
 
         QVERIFY(contents.contains(dir.path()));
         QVERIFY(!contents.contains(deadPath));
+    }
+
+    // --- View per folder ---
+
+    void testRememberViewPerFolderDefault()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        QCOMPARE(mgr.rememberViewPerFolder(), true);
+    }
+
+    void testParseAndSaveRememberViewPerFolder()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[general]\n"
+                "remember_view_per_folder = false\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        QCOMPARE(mgr.rememberViewPerFolder(), false);
+
+        mgr.saveSettings(QVariantMap{{"rememberViewPerFolder", true}});
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.rememberViewPerFolder(), true);
+    }
+
+    void testFolderViewEmptyWithoutMemory()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+        // No entry → empty string: the caller keeps the view it already has
+        QCOMPARE(mgr.folderView(dir.path()), QString());
+    }
+
+    void testSetAndPersistFolderView()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        ConfigManager mgr(path);
+        mgr.setFolderView(dir.path(), "detailed");
+        QCOMPARE(mgr.folderView(dir.path()), QString("detailed"));
+
+        // A fresh manager reads the persisted per-folder store
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.folderView(dir.path()), QString("detailed"));
+    }
+
+    void testFolderViewIgnoredWhenRememberOff()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[general]\n"
+                "remember_view_per_folder = false\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        mgr.setFolderView(dir.path(), "detailed");
+        QCOMPARE(mgr.folderView(dir.path()), QString());
+    }
+
+    void testFolderViewNeverRemembersMiller()
+    {
+        QTemporaryDir dir;
+        ConfigManager mgr(dir.path() + "/config.toml");
+
+        mgr.setFolderView(dir.path(), "grid");
+        mgr.setFolderView(dir.path(), "miller");
+        QCOMPARE(mgr.folderView(dir.path()), QString("grid"));
+
+        mgr.setFolderView(dir.path(), "");
+        QCOMPARE(mgr.folderView(dir.path()), QString("grid"));
+    }
+
+    void testFolderViewAndSortShareOneEntry()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        QString other = dir.path() + "/other";
+        QVERIFY(QDir().mkpath(other));
+
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[general]\n"
+                "sort_by = \"size\"\n"
+                "sort_ascending = false\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        mgr.setFolderSort(dir.path(), "modified", true);
+        mgr.setFolderView(dir.path(), "detailed");
+        QCOMPARE(mgr.folderSortBy(dir.path()), QString("modified"));
+        QCOMPARE(mgr.folderSortAscending(dir.path()), true);
+        QCOMPARE(mgr.folderView(dir.path()), QString("detailed"));
+
+        // A view-only entry leaves the sort on the global default
+        mgr.setFolderView(other, "grid");
+        QCOMPARE(mgr.folderSortBy(other), QString("size"));
+        QCOMPARE(mgr.folderSortAscending(other), false);
+
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.folderView(dir.path()), QString("detailed"));
+        QCOMPARE(mgr2.folderSortBy(dir.path()), QString("modified"));
+        QCOMPARE(mgr2.folderView(other), QString("grid"));
+        QCOMPARE(mgr2.folderSortBy(other), QString("size"));
+    }
+
+    void testMigratesLegacyFolderSortStore()
+    {
+        QTemporaryDir dir;
+        QString path = dir.path() + "/config.toml";
+        QString legacyPath = dir.path() + "/folder_sort.json";
+
+        QFile f(legacyPath);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write(QString("{\"%1\":{\"by\":\"size\",\"ascending\":true}}")
+                    .arg(dir.path()).toUtf8());
+        f.close();
+
+        ConfigManager mgr(path);
+        QCOMPARE(mgr.folderSortBy(dir.path()), QString("size"));
+        QVERIFY(QFileInfo::exists(dir.path() + "/folder_prefs.json"));
+
+        // The new store stands on its own once written
+        QVERIFY(QFile::remove(legacyPath));
+        ConfigManager mgr2(path);
+        QCOMPARE(mgr2.folderSortBy(dir.path()), QString("size"));
     }
 
     // --- File watcher reload ---
