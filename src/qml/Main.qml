@@ -508,6 +508,7 @@ ApplicationWindow {
             && !settingsPanel.visible
             && !shortcutsDialog.visible
             && !renameDialog.visible
+            && !bookmarkStyleDialog.visible
             && !newFolderDialog.visible
             && !newFileDialog.visible
             && !conflictDialog.visible
@@ -3232,6 +3233,7 @@ ApplicationWindow {
                  && !settingsPanel.visible
                  && !shortcutsDialog.visible
                  && !renameDialog.visible
+                 && !bookmarkStyleDialog.visible
                  && !newFolderDialog.visible
                  && !newFileDialog.visible
                  && !deleteConfirmDialog.visible

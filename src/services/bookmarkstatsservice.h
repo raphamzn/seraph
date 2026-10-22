@@ -25,6 +25,9 @@ public:
 
     void setPaths(const QStringList &paths);
     void setIncludeHidden(bool includeHidden);
+    // While folders are pinned, revision also advances every interval so
+    // relative times ("now", "5 min") re-render without a file change.
+    void setTickInterval(int ms);
 
     // {"itemCount": int (-1 while unknown or unreadable), "modified": QDateTime}
     Q_INVOKABLE QVariantMap statsFor(const QString &path) const;
@@ -52,6 +55,7 @@ private:
     QHash<QString, Stats> m_stats;
     QSet<QString> m_pending;
     QTimer m_debounce;
+    QTimer m_tick;
     QFileSystemWatcher m_watcher;
     int m_revision = 0;
 };

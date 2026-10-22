@@ -116,6 +116,29 @@ private slots:
         QVERIFY(!svc.relativeTime(now.addDays(-30)).isEmpty());
         QCOMPARE(svc.relativeTime(QDateTime()), QString());
     }
+
+    void testRevisionTicksWhileFoldersArePinned()
+    {
+        // The cards' relative times ("now", "5 min") re-render through
+        // revision; without file changes it must still advance over time.
+        QTemporaryDir dir;
+        BookmarkStatsService svc;
+        svc.setTickInterval(50);
+        QSignalSpy spy(&svc, &BookmarkStatsService::statsChanged);
+        svc.setPaths({dir.path()});
+        QVERIFY(spy.wait(3000));
+        const int before = svc.revision();
+
+        QSignalSpy rev(&svc, &BookmarkStatsService::revisionChanged);
+        QVERIFY(rev.wait(1000));
+        QVERIFY(svc.revision() > before);
+
+        // Nothing pinned: the clock stops
+        svc.setPaths({});
+        rev.clear();
+        QTest::qWait(200);
+        QCOMPARE(rev.count(), 0);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestBookmarkStatsService)

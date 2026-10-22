@@ -9,6 +9,7 @@
 
 namespace {
 constexpr int kDebounceMs = 500;
+constexpr int kTickMs = 60 * 1000;
 }
 
 BookmarkStatsService::BookmarkStatsService(QObject *parent)
@@ -16,6 +17,11 @@ BookmarkStatsService::BookmarkStatsService(QObject *parent)
 {
     m_debounce.setSingleShot(true);
     connect(&m_debounce, &QTimer::timeout, this, &BookmarkStatsService::runPendingScans);
+    m_tick.setInterval(kTickMs);
+    connect(&m_tick, &QTimer::timeout, this, [this]() {
+        ++m_revision;
+        emit revisionChanged();
+    });
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, [this](const QString &path) {
         requestScan(path, kDebounceMs);
     });
@@ -52,6 +58,17 @@ void BookmarkStatsService::setPaths(const QStringList &paths)
         }
     }
     m_paths = local;
+    if (m_paths.isEmpty())
+        m_tick.stop();
+    else if (!m_tick.isActive())
+        m_tick.start();
+}
+
+void BookmarkStatsService::setTickInterval(int ms)
+{
+    m_tick.setInterval(qMax(1, ms));
+    if (m_tick.isActive())
+        m_tick.start();
 }
 
 void BookmarkStatsService::setIncludeHidden(bool includeHidden)

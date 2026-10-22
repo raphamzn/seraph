@@ -26,12 +26,15 @@ Item {
         ? Theme.error
         : usagePercent >= 75 ? Theme.warning : Theme.accent
     readonly property real usedBytes: Math.max(0, totalSize - freeSpace)
+    // gvfs mounts (MTP phones, network shares) report no sizes at all: no
+    // bar and no "free" figure for them, just the filesystem and bus.
+    readonly property bool hasSizes: mounted && totalSize > 0
     readonly property string footerText: mounted
-        ? [qsTr("%1 free").arg(Quill.Format.bytes(freeSpace)), fsType, busLabel]
+        ? [hasSizes ? qsTr("%1 free").arg(Quill.Format.bytes(freeSpace)) : "", fsType, busLabel]
               .filter(function(s) { return s !== "" }).join(" · ")
         : qsTr("Click to mount")
 
-    implicitHeight: mounted ? 58 : 40
+    implicitHeight: hasSizes ? 58 : 40
     height: implicitHeight
 
     Rectangle {
@@ -120,7 +123,7 @@ Item {
 
         // Usage bar with the used space written inside it
         Rectangle {
-            visible: card.mounted
+            visible: card.hasSizes
             Layout.fillWidth: true
             Layout.preferredHeight: 12
             radius: 6
