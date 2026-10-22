@@ -99,6 +99,7 @@ set(SERAPH_QML_FILES
         qml/components/SidebarSectionHeader.qml
         qml/components/SidebarPinnedCard.qml
         qml/components/SidebarDiskCard.qml
+        qml/components/BookmarkStyleDialog.qml
         qml/components/IconCatalog.qml
         qml/components/FileTabBar.qml
         qml/components/Breadcrumb.qml
@@ -161,6 +162,43 @@ set(SERAPH_QML_FILES
         qml/icons/IconFolderArchive.qml
         qml/icons/IconFolderPen.qml
         qml/icons/IconLink.qml
+        qml/icons/IconPalette.qml
+        qml/icons/IconAlertCircle.qml
+        qml/icons/IconBattery.qml
+        qml/icons/IconBell.qml
+        qml/icons/IconBellOff.qml
+        qml/icons/IconBluetooth.qml
+        qml/icons/IconBluetoothConnected.qml
+        qml/icons/IconBluetoothOff.qml
+        qml/icons/IconCalendar.qml
+        qml/icons/IconCamera.qml
+        qml/icons/IconCloud.qml
+        qml/icons/IconCoffee.qml
+        qml/icons/IconEthernet.qml
+        qml/icons/IconEyeOff.qml
+        qml/icons/IconLock.qml
+        qml/icons/IconLockOpen.qml
+        qml/icons/IconLogOut.qml
+        qml/icons/IconMoon.qml
+        qml/icons/IconPanelTop.qml
+        qml/icons/IconPower.qml
+        qml/icons/IconRefreshCw.qml
+        qml/icons/IconSkipBack.qml
+        qml/icons/IconSkipForward.qml
+        qml/icons/IconStar.qml
+        qml/icons/IconSun.qml
+        qml/icons/IconTriangleAlert.qml
+        qml/icons/IconUnlink.qml
+        qml/icons/IconUser.qml
+        qml/icons/IconVolume.qml
+        qml/icons/IconVolume1.qml
+        qml/icons/IconVolume2.qml
+        qml/icons/IconVolumeX.qml
+        qml/icons/IconWifi.qml
+        qml/icons/IconWifiOff.qml
+        qml/icons/IconWifiSector.qml
+        qml/icons/IconWifiStrength.qml
+        qml/icons/IconZap.qml
         qml/icons/IconInfo.qml
         qml/icons/IconPackageOpen.qml
         qml/icons/IconPin.qml

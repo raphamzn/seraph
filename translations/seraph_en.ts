@@ -19,6 +19,16 @@
     </message>
 </context>
 <context>
+    <name>BookmarkStyleDialog</name>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation>
+            <numerusform>%n item</numerusform>
+            <numerusform>%n items</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>BulkRenameDialog</name>
     <message numerus="yes">
         <source>%n item(s) selected</source>

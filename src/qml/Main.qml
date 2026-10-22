@@ -1520,6 +1520,14 @@ ApplicationWindow {
         }
     }
 
+    // ── Customize pinned folder (sidebar) ─────────────────────────────────
+    BookmarkStyleDialog {
+        id: bookmarkStyleDialog
+        anchors.fill: parent
+        z: 1000
+        onApplied: (index, icon, color, label) => bookmarks.setStyle(index, icon, color, label)
+    }
+
     // ── New Folder dialog ───────────────────────────────────────────────────
     property string newItemParentPath: ""
 
@@ -2890,6 +2898,9 @@ ApplicationWindow {
         onCustomActionRequested: (action) => {
             if (action === "emptytrash") {
                 emptyTrashConfirmDialog.open()
+            } else if (action === "customizebookmark") {
+                if (sidebarItem.kind === "bookmark" && sidebarItem.index >= 0)
+                    bookmarkStyleDialog.open(sidebarItem.index)
             } else if (action === "removebookmark") {
                 if (sidebarItem.kind === "bookmark" && sidebarItem.index >= 0)
                     bookmarks.removeBookmark(sidebarItem.index)
@@ -3266,6 +3277,7 @@ ApplicationWindow {
                 { text: qsTr("Open in Terminal"), shortcut: "", action: "terminal" },
                 { text: qsTr("Properties"), shortcut: "", action: "properties" },
                 { separator: true },
+                { text: qsTr("Customize…"), shortcut: "", action: "customizebookmark", icon: "Palette" },
                 { text: qsTr("Remove from Bookmarks"), shortcut: "", action: "removebookmark", destructive: true }
             ]
         }

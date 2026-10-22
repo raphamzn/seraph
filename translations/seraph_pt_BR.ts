@@ -31,6 +31,56 @@
     </message>
 </context>
 <context>
+    <name>BookmarkStyleDialog</name>
+    <message>
+        <source>Customize pinned folder</source>
+        <translation>Personalizar pasta fixada</translation>
+    </message>
+    <message>
+        <source>Label</source>
+        <translation>Rótulo</translation>
+    </message>
+    <message>
+        <source>Color</source>
+        <translation>Cor</translation>
+    </message>
+    <message>
+        <source>No color</source>
+        <translation>Sem cor</translation>
+    </message>
+    <message>
+        <source>Preview</source>
+        <translation>Prévia</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n item(s)</source>
+        <translation>
+            <numerusform>%n item</numerusform>
+            <numerusform>%n itens</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>today</source>
+        <translation>hoje</translation>
+    </message>
+    <message>
+        <source>Icon</source>
+        <translation>Ícone</translation>
+    </message>
+    <message>
+        <source>Search icons…</source>
+        <translation>Buscar ícone…</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Salvar</translation>
+    </message>
+</context>
+<context>
     <name>Breadcrumb</name>
     <message>
         <source>Breadcrumb navigation: %1</source>
@@ -1471,6 +1521,10 @@
     <message>
         <source>Properties</source>
         <translation>Propriedades</translation>
+    </message>
+    <message>
+        <source>Customize…</source>
+        <translation>Personalizar…</translation>
     </message>
     <message>
         <source>Remove from Bookmarks</source>
