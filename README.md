@@ -50,7 +50,8 @@ Seraph is a Qt6/QML file manager designed to feel native on Hyprland and niri: l
 - **Full keyboard navigation** — arrows, vim-friendly shortcuts, type-ahead search
 - **Tabs** with independent history per pane
 - **Path bar** with breadcrumbs and inline editing (`Ctrl+L`)
-- **Bookmarks sidebar** with drag-to-reorder and udisks2 device mounting
+- **Pinned folders** as styled cards in the sidebar: pick an icon and a theme colour per folder (right-click → Customize…), see item counts and last modification at a glance, drag to reorder
+- **Disks** that show free space, filesystem and bus without hovering, with a one-click eject for removable media and udisks2 mounting
 - **Kinetic wheel scrolling** with momentum and rubber-band overscroll
 - **Rubber-band selection** in all views
 
