@@ -156,8 +156,11 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
           # Force linuxdeploy-plugin-qt to bundle the Wayland platform plugin
           # alongside xcb. Without this, Ubuntu's GNOME Wayland session loads
-          # an empty platform and the window renders black.
-          EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so;libqwayland-egl.so
+          # an empty platform and the window renders black. The offscreen
+          # plugin is what the smoke test below boots on; without it in the
+          # bundle the test only worked because the runner's own Qt plugins
+          # were reachable through QT_PLUGIN_PATH.
+          EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so;libqwayland-egl.so;libqoffscreen.so
           QML_SOURCES_PATHS: src/qml
         run: |
           set -euo pipefail
@@ -195,11 +198,14 @@ jobs:
             "${deploy_deps_args[@]}" \
             --output appimage
 
-      - name: Verify bundled Wayland client integrations
+      - name: Verify bundled platform plugins
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           test -d AppDir/usr/plugins/wayland-graphics-integration-client
           test -n "$(ls -A AppDir/usr/plugins/wayland-graphics-integration-client)"
+          for plugin in libqwayland-generic.so libqwayland-egl.so libqoffscreen.so libqxcb.so; do
+            test -f "AppDir/usr/plugins/platforms/$plugin" || { echo "::error::platform plugin $plugin missing from the AppDir"; exit 1; }
+          done
 
       - name: Smoke-test AppImage
         if: startsWith(github.ref, 'refs/tags/v')
@@ -216,7 +222,11 @@ jobs:
           chmod +x "Seraph-${TAG_NAME}-x86_64.AppImage"
           set +e
           # offscreen platform needs no display; software RHI dodges Mesa.
-          QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software \
+          # The runner's Qt install exports QT_PLUGIN_PATH; drop it so the
+          # AppImage can only find the plugins it carries, as on a user's
+          # machine.
+          env -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH \
+            QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software \
             timeout 10 "./Seraph-${TAG_NAME}-x86_64.AppImage" \
             > smoke.stdout 2> smoke.stderr &
           SMOKE_PID=$!
@@ -231,7 +241,7 @@ jobs:
           cat smoke.stdout || true
           echo "=== smoke stderr ==="
           cat smoke.stderr || true
-          if grep -E "is not a type|failed to load component|QQmlApplicationEngine failed|TypeError:|Unable to assign|Aborted \(core dumped\)|Segmentation fault|Failed to initialize graphics backend|Failed to create RHI" smoke.stderr; then
+          if grep -E "is not a type|failed to load component|QQmlApplicationEngine failed|TypeError:|Unable to assign|Aborted \(core dumped\)|Segmentation fault|Failed to initialize graphics backend|Failed to create RHI|Could not find the Qt platform plugin|no Qt platform plugin could be initialized|dumped core" smoke.stderr; then
             echo "Smoke test FAILED: AppImage cannot load its QML."
             exit 1
           fi
