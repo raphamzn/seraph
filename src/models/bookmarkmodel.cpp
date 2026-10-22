@@ -14,6 +14,14 @@ bool isRemoteUri(const QString &path)
         && url.scheme() != QStringLiteral("trash");
 }
 
+QString remoteHint(const QString &path)
+{
+    const QUrl url(path);
+    if (url.host().isEmpty())
+        return url.scheme();
+    return url.scheme() + QStringLiteral(" · ") + url.host();
+}
+
 QString bookmarkDisplayName(const QString &path)
 {
     if (!isRemoteUri(path)) {
@@ -49,9 +57,15 @@ QVariant BookmarkModel::data(const QModelIndex &index, int role) const
 
     const auto &bm = m_bookmarks.at(index.row());
     switch (role) {
-    case NameRole: return bm.name;
+    case NameRole: return bm.label.isEmpty() ? bm.name : bm.label;
     case PathRole: return bm.path;
     case IconRole: return bm.icon;
+    case LabelRole: return bm.label;
+    case QuillIconRole: return bm.styleIcon.isEmpty() ? defaultQuillIcon(bm.path) : bm.styleIcon;
+    case ColorRoleRole: return bm.color;
+    case IsRemoteRole: return bm.remote;
+    case RemoteHintRole: return bm.remote ? remoteHint(bm.path) : QString();
+    case KeyRole: return bm.key;
     }
     return {};
 }
@@ -62,7 +76,124 @@ QHash<int, QByteArray> BookmarkModel::roleNames() const
         {NameRole, "name"},
         {PathRole, "path"},
         {IconRole, "icon"},
+        {LabelRole, "label"},
+        {QuillIconRole, "quillIcon"},
+        {ColorRoleRole, "colorRole"},
+        {IsRemoteRole, "isRemote"},
+        {RemoteHintRole, "remoteHint"},
+        {KeyRole, "styleKey"},
     };
+}
+
+void BookmarkModel::setStyles(const QVariantMap &styles)
+{
+    m_styles.clear();
+    for (auto it = styles.cbegin(); it != styles.cend(); ++it) {
+        const QString key = keyForPath(expandPath(it.key()));
+        QVariantMap style = it.value().toMap();
+        style.insert(QStringLiteral("color"), validColorRole(style.value(QStringLiteral("color")).toString()));
+        m_styles.insert(key, style);
+    }
+    for (auto &bm : m_bookmarks)
+        applyStyle(bm);
+    if (!m_bookmarks.isEmpty())
+        emit dataChanged(index(0, 0), index(m_bookmarks.size() - 1, 0));
+}
+
+QVariantMap BookmarkModel::styleFor(int row) const
+{
+    if (row < 0 || row >= m_bookmarks.size())
+        return {};
+    const Bookmark &bm = m_bookmarks.at(row);
+    return {
+        {QStringLiteral("icon"), bm.styleIcon},
+        {QStringLiteral("color"), bm.color},
+        {QStringLiteral("label"), bm.label},
+        {QStringLiteral("folderName"), bm.name},
+        {QStringLiteral("key"), bm.key},
+        {QStringLiteral("path"), bm.path},
+    };
+}
+
+void BookmarkModel::setStyle(int row, const QString &icon, const QString &color, const QString &label)
+{
+    if (row < 0 || row >= m_bookmarks.size())
+        return;
+
+    Bookmark &bm = m_bookmarks[row];
+    const QString validColor = validColorRole(color);
+    QVariantMap style;
+    if (!icon.isEmpty())
+        style.insert(QStringLiteral("icon"), icon);
+    if (!validColor.isEmpty())
+        style.insert(QStringLiteral("color"), validColor);
+    if (!label.isEmpty())
+        style.insert(QStringLiteral("label"), label);
+
+    if (style.isEmpty())
+        m_styles.remove(bm.key);
+    else
+        m_styles.insert(bm.key, style);
+    applyStyle(bm);
+
+    emit dataChanged(index(row, 0), index(row, 0));
+    emit styleChanged(bm.key, icon, validColor, label);
+}
+
+QString BookmarkModel::defaultQuillIcon(const QString &expandedPath)
+{
+    if (expandedPath.isEmpty())
+        return QStringLiteral("Folder");
+    if (isRemoteUri(expandedPath))
+        return QStringLiteral("Globe");
+
+    // Specific dirs first: an unset XDG dir falls back to the home folder and
+    // must not steal the Home icon.
+    static const QVector<QPair<QStandardPaths::StandardLocation, QString>> xdgIcons = {
+        {QStandardPaths::DocumentsLocation, QStringLiteral("FileText")},
+        {QStandardPaths::DownloadLocation, QStringLiteral("Download")},
+        {QStandardPaths::PicturesLocation, QStringLiteral("Image")},
+        {QStandardPaths::MusicLocation, QStringLiteral("Music")},
+        {QStandardPaths::MoviesLocation, QStringLiteral("Video")},
+        {QStandardPaths::DesktopLocation, QStringLiteral("Monitor")},
+    };
+    const QString cleaned = QDir::cleanPath(expandedPath);
+    const QString home = QDir::cleanPath(QDir::homePath());
+    for (const auto &entry : xdgIcons) {
+        const QString resolved = QStandardPaths::writableLocation(entry.first);
+        if (!resolved.isEmpty() && QDir::cleanPath(resolved) != home && QDir::cleanPath(resolved) == cleaned)
+            return entry.second;
+    }
+    if (cleaned == home)
+        return QStringLiteral("Home");
+    return QStringLiteral("Folder");
+}
+
+QString BookmarkModel::keyForPath(const QString &expandedPath)
+{
+    const QString home = QDir::homePath();
+    if (expandedPath == home)
+        return QStringLiteral("~");
+    if (expandedPath.startsWith(home + QLatin1Char('/')))
+        return QStringLiteral("~") + expandedPath.mid(home.length());
+    return expandedPath;
+}
+
+QString BookmarkModel::validColorRole(const QString &color)
+{
+    static const QStringList roles = {
+        QStringLiteral("accent"), QStringLiteral("success"), QStringLiteral("warning"),
+        QStringLiteral("error"), QStringLiteral("subtext"), QStringLiteral("muted"),
+    };
+    return roles.contains(color) ? color : QString();
+}
+
+void BookmarkModel::applyStyle(Bookmark &bm) const
+{
+    const QVariantMap style = m_styles.value(bm.key);
+    bm.styleIcon = style.value(QStringLiteral("icon")).toString();
+    bm.color = validColorRole(style.value(QStringLiteral("color")).toString());
+    bm.label = style.value(QStringLiteral("label")).toString();
 }
 
 void BookmarkModel::setBookmarks(const QStringList &paths)
@@ -95,14 +226,8 @@ void BookmarkModel::setBookmarks(const QStringList &paths)
 QStringList BookmarkModel::paths() const
 {
     QStringList result;
-    const QString home = QDir::homePath();
-    for (const auto &bm : m_bookmarks) {
-        // Store as ~/... for portability
-        if (bm.path.startsWith(home))
-            result.append("~" + bm.path.mid(home.length()));
-        else
-            result.append(bm.path);
-    }
+    for (const auto &bm : m_bookmarks)
+        result.append(bm.key);   // stored as ~/... for portability
     return result;
 }
 
@@ -175,7 +300,14 @@ BookmarkModel::Bookmark BookmarkModel::makeBookmark(const QString &rawPath) cons
 {
     QString expanded = expandPath(rawPath);
     QString name = bookmarkDisplayName(expanded);
-    return {name, expanded, iconForPath(expanded, name.toLower())};
+    Bookmark bm;
+    bm.name = name;
+    bm.path = expanded;
+    bm.icon = iconForPath(expanded, name.toLower());
+    bm.key = keyForPath(expanded);
+    bm.remote = isRemoteUri(expanded);
+    applyStyle(bm);
+    return bm;
 }
 
 QString BookmarkModel::expandPath(const QString &path)

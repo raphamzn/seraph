@@ -1,6 +1,8 @@
 #include <QTest>
 #include <QSignalSpy>
 #include <QAbstractItemModelTester>
+#include <QDir>
+#include <QStandardPaths>
 #include "models/bookmarkmodel.h"
 
 class TestBookmarkModel : public QObject
@@ -99,6 +101,12 @@ private slots:
         QCOMPARE(roles[BookmarkModel::NameRole], QByteArray("name"));
         QCOMPARE(roles[BookmarkModel::PathRole], QByteArray("path"));
         QCOMPARE(roles[BookmarkModel::IconRole], QByteArray("icon"));
+        QCOMPARE(roles[BookmarkModel::LabelRole], QByteArray("label"));
+        QCOMPARE(roles[BookmarkModel::QuillIconRole], QByteArray("quillIcon"));
+        QCOMPARE(roles[BookmarkModel::ColorRoleRole], QByteArray("colorRole"));
+        QCOMPARE(roles[BookmarkModel::IsRemoteRole], QByteArray("isRemote"));
+        QCOMPARE(roles[BookmarkModel::RemoteHintRole], QByteArray("remoteHint"));
+        QCOMPARE(roles[BookmarkModel::KeyRole], QByteArray("styleKey"));
     }
 
     void testInvalidIndex()
@@ -134,6 +142,88 @@ private slots:
 
         model.setBookmarks({"~/Documents"});
         QVERIFY(resetSpy.count() >= 1);
+    }
+
+    // --- Styles ---
+
+    void testDefaultQuillIcons()
+    {
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)), QString("Image"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)), QString("Download"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::MusicLocation)), QString("Music"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::MoviesLocation)), QString("Video"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)), QString("FileText"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)), QString("Monitor"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon(QDir::homePath()), QString("Home"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon("sftp://box/srv"), QString("Globe"));
+        QCOMPARE(BookmarkModel::defaultQuillIcon("/tmp/whatever"), QString("Folder"));
+    }
+
+    void testStyleRolesAndLabel()
+    {
+        BookmarkModel model;
+        model.setBookmarks({"~/Projetos"});
+        model.setStyles({{"~/Projetos", QVariantMap{{"icon", "Terminal"}, {"color", "accent"}, {"label", "Code"}}}});
+        const QModelIndex i = model.index(0, 0);
+        QCOMPARE(model.data(i, BookmarkModel::NameRole).toString(), QString("Code"));
+        QCOMPARE(model.data(i, BookmarkModel::LabelRole).toString(), QString("Code"));
+        QCOMPARE(model.data(i, BookmarkModel::QuillIconRole).toString(), QString("Terminal"));
+        QCOMPARE(model.data(i, BookmarkModel::ColorRoleRole).toString(), QString("accent"));
+        QCOMPARE(model.data(i, BookmarkModel::KeyRole).toString(), QString("~/Projetos"));
+        QCOMPARE(model.data(i, BookmarkModel::IsRemoteRole).toBool(), false);
+    }
+
+    void testStyleSurvivesReorderAndDefaultsWithoutStyle()
+    {
+        BookmarkModel model;
+        model.setBookmarks({"~/Projetos", "/tmp"});
+        model.setStyles({{"~/Projetos", QVariantMap{{"icon", "Star"}}}});
+        model.setBookmarks({"/tmp", "~/Projetos"});
+        QCOMPARE(model.data(model.index(1, 0), BookmarkModel::QuillIconRole).toString(), QString("Star"));
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::QuillIconRole).toString(), QString("Folder"));
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::LabelRole).toString(), QString());
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::ColorRoleRole).toString(), QString());
+    }
+
+    void testStyleUnknownColorDegradesToNone()
+    {
+        BookmarkModel model;
+        model.setBookmarks({"~/Projetos"});
+        model.setStyles({{"~/Projetos", QVariantMap{{"color", "purple"}}}});
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::ColorRoleRole).toString(), QString());
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::NameRole).toString(), QString("Projetos"));
+    }
+
+    void testSetStyleEmitsAndUpdates()
+    {
+        BookmarkModel model;
+        model.setBookmarks({"~/Projetos"});
+        QSignalSpy spy(&model, &BookmarkModel::styleChanged);
+        QSignalSpy dataSpy(&model, &BookmarkModel::dataChanged);
+        model.setStyle(0, "Star", "warning", "");
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.first().at(0).toString(), QString("~/Projetos"));
+        QCOMPARE(spy.first().at(1).toString(), QString("Star"));
+        QCOMPARE(spy.first().at(2).toString(), QString("warning"));
+        QCOMPARE(dataSpy.count(), 1);
+        QCOMPARE(model.styleFor(0).value("icon").toString(), QString("Star"));
+        QCOMPARE(model.styleFor(0).value("folderName").toString(), QString("Projetos"));
+        QCOMPARE(model.styleFor(0).value("key").toString(), QString("~/Projetos"));
+        QCOMPARE(model.data(model.index(0, 0), BookmarkModel::QuillIconRole).toString(), QString("Star"));
+
+        // An unknown colour is stored as none and reported as none
+        model.setStyle(0, "Star", "neon", "");
+        QCOMPARE(spy.last().at(2).toString(), QString());
+    }
+
+    void testRemoteHint()
+    {
+        BookmarkModel model;
+        model.setBookmarks({"sftp://user@box.lan/srv"});
+        const QModelIndex i = model.index(0, 0);
+        QCOMPARE(model.data(i, BookmarkModel::IsRemoteRole).toBool(), true);
+        QCOMPARE(model.data(i, BookmarkModel::RemoteHintRole).toString(), QString("sftp · box.lan"));
+        QCOMPARE(model.data(i, BookmarkModel::QuillIconRole).toString(), QString("Globe"));
     }
 };
 

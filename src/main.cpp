@@ -268,10 +268,15 @@ int main(int argc, char *argv[])
 
     BookmarkModel *bookmarks = new BookmarkModel(&app);
     bookmarks->setBookmarks(config->bookmarks());
+    bookmarks->setStyles(config->bookmarkStyles());
 
     // Persist bookmark changes to config
     QObject::connect(bookmarks, &BookmarkModel::bookmarksChanged, [=]() {
         config->saveBookmarks(bookmarks->paths());
+    });
+    QObject::connect(bookmarks, &BookmarkModel::styleChanged,
+                     [=](const QString &key, const QString &icon, const QString &color, const QString &label) {
+        config->saveBookmarkStyle(key, icon, color, label);
     });
 
     FileOperations *fileOps = new FileOperations(&app);
@@ -339,6 +344,7 @@ int main(int argc, char *argv[])
     QObject::connect(config, &ConfigManager::configChanged, [=, &app]() {
         theme->setTheme(config->theme(), config->lightTheme(), config->darkTheme());
         bookmarks->setBookmarks(config->bookmarks());
+        bookmarks->setStyles(config->bookmarkStyles());
         fsModel->setShowHidden(config->showHidden());
         splitFsModel->setShowHidden(config->showHidden());
         millerParentModel->setShowHidden(config->showHidden());
