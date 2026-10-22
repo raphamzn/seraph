@@ -5,6 +5,12 @@
 #include "testdir.h"
 #include "services/giotransferworker.h"
 
+// Each test runs the worker in its own QThread and waits for finished() with a
+// QSignalSpy. The thread is quit explicitly afterwards, never through a queued
+// `finished -> QThread::quit` connection: that invocation lands in the main
+// thread's event queue right after the spy's own exit event, and when the spy
+// loop exits before it is posted it is never processed, so thread.wait() hangs
+// (seen as an intermittent 120 s timeout).
 class TestGioTransferWorker : public QObject
 {
     Q_OBJECT
@@ -26,13 +32,13 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, false);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
         thread.start();
 
         QVERIFY(finishSpy.wait(10000));
         QCOMPARE(finishSpy.constFirst().at(0).toBool(), true);
         QVERIFY(QFile::exists(dst.path() + "/test.bin"));
         QCOMPARE(QFileInfo(dst.path() + "/test.bin").size(), 4096);
+        thread.quit();
         thread.wait();
     }
 
@@ -54,7 +60,6 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, false);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
         thread.start();
 
         QVERIFY(finishSpy.wait(10000));
@@ -63,6 +68,7 @@ private slots:
         QVERIFY(QFile::exists(dst.path() + "/dir/b.txt"));
         QVERIFY(QFile::exists(dst.path() + "/dir/sub/c.txt"));
         QCOMPARE(QFileInfo(dst.path() + "/dir/sub/c.txt").size(), 3000);
+        thread.quit();
         thread.wait();
     }
 
@@ -82,13 +88,13 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, true);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
         thread.start();
 
         QVERIFY(finishSpy.wait(10000));
         QCOMPARE(finishSpy.constFirst().at(0).toBool(), true);
         QVERIFY(QFile::exists(dst.path() + "/move_me.txt"));
         QVERIFY(!QFile::exists(src.path() + "/move_me.txt"));
+        thread.quit();
         thread.wait();
     }
 
@@ -109,7 +115,6 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, false);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
         thread.start();
 
         QVERIFY(finishSpy.wait(10000));
@@ -117,6 +122,7 @@ private slots:
         QFileInfo linkInfo(dst.path() + "/link.txt");
         QVERIFY(linkInfo.isSymLink());
         QCOMPARE(linkInfo.symLinkTarget(), src.path() + "/real.txt");
+        thread.quit();
         thread.wait();
     }
 
@@ -136,7 +142,6 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, false);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
 
         // Cancel after first progress update
         connect(&worker, &GioTransferWorker::progressUpdated, &worker, [&](double, const QString &, const QString &) {
@@ -146,6 +151,7 @@ private slots:
         thread.start();
         QVERIFY(finishSpy.wait(10000));
         QCOMPARE(finishSpy.constFirst().at(0).toBool(), false);
+        thread.quit();
         thread.wait();
     }
 
@@ -166,7 +172,6 @@ private slots:
         connect(&thread, &QThread::started, &worker, [&]() {
             worker.execute(items, false);
         });
-        connect(&worker, &GioTransferWorker::finished, &thread, &QThread::quit);
 
         // progressUpdated is queued to the main thread; call pause() directly,
         // then schedule resume() on the main thread via a single-shot timer so
@@ -186,6 +191,7 @@ private slots:
         QCOMPARE(finishSpy.constFirst().at(0).toBool(), true);
         QVERIFY(QFile::exists(dst.path() + "/pause_test.bin"));
         QCOMPARE(QFileInfo(dst.path() + "/pause_test.bin").size(), 8 * 1024 * 1024);
+        thread.quit();
         thread.wait();
     }
 };
