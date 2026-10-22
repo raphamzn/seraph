@@ -119,7 +119,7 @@ cmake --build build --parallel
 
 On Arch, `makepkg -si` from the repo root builds and installs the `seraph-git` package. It clones `main` from GitHub rather than packaging your working tree, so push first if you are packaging your own changes. The same package is on the AUR, so `paru -S seraph-git` (or `yay -S seraph-git`) installs it without cloning.
 
-Every `v*` tag builds an AppImage and attaches it to the matching [GitHub release](https://github.com/raphamzn/seraph/releases): download `Seraph-vX.Y.Z-x86_64.AppImage`, `chmod +x` it and run. Each release also carries a Flatpak bundle, `Seraph-vX.Y.Z-x86_64.flatpak`, built from `io.github.raphamzn.Seraph.yml` on the KDE 6.11 runtime: `flatpak install Seraph-vX.Y.Z-x86_64.flatpak` pulls the runtime from Flathub. A Flathub submission of the same manifest is in progress.
+Every `v*` tag builds an AppImage and attaches it to the matching [GitHub release](https://github.com/raphamzn/seraph/releases): download `Seraph-vX.Y.Z-x86_64.AppImage`, `chmod +x` it and run. Each release also carries a Flatpak bundle, `Seraph-vX.Y.Z-x86_64.flatpak`, built from `io.github.raphamzn.Seraph.yml` on the KDE 6.11 runtime: `flatpak install Seraph-vX.Y.Z-x86_64.flatpak` pulls the runtime from Flathub. The same manifest is ready for a Flathub submission (it only needs the usual exceptions for `--filesystem=host` and `flatpak-spawn`).
 
 ---
 
