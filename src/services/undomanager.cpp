@@ -258,6 +258,23 @@ void UndoManager::createFile(const QString &parentPath, const QString &name)
         record({UndoRecord::CreateFile, {}, parentPath, {}, name, {created}, {}});
 }
 
+// One link at a time so the record pairs every created link with its
+// target even when some of them fail (remote path, name in the way).
+void UndoManager::createSymlinks(const QStringList &targets)
+{
+    QStringList sources;
+    QStringList created;
+    for (const QString &target : targets) {
+        const QStringList links = m_fileOps->createSymlinks({target});
+        if (!links.isEmpty()) {
+            sources << target;
+            created << links.first();
+        }
+    }
+    if (!created.isEmpty())
+        record({UndoRecord::CreateSymlink, sources, {}, {}, {}, created, {}});
+}
+
 // ── Undo ─────────────────────────────────────────────────────────────────
 
 void UndoManager::undo()
@@ -321,6 +338,11 @@ void UndoManager::executeUndo(const UndoRecord &rec)
         for (const auto &p : rec.createdPaths)
             QFile::remove(p);
         break;
+    case UndoRecord::CreateSymlink:
+        // QFile::remove unlinks the link itself, never its target.
+        for (const auto &p : rec.createdPaths)
+            QFile::remove(p);
+        break;
     }
 }
 
@@ -367,6 +389,10 @@ void UndoManager::executeRedo(const UndoRecord &rec)
     case UndoRecord::CreateFile:
         if (!rec.createdPaths.isEmpty())
             m_fileOps->createFile(rec.destination, rec.newName);
+        break;
+    case UndoRecord::CreateSymlink:
+        for (int i = 0; i < rec.createdPaths.size() && i < rec.sourcePaths.size(); ++i)
+            m_fileOps->createSymlink(rec.sourcePaths.at(i), rec.createdPaths.at(i));
         break;
     }
 }

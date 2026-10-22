@@ -48,6 +48,7 @@ Item {
     signal copyPathRequested(string path)
     signal renameRequested(string path)
     signal bulkRenameRequested(var paths)
+    signal createLinkRequested(var paths)
     signal trashRequested(var paths)
     signal restoreRequested(var paths)
     signal deleteRequested(var paths)
@@ -676,6 +677,13 @@ Item {
                     action: effectivePaths.length > 1 ? "bulkrename" : "rename",
                     icon: "FolderPen"
                 })
+                if (!remoteContext && !isTrashView)
+                    items.push({
+                        text: effectivePaths.length > 1 ? qsTr("Create Links") : qsTr("Create Link"),
+                        shortcut: "",
+                        action: "createlink",
+                        icon: "Link"
+                    })
                 items.push({ text: qsTr("Move to Trash"), shortcut: "Delete", action: "trash", icon: "Trash", destructive: true })
             }
             items.push({ separator: true })
@@ -746,6 +754,7 @@ Item {
         case "copypath": copyPathRequested(targetPath); break
         case "rename": renameRequested(targetPath); break
         case "bulkrename": bulkRenameRequested(effectivePaths); break
+        case "createlink": createLinkRequested(effectivePaths); break
         case "trash": trashRequested(effectivePaths); break
         case "restore": restoreRequested(effectivePaths); break
         case "delete": deleteRequested(effectivePaths); break

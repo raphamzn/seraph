@@ -2791,6 +2791,7 @@ ApplicationWindow {
 
         onRenameRequested: (path) => root.openRenameDialogForPath(path)
         onBulkRenameRequested: (paths) => root.openBulkRenameDialog(paths)
+        onCreateLinkRequested: (paths) => undoManager.createSymlinks(paths)
 
         onTrashRequested: (paths) => {
             var hasRemotePath = false

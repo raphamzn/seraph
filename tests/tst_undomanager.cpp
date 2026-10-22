@@ -212,6 +212,35 @@ private slots:
             QCOMPARE(QString::fromUtf8(file.readAll()), QString("aaa"));
         }
     }
+
+    void testUndoRedoCreateSymlinks()
+    {
+        QTemporaryDir dir;
+        const QString target = dir.path() + "/doc.md";
+        {
+            QFile f(target);
+            QVERIFY(f.open(QIODevice::WriteOnly));
+            f.write("# hi");
+        }
+
+        FileOperations ops;
+        UndoManager mgr(&ops);
+        mgr.createSymlinks({target});
+
+        const QString link = dir.path() + "/doc.md (link)";
+        QVERIFY(QFileInfo(link).isSymLink());
+        QVERIFY(mgr.canUndo());
+
+        mgr.undo();
+        QVERIFY(!QFileInfo(link).exists());
+        QVERIFY(!QFileInfo(link).isSymLink());
+        QVERIFY(QFile::exists(target));
+        QVERIFY(mgr.canRedo());
+
+        mgr.redo();
+        QVERIFY(QFileInfo(link).isSymLink());
+        QCOMPARE(QFileInfo(link).symLinkTarget(), target);
+    }
 };
 
 QTEST_MAIN(TestUndoManager)

@@ -154,6 +154,7 @@ set(SERAPH_QML_FILES
         qml/icons/IconExternalLink.qml
         qml/icons/IconFolderArchive.qml
         qml/icons/IconFolderPen.qml
+        qml/icons/IconLink.qml
         qml/icons/IconInfo.qml
         qml/icons/IconPackageOpen.qml
         qml/icons/IconPin.qml

@@ -575,6 +575,86 @@ private slots:
         QVERIFY(dir.exists("parent/child"));
     }
 
+    // --- Create symlink ---
+
+    void testCreateSymlinksNamesLinkNextToTarget()
+    {
+        TestDir dir;
+        dir.createFile("notes.txt", "hello");
+
+        FileOperations ops;
+        const QStringList links = ops.createSymlinks({dir.path() + "/notes.txt"});
+
+        QCOMPARE(links, QStringList{dir.path() + "/notes.txt (link)"});
+        QFileInfo info(links.first());
+        QVERIFY(info.isSymLink());
+        QCOMPARE(info.symLinkTarget(), dir.path() + "/notes.txt");
+    }
+
+    void testCreateSymlinksNumbersTakenNames()
+    {
+        TestDir dir;
+        dir.createFile("notes.txt", "hello");
+        dir.createFile("notes.txt (link)", "already here");
+        dir.createFile("notes.txt (link 2)", "this one too");
+
+        FileOperations ops;
+        const QStringList links = ops.createSymlinks({dir.path() + "/notes.txt"});
+
+        QCOMPARE(links, QStringList{dir.path() + "/notes.txt (link 3)"});
+        QVERIFY(QFileInfo(links.first()).isSymLink());
+        // The files that were in the way are untouched
+        QFile f(dir.path() + "/notes.txt (link)");
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        QCOMPARE(f.readAll(), QByteArray("already here"));
+    }
+
+    void testCreateSymlinksForFolderAndSeveralItems()
+    {
+        TestDir dir;
+        dir.createDir("photos");
+        dir.createFile("a.txt", "a");
+
+        FileOperations ops;
+        QSignalSpy changed(&ops, &FileOperations::pathsChanged);
+        const QStringList links = ops.createSymlinks({dir.path() + "/photos", dir.path() + "/a.txt"});
+
+        QCOMPARE(links.size(), 2);
+        QVERIFY(QFileInfo(dir.path() + "/photos (link)").isSymLink());
+        QVERIFY(QFileInfo(dir.path() + "/photos (link)").isDir());
+        QVERIFY(QFileInfo(dir.path() + "/a.txt (link)").isSymLink());
+        QVERIFY(changed.count() >= 1);
+    }
+
+    void testCreateSymlinksRejectsRemoteLocation()
+    {
+        FileOperations ops;
+        QSignalSpy finished(&ops, &FileOperations::operationFinished);
+        const QStringList links = ops.createSymlinks({"sftp://host/file.txt"});
+
+        QVERIFY(links.isEmpty());
+        QCOMPARE(finished.count(), 1);
+        QCOMPARE(finished.first().at(0).toBool(), false);
+        QVERIFY(!finished.first().at(1).toString().isEmpty());
+    }
+
+    void testCreateSymlinkAtExplicitPath()
+    {
+        TestDir dir;
+        dir.createFile("a.txt", "a");
+        dir.createDir("elsewhere");
+
+        FileOperations ops;
+        QVERIFY(ops.createSymlink(dir.path() + "/a.txt", dir.path() + "/elsewhere/alias"));
+        QVERIFY(QFileInfo(dir.path() + "/elsewhere/alias").isSymLink());
+
+        // An occupied path is an error, not an overwrite
+        QSignalSpy finished(&ops, &FileOperations::operationFinished);
+        QVERIFY(!ops.createSymlink(dir.path() + "/a.txt", dir.path() + "/elsewhere/alias"));
+        QCOMPARE(finished.count(), 1);
+        QCOMPARE(finished.first().at(0).toBool(), false);
+    }
+
     // --- Create file ---
 
     void testCreateFile()

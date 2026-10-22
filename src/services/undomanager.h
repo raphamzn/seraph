@@ -9,7 +9,7 @@
 class FileOperations;
 
 struct UndoRecord {
-    enum Type { Copy, Move, Rename, Trash, CreateFolder, CreateFile };
+    enum Type { Copy, Move, Rename, Trash, CreateFolder, CreateFile, CreateSymlink };
     Type type;
     QStringList sourcePaths;   // original locations
     QString destination;       // dest dir (copy/move)
@@ -44,6 +44,7 @@ public:
     Q_INVOKABLE QVariantMap renameResolvedItems(const QVariantList &operations);
     Q_INVOKABLE void createFolder(const QString &parentPath, const QString &name);
     Q_INVOKABLE void createFile(const QString &parentPath, const QString &name);
+    Q_INVOKABLE void createSymlinks(const QStringList &targets);
 
 signals:
     void stackChanged();

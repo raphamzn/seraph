@@ -1518,6 +1518,58 @@ void FileOperations::createFile(const QString &parentPath, const QString &name)
     emit operationFinished(false, error);
 }
 
+bool FileOperations::createSymlink(const QString &target, const QString &linkPath)
+{
+    const QString normalizedTarget = normalizeLocation(target);
+    const QString normalizedLink = normalizeLocation(linkPath);
+    if (isUriPath(normalizedTarget) || isUriPath(normalizedLink)) {
+        emit operationFinished(false, tr("Links can only be created in local folders"));
+        return false;
+    }
+    // exists() is false for a dangling symlink, so check both.
+    const QFileInfo linkInfo(normalizedLink);
+    if (linkInfo.exists() || linkInfo.isSymLink()) {
+        emit operationFinished(false, tr("%1 already exists").arg(locationFileName(normalizedLink)));
+        return false;
+    }
+    if (!QFile::link(normalizedTarget, normalizedLink)) {
+        emit operationFinished(false, tr("Could not create a link to %1").arg(locationFileName(normalizedTarget)));
+        return false;
+    }
+    emitChangedPaths({normalizedLink});
+    return true;
+}
+
+QStringList FileOperations::createSymlinks(const QStringList &targets)
+{
+    QStringList created;
+    for (const QString &target : targets) {
+        const QString normalizedTarget = normalizeLocation(target);
+        if (isUriPath(normalizedTarget)) {
+            emit operationFinished(false, tr("Links can only be created in local folders"));
+            continue;
+        }
+        const QString dir = parentLocation(normalizedTarget);
+        const QString name = locationFileName(normalizedTarget);
+        // "<name> (link)", then "(link 2)", "(link 3)"… until a free name.
+        // The suffix is not translated: file names should not change with
+        // the interface language.
+        QString linkPath;
+        for (int n = 1;; ++n) {
+            const QString candidate = n == 1
+                ? QStringLiteral("%1 (link)").arg(name)
+                : QStringLiteral("%1 (link %2)").arg(name).arg(n);
+            linkPath = joinLocation(dir, candidate);
+            const QFileInfo info(linkPath);
+            if (!info.exists() && !info.isSymLink())
+                break;
+        }
+        if (createSymlink(normalizedTarget, linkPath))
+            created << linkPath;
+    }
+    return created;
+}
+
 void FileOperations::openFile(const QString &path)
 {
     const QString normalized = normalizeLocation(path);

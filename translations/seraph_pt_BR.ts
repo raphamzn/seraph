@@ -254,6 +254,14 @@
         <translation>Renomear...</translation>
     </message>
     <message>
+        <source>Create Links</source>
+        <translation>Criar links</translation>
+    </message>
+    <message>
+        <source>Create Link</source>
+        <translation>Criar link</translation>
+    </message>
+    <message>
         <source>Move to Trash</source>
         <translation>Mover para a Lixeira</translation>
     </message>
@@ -828,6 +836,14 @@
     <message>
         <source>Could not prepare %1 for renaming</source>
         <translation>Não foi possível preparar %1 para renomear</translation>
+    </message>
+    <message>
+        <source>Links can only be created in local folders</source>
+        <translation>Links só podem ser criados em pastas locais</translation>
+    </message>
+    <message>
+        <source>Could not create a link to %1</source>
+        <translation>Não foi possível criar um link para %1</translation>
     </message>
     <message>
         <source>Emptying trash...</source>

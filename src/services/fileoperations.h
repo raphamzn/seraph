@@ -58,6 +58,12 @@ public:
     Q_INVOKABLE QVariantMap renameResolvedItems(const QVariantList &operations);
     Q_INVOKABLE void createFolder(const QString &parentPath, const QString &name);
     Q_INVOKABLE void createFile(const QString &parentPath, const QString &name);
+    // Symbolic links, local only and synchronous. createSymlinks() puts
+    // "<name> (link)" (then "(link 2)", "(link 3)", …) next to each target
+    // and returns the paths it created; createSymlink() creates one link at
+    // an explicit path and refuses to overwrite anything.
+    Q_INVOKABLE QStringList createSymlinks(const QStringList &targets);
+    Q_INVOKABLE bool createSymlink(const QString &target, const QString &linkPath);
     Q_INVOKABLE void openFile(const QString &path);
     Q_INVOKABLE bool pathExists(const QString &path) const;
     Q_INVOKABLE bool isRemotePath(const QString &path) const;
