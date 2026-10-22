@@ -2,7 +2,7 @@
 #
 # Local build (run from repo root after committing your changes):
 #
-#   flatpak install -y flathub org.kde.Platform//6.9 org.kde.Sdk//6.9
+#   flatpak install -y flathub org.kde.Platform//6.11 org.kde.Sdk//6.11
 #   flatpak-builder --force-clean --user --install \
 #       build-flatpak io.github.raphamzn.Seraph.yml
 #   flatpak run io.github.raphamzn.Seraph
@@ -15,8 +15,12 @@
 
 app-id: io.github.raphamzn.Seraph
 runtime: org.kde.Platform
-runtime-version: '6.9'
+runtime-version: '6.11'
 sdk: org.kde.Sdk
+# fd and bat are Rust programs built from source (Flathub does not accept
+# prebuilt binaries); the extension provides cargo and rustc.
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
 command: seraph
 
 finish-args:
@@ -85,47 +89,51 @@ modules:
   # ── fd ─────────────────────────────────────────────────────────────────
   # Search backend. Optional — SearchService falls back to a Qt iterator
   # if `fd` / `fdfind` is not on PATH — but bundling it makes search fast.
-  # We use the upstream prebuilt x86_64 static binary to avoid pulling in
-  # the full Rust toolchain. (Note: Flathub generally prefers building
-  # from source; if reviewers push back, switch to the rust-stable SDK
-  # extension and build fd from its git tag.)
+  # Built offline from the crates listed in flatpak/fd-cargo-sources.json,
+  # generated from the tag's Cargo.lock with flatpak-cargo-generator.py
+  # (flatpak/flatpak-builder-tools). Regenerate it when bumping the tag.
   - name: fd
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/fd/cargo
+        CARGO_NET_OFFLINE: 'true'
     build-commands:
-      - install -Dm755 fd /app/bin/fd
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm755 target/release/fd /app/bin/fd
     sources:
-      - type: archive
-        only-arches:
-          - x86_64
-        url: https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-x86_64-unknown-linux-musl.tar.gz
-        sha256: d9bfa25ec28624545c222992e1b00673b7c9ca5eb15393c40369f10b28f9c932
-      - type: archive
-        only-arches:
-          - aarch64
-        url: https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-aarch64-unknown-linux-gnu.tar.gz
-        sha256: 6de8be7a3d8ca27954a6d1e22bc327af4cf6fc7622791e68b820197f915c422b
-        # Same note as above — replace with the real checksum.
+      - type: git
+        url: https://github.com/sharkdp/fd.git
+        tag: v10.5.0
+        commit: 4f81778774463bf414a184cbe6d5219ad2229646
+      - flatpak/fd-cargo-sources.json
 
   # ── bat ────────────────────────────────────────────────────────────────
-  # Optional syntax-highlighted text previews. Same prebuilt-binary
-  # approach as fd to avoid pulling in the Rust toolchain.
+  # Optional syntax-highlighted text previews and markdown code blocks.
+  # Same offline cargo build as fd; sources in flatpak/bat-cargo-sources.json.
   - name: bat
     buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/bat/cargo
+        CARGO_NET_OFFLINE: 'true'
     build-commands:
-      - install -Dm755 bat /app/bin/bat
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
+      - install -Dm755 target/release/bat /app/bin/bat
     sources:
-      - type: archive
-        only-arches:
-          - x86_64
-        url: https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-x86_64-unknown-linux-musl.tar.gz
-        sha256: d39a21e3da57fe6a3e07184b3c1dc245f8dba379af569d3668b6dcdfe75e3052
-        # placeholder — flatpak-builder will print the real checksum on
-        # the first run; paste it back in here.
-      - type: archive
-        only-arches:
-          - aarch64
-        url: https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-aarch64-unknown-linux-gnu.tar.gz
-        sha256: feccae9a0576d97609c57e32d3914c5116136eab0df74c2ab74ef397d42c5b10
+      - type: git
+        url: https://github.com/sharkdp/bat.git
+        tag: v0.26.1
+        commit: 979ba22628bc9d8171f2cffca2bd5c90c9fc0a9e
+        # The syntax/theme submodules are only needed to regenerate
+        # assets/*.bin, which the repo already ships; one of them points
+        # at a commit its upstream no longer has, so cloning them fails.
+        disable-submodules: true
+      - flatpak/bat-cargo-sources.json
 
   # ── Seraph ─────────────────────────────────────────────────────────────
   - name: seraph
@@ -142,7 +150,10 @@ modules:
       # $FLATPAK_DEST/share/licenses/$FLATPAK_ID.
       - install -Dm644 LICENSE /app/share/licenses/io.github.raphamzn.Seraph/LICENSE
     sources:
-      # ── FLATHUB SUBMISSION ──
+      # ── RELEASE BUILD ──
+      # scripts/release.sh bumps the tag. The copy submitted to Flathub
+      # also pins `commit:`; it cannot live here because the release
+      # commit contains this very file.
       - type: git
         url: https://github.com/raphamzn/seraph.git
         tag: v0.7.0

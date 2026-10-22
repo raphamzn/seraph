@@ -15,11 +15,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      # Flatpak signing/publishing and the website dispatch need secrets that
-      # may not be configured yet. Each of those steps checks the flag below
-      # and skips itself when the keys are missing, so a tag push still ships
-      # the AppImage and the GitHub release instead of failing half-way.
-      HAS_FLATPAK_KEYS: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY != '' && secrets.FLATPAK_GPG_FINGERPRINT != '' && secrets.FLATPAK_REPO_DEPLOY_KEY != '' }}
+      # The website dispatch needs a token that may not be configured; the
+      # step checks this flag and skips itself instead of failing the release.
       HAS_SITE_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN != '' }}
 
     steps:
@@ -240,142 +237,12 @@ jobs:
           fi
           echo "Smoke test passed."
 
-      # ─────────────────────────────────────────────────────────────────
-      # Flatpak publishing: build, sign with GPG, upload the ostree repo
-      # to raphamzn/seraph-flatpak-repo (served at seraph.soyebjim.me
-      # via GitHub Pages) and export a single-file bundle as a release
-      # asset. Gated on tag pushes only so main-branch CI stays fast.
-
-      - name: Flatpak publishing skipped
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS != 'true'
-        run: |
-          echo "::notice::Flatpak signing secrets (FLATPAK_GPG_PRIVATE_KEY, FLATPAK_GPG_FINGERPRINT, FLATPAK_REPO_DEPLOY_KEY) are not configured; publishing only the AppImage."
-
-      - name: Install Flatpak tooling
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS == 'true'
-        run: |
-          sudo apt-get install -y flatpak flatpak-builder
-          flatpak remote-add --user --if-not-exists flathub \
-              https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install -y --user flathub \
-              org.kde.Platform//6.9 org.kde.Sdk//6.9
-
-      - name: Import GPG signing key
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS == 'true'
-        env:
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.FLATPAK_GPG_PASSPHRASE }}
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          mkdir -p "$HOME/.gnupg"
-          chmod 700 "$HOME/.gnupg"
-
-          # Configure gpg-agent to accept passphrases via --passphrase
-          # rather than prompting through pinentry. GitHub Actions runners
-          # have no TTY, so interactive pinentry fails with "Inappropriate
-          # ioctl for device" the moment ostree tries to sign a commit.
-          cat > "$HOME/.gnupg/gpg-agent.conf" <<'EOF'
-          allow-loopback-pinentry
-          allow-preset-passphrase
-          default-cache-ttl 7200
-          max-cache-ttl 7200
-          EOF
-          cat > "$HOME/.gnupg/gpg.conf" <<'EOF'
-          use-agent
-          pinentry-mode loopback
-          EOF
-          gpg-connect-agent reloadagent /bye
-
-          # Import the private key
-          printf '%s' "$GPG_KEY" | gpg --batch --import
-          gpg --list-secret-keys --keyid-format=long
-
-          # Prime the gpg-agent cache with the passphrase by doing one
-          # dummy signing operation. Subsequent sign calls from
-          # flatpak-builder / ostree will hit the cache instead of
-          # triggering pinentry. If the key has no passphrase,
-          # --passphrase "" is a valid empty input.
-          echo test | gpg --batch --yes \
-              --pinentry-mode loopback \
-              --passphrase "${GPG_PASSPHRASE:-}" \
-              --local-user "$GPG_FINGERPRINT" \
-              --clearsign > /dev/null
-
-      - name: Build and sign Flatpak repo
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS == 'true'
-        env:
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          flatpak-builder --force-clean --user \
-            --repo=flatpak-repo \
-            --gpg-sign="$GPG_FINGERPRINT" \
-            --default-branch=stable \
-            flatpak-build \
-            io.github.raphamzn.Seraph.yml
-          # Generate static deltas for efficient incremental updates
-          # and re-sign the summary file.
-          flatpak build-update-repo \
-            --generate-static-deltas \
-            --gpg-sign="$GPG_FINGERPRINT" \
-            flatpak-repo
-
-      - name: Build Flatpak bundle (release asset)
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS == 'true'
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          flatpak build-bundle flatpak-repo \
-            "Seraph-${TAG_NAME}-x86_64.flatpak" \
-            io.github.raphamzn.Seraph stable \
-            --gpg-sign="$GPG_FINGERPRINT"
-
-      - name: Publish ostree repo to seraph-flatpak-repo
-        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_FLATPAK_KEYS == 'true'
-        env:
-          DEPLOY_KEY: ${{ secrets.FLATPAK_REPO_DEPLOY_KEY }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          # printf '%s\n' guarantees a terminating newline; OpenSSH's
-          # PEM parser rejects keys without one with a cryptic
-          # "error in libcrypto" message.
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -t ed25519,rsa,ecdsa github.com >> ~/.ssh/known_hosts 2>/dev/null
-
-          # Sanity check the key parses cleanly before SSH does.
-          if ! ssh-keygen -l -f ~/.ssh/id_ed25519 > /dev/null; then
-            echo "Deploy key failed to parse. First and last lines:"
-            head -1 ~/.ssh/id_ed25519
-            tail -1 ~/.ssh/id_ed25519
-            exit 1
-          fi
-
-          git clone git@github.com:raphamzn/seraph-flatpak-repo.git pages
-          cd pages
-          git config user.name "seraph release bot"
-          git config user.email "release-bot@seraph.local"
-
-          rm -rf repo
-          cp -a ../flatpak-repo repo
-
-          git add -A repo/
-          if git diff --cached --quiet; then
-            echo "No changes to publish"
-          else
-            git commit -m "Publish io.github.raphamzn.Seraph ${TAG_NAME}"
-            git push origin main
-          fi
-
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
             Seraph-${{ github.ref_name }}-x86_64.AppImage
-            Seraph-${{ github.ref_name }}-x86_64.flatpak
           generate_release_notes: true
 
       - name: Trigger website rebuild
@@ -385,3 +252,38 @@ jobs:
         run: |
           gh api repos/raphamzn/seraph-site/dispatches \
             -f event_type=new-release
+
+  # Flatpak bundle for the release page. Built from the same manifest that
+  # goes to Flathub (io.github.raphamzn.Seraph.yml), inside the KDE 6.11
+  # builder image, with no signing: the bundle installs with
+  # `flatpak install Seraph-vX.Y.Z-x86_64.flatpak` and pulls the runtime
+  # from Flathub. Flathub itself builds from its own copy of the manifest.
+  flatpak:
+    name: Flatpak bundle
+    if: startsWith(github.ref, 'refs/tags/v')
+    # The release is created by the build job; this job only attaches to it.
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.11
+      options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # flatpak/flatpak-github-actions v6.8 (pinned by commit). The manifest
+      # clones the tag from GitHub, so the checkout only provides the manifest
+      # and flatpak/*-cargo-sources.json.
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3
+        with:
+          bundle: Seraph-${{ github.ref_name }}-x86_64.flatpak
+          manifest-path: io.github.raphamzn.Seraph.yml
+          cache-key: flatpak-builder-${{ hashFiles('io.github.raphamzn.Seraph.yml', 'flatpak/*.json') }}
+          upload-artifact: false
+
+      - name: Attach bundle to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Seraph-${{ github.ref_name }}-x86_64.flatpak
