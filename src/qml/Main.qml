@@ -842,6 +842,12 @@ ApplicationWindow {
         root.updateSelectionStatus()
     }
 
+    // Saved, not just flipped on fsModel: configChanged pushes it to every
+    // pane, the Miller columns and the sidebar counts (main.cpp)
+    function toggleHiddenFiles() {
+        config.saveSettings({ "showHidden": !config.showHidden })
+    }
+
     function activePaneCanGoBack() {
         if (!tabModel.activeTab)
             return false
@@ -2998,7 +3004,7 @@ ApplicationWindow {
     // Toggle hidden files
     Shortcut {
         sequence: config.shortcutMap["toggle_hidden"]
-        onActivated: fsModel.showHidden = !fsModel.showHidden
+        onActivated: root.toggleHiddenFiles()
     }
 
     // Toggle path bar focus (Ctrl+L-like)
@@ -3496,6 +3502,7 @@ ApplicationWindow {
                 canGoBack: activePaneCanGoBack()
                 canGoForward: activePaneCanGoForward()
                 splitViewEnabled: root.splitViewEnabled()
+                showHidden: config.showHidden
                 isRecentsView: root.isRecentsView
                 isTrashView: root.isTrashView
                 isRemoteView: root.isRemoteView
@@ -3525,6 +3532,7 @@ ApplicationWindow {
                 }
                 onEmptyTrashRequested: emptyTrashConfirmDialog.open()
                 onSplitViewToggled: root.toggleSplitView()
+                onHiddenFilesToggled: root.toggleHiddenFiles()
                 onHomeClicked: {
                     root.navigateActivePaneTo(fsModel.homePath())
                 }

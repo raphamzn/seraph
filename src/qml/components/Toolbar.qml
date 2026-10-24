@@ -12,6 +12,7 @@ Rectangle {
     property bool canGoBack: false
     property bool canGoForward: false
     property bool splitViewEnabled: false
+    property bool showHidden: false
     property bool isRecentsView: false
     property bool isTrashView: false
     property bool isRemoteView: false
@@ -64,6 +65,7 @@ Rectangle {
     signal upRequested()
     signal navigateRequested(string targetPath)
     signal splitViewToggled()
+    signal hiddenFilesToggled()
     signal typeFilterChanged(string filter)
     signal dateFilterChanged(string filter)
     signal sizeFilterChanged(string filter)
@@ -216,6 +218,35 @@ Rectangle {
                     onLoaded: {
                         root.syncSearchBarState()
                         item.focusInput()
+                    }
+                }
+
+                // Hidden files toggle: lit like the split button while dotfiles show
+                HoverRect {
+                    width: Theme.controlSize; height: Theme.controlSize
+                    visible: !root.searchMode
+                    border.width: root.showHidden ? 1 : 0
+                    border.color: root.showHidden
+                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.65)
+                        : "transparent"
+                    color: root.showHidden
+                        ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b,
+                                  hovered ? 0.30 : 0.22)
+                        : (hovered
+                            ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.1)
+                            : "transparent")
+                    onClicked: root.hiddenFilesToggled()
+                    IconEye {
+                        anchors.centerIn: parent
+                        size: 18
+                        color: Theme.accent
+                        visible: root.showHidden
+                    }
+                    IconEyeOff {
+                        anchors.centerIn: parent
+                        size: 18
+                        color: Theme.text
+                        visible: !root.showHidden
                     }
                 }
 
