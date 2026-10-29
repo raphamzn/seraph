@@ -101,6 +101,9 @@ signals:
     void activeTransfersChanged();
     void pathsChanged(const QStringList &paths);
     void operationFinished(bool success, const QString &error);
+    // openFile() found no app to open a local file with: the UI lets the
+    // user pick one (and set it as the default for mimeType).
+    void chooseAppRequested(const QString &path, const QString &mimeType);
 
 private:
     struct ActiveTransfer {

@@ -1,6 +1,8 @@
 #include <QTest>
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QDesktopServices>
+#include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QFile>
 #include <QDir>
@@ -17,9 +19,45 @@
 #include "testdir.h"
 #include "services/fileoperations.h"
 
+// Stands in for the desktop's URL opener: QDesktopServices hands "file" URLs
+// here instead of to the xdg-desktop-portal, so a test sees that the portal
+// path ran without an application actually opening.
+class UrlCatcher : public QObject
+{
+    Q_OBJECT
+
+public:
+    QList<QUrl> urls;
+
+public slots:
+    void openUrl(const QUrl &url) { urls.append(url); }
+};
+
 class TestFileOperations : public QObject
 {
     Q_OBJECT
+
+    // An executable shell script named `name` in `dir`, standing in for a
+    // CLI tool once `dir` is put first on PATH.
+    static bool writeFakeTool(const QString &dir, const QString &name, const QByteArray &script)
+    {
+        QFile tool(dir + "/" + name);
+        if (!tool.open(QIODevice::WriteOnly | QIODevice::Text))
+            return false;
+        tool.write("#!/bin/sh\n");
+        tool.write(script);
+        tool.close();
+        return QFile::setPermissions(tool.fileName(),
+                                     QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner);
+    }
+
+    static QStringList readLines(const QString &path)
+    {
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            return {};
+        return QString::fromUtf8(file.readAll()).split('\n', Qt::SkipEmptyParts);
+    }
 
     static QString findTrashEntryPath(const QString &originalPath)
     {
@@ -776,6 +814,92 @@ private slots:
         QCOMPARE(saved.pixelColor(0, 0), QColor(Qt::red));
 
         clipboard->setMimeData(savedMime);
+    }
+
+    // --- Open ---
+
+    // Local files go to `gio open`, which follows mimeapps.list (what
+    // setDefaultApp writes), not to the portal, which keeps its own memory
+    // of the last app chosen and can ignore the default.
+    void testOpenLocalFileUsesGioOpen()
+    {
+        TestDir dir;
+        TestDir binDir;
+        const QString filePath = dir.createFile("report.pdf", "%PDF-1.4\n");
+        const QString argsPath = binDir.path() + "/gio-args";
+        QVERIFY(writeFakeTool(binDir.path(), "gio",
+            QString("printf '%s\\n' \"$@\" > '%1.tmp' && mv '%1.tmp' '%1'\n").arg(argsPath).toUtf8()));
+
+        const QByteArray originalPath = qgetenv("PATH");
+        qputenv("PATH", binDir.path().toUtf8() + ":" + originalPath);
+        UrlCatcher portal;
+        QDesktopServices::setUrlHandler("file", &portal, "openUrl");
+        const auto restore = qScopeGuard([&] {
+            QDesktopServices::unsetUrlHandler("file");
+            qputenv("PATH", originalPath);
+        });
+
+        FileOperations ops;
+        ops.openFile(filePath);
+
+        QTRY_VERIFY_WITH_TIMEOUT(QFile::exists(argsPath), 5000);
+        QCOMPARE(readLines(argsPath), QStringList({"open", filePath}));
+        QVERIFY(portal.urls.isEmpty());
+    }
+
+    // `gio open` fails when no installed app handles the type. Seraph then
+    // asks with its own chooser, whose "Set Default" writes mimeapps.list,
+    // rather than the portal's, which would not set a default.
+    void testOpenLocalFileWithoutAppAsksWithSeraphChooser()
+    {
+        TestDir dir;
+        TestDir binDir;
+        const QString filePath = dir.createFile("blob", QByteArray("\x00\x01\x02\x03\xfe\xff", 6));
+        QVERIFY(writeFakeTool(binDir.path(), "gio", "exit 2\n"));
+
+        const QByteArray originalPath = qgetenv("PATH");
+        qputenv("PATH", binDir.path().toUtf8() + ":" + originalPath);
+        UrlCatcher portal;
+        QDesktopServices::setUrlHandler("file", &portal, "openUrl");
+        const auto restore = qScopeGuard([&] {
+            QDesktopServices::unsetUrlHandler("file");
+            qputenv("PATH", originalPath);
+        });
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::chooseAppRequested);
+        ops.openFile(filePath);
+
+        QVERIFY(spy.wait(5000));
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.at(0).at(0).toString(), filePath);
+        QCOMPARE(spy.at(0).at(1).toString(), QString("application/octet-stream"));
+        QVERIFY(portal.urls.isEmpty());
+    }
+
+    // Without the gio binary (an AppImage on a distro that ships it apart
+    // from GLib) a double click must still open the file: through the portal.
+    void testOpenLocalFileWithoutGioFallsBackToPortal()
+    {
+        TestDir dir;
+        TestDir binDir;
+        const QString filePath = dir.createFile("report.pdf", "%PDF-1.4\n");
+
+        const QByteArray originalPath = qgetenv("PATH");
+        qputenv("PATH", binDir.path().toUtf8());
+        UrlCatcher portal;
+        QDesktopServices::setUrlHandler("file", &portal, "openUrl");
+        const auto restore = qScopeGuard([&] {
+            QDesktopServices::unsetUrlHandler("file");
+            qputenv("PATH", originalPath);
+        });
+
+        FileOperations ops;
+        QSignalSpy spy(&ops, &FileOperations::chooseAppRequested);
+        ops.openFile(filePath);
+
+        QTRY_COMPARE_WITH_TIMEOUT(portal.urls, QList<QUrl>({QUrl::fromLocalFile(filePath)}), 5000);
+        QCOMPARE(spy.count(), 0);
     }
 
     // --- Trash (requires gio) ---

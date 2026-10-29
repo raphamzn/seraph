@@ -2788,11 +2788,7 @@ ApplicationWindow {
         onSetDefaultAppRequested: (mimeType, desktopFile) => {
             root.paneBaseModel(root.activePane).setDefaultApp(mimeType, desktopFile)
         }
-        onChooseAppRequested: (path, mimeType) => {
-            appChooserDialog.filePath = path
-            appChooserDialog.mimeType = mimeType
-            appChooserDialog.open()
-        }
+        onChooseAppRequested: (path, mimeType) => root.openAppChooser(path, mimeType)
 
         onCutRequested: (paths) => clipboard.cut(paths)
 
@@ -3309,6 +3305,12 @@ ApplicationWindow {
         }
 
         return []
+    }
+
+    function openAppChooser(path, mimeType) {
+        appChooserDialog.filePath = path
+        appChooserDialog.mimeType = mimeType
+        appChooserDialog.open()
     }
 
     function handlePaneFileActivated(pane, filePath, isDirectory) {
@@ -3834,6 +3836,12 @@ ApplicationWindow {
             diskUsageService.invalidatePaths(paths)
             if (propertiesDialog.visible && propertiesDialog.props.path)
                 propertiesDialog.refreshFolderDiskUsage()
+        }
+
+        // openFile() found no installed app for the file: ask, as
+        // "Open With…" in the context menu does.
+        function onChooseAppRequested(path, mimeType) {
+            root.openAppChooser(path, mimeType)
         }
 
         function onOperationFinished(success, error) {

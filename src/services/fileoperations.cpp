@@ -12,6 +12,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QMimeData>
+#include <QMimeDatabase>
 #include <QPixmap>
 #include <QRegularExpression>
 #include <QSet>
@@ -1592,22 +1593,41 @@ void FileOperations::openFile(const QString &path)
         return;
     }
 
-    // Local files. Outside a sandbox: hand off to Qt's QDesktopServices
-    // (which uses xdg-open / kde-open / gio-launch under the hood and
-    // honors the user's MIME associations). Inside a Flatpak: shell out
-    // to `flatpak-spawn --host xdg-open` so the host opens the file with
-    // the host's default app, completely bypassing the sandbox. This is
-    // the same pattern Nautilus and Dolphin use when running as Flatpaks.
+    // Local files inside a Flatpak: shell out to `flatpak-spawn --host
+    // xdg-open` so the host opens the file with the host's default app,
+    // completely bypassing the sandbox. This is the same pattern Nautilus
+    // and Dolphin use when running as Flatpaks.
     if (runningInFlatpak()) {
         proc->start(QStringLiteral("flatpak-spawn"),
                     {QStringLiteral("--host"), QStringLiteral("xdg-open"), normalized});
         return;
     }
 
-    proc->deleteLater();
-    const QUrl url = QUrl::fromLocalFile(normalized);
-    if (!QDesktopServices::openUrl(url))
-        qWarning() << "FileOperations::openFile: failed to open" << normalized;
+    // Local files outside a sandbox: `gio open`, which follows
+    // mimeapps.list, the file setDefaultApp() writes. Not QDesktopServices:
+    // since Qt 6.12 it goes through the xdg-desktop-portal even unsandboxed,
+    // and the portal keeps its own memory of the app last picked for each
+    // type (desktop-used-apps in its PermissionStore), which wins over the
+    // default once the same app was picked three times. gio fails when no
+    // installed app handles the type; the UI then asks with Seraph's own
+    // chooser, whose "Set Default" makes the next open go straight through.
+    // Without the gio binary at all (it ships apart from GLib on some
+    // distros) the portal is still better than nothing.
+    connect(proc, qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            this, [this, normalized](int exitCode, QProcess::ExitStatus status) {
+        if (status == QProcess::NormalExit && exitCode == 0)
+            return;
+        emit chooseAppRequested(normalized,
+                                QMimeDatabase().mimeTypeForFile(normalized).name());
+    });
+    connect(proc, &QProcess::errorOccurred, proc, [proc, normalized](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart)
+            return;
+        proc->deleteLater();
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(normalized)))
+            qWarning() << "FileOperations::openFile: failed to open" << normalized;
+    });
+    proc->start(QStringLiteral("gio"), {QStringLiteral("open"), normalized});
 }
 
 bool FileOperations::pathExists(const QString &path) const
