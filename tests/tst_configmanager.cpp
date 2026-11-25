@@ -555,6 +555,7 @@ private slots:
 
         QCOMPARE(mgr.readerZoom(), 1.0);
         QCOMPARE(mgr.readerEditor(), QString("vscodium"));
+        QCOMPARE(mgr.readerOutline(), true);
     }
 
     void testParseReaderSection()
@@ -604,6 +605,27 @@ private slots:
         QCOMPARE(reloaded.readerZoom(), 1.5);
         QCOMPARE(reloaded.readerEditor(), QString("zed"));
         QCOMPARE(reloaded.previewInfoWidth(), 360);
+    }
+
+    void testSaveReaderOutlinePersistsAndKeepsZoom()
+    {
+        QTemporaryDir dir;
+        const QString path = dir.path() + "/config.toml";
+        QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write("[reader]\nzoom = 1.25\neditor = \"zed\"\n");
+        f.close();
+
+        ConfigManager mgr(path);
+        QSignalSpy spy(&mgr, &ConfigManager::configChanged);
+        mgr.saveReaderOutline(false);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(mgr.readerOutline(), false);
+
+        ConfigManager reloaded(path);
+        QCOMPARE(reloaded.readerOutline(), false);
+        QCOMPARE(reloaded.readerZoom(), 1.25);
+        QCOMPARE(reloaded.readerEditor(), QString("zed"));
     }
 
     void testSavedZoomIsWrittenShort()

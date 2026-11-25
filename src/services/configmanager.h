@@ -43,6 +43,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(int detailedTypeWidth READ detailedTypeWidth NOTIFY configChanged)
     Q_PROPERTY(double readerZoom READ readerZoom NOTIFY configChanged)
     Q_PROPERTY(QString readerEditor READ readerEditor NOTIFY configChanged)
+    Q_PROPERTY(bool readerOutline READ readerOutline NOTIFY configChanged)
     Q_PROPERTY(QStringList bookmarks READ bookmarks NOTIFY configChanged)
     Q_PROPERTY(int radiusSmall READ radiusSmall NOTIFY configChanged)
     Q_PROPERTY(int radiusMedium READ radiusMedium NOTIFY configChanged)
@@ -114,6 +115,7 @@ public:
     // (EditorLauncher) that Ctrl+E opens the document in.
     double readerZoom() const;
     QString readerEditor() const;
+    bool readerOutline() const;
     QStringList bookmarks() const;
     // Per-bookmark style, keyed by the path exactly as it appears in
     // bookmarks(); each value holds only the keys present: icon, color, label.
@@ -162,6 +164,7 @@ public:
     Q_INVOKABLE void saveMillerColumns(double parentFraction, double currentFraction);
     Q_INVOKABLE void saveDetailedColumns(int sizeWidth, int modifiedWidth, int typeWidth);
     Q_INVOKABLE void saveReaderZoom(double zoom);
+    Q_INVOKABLE void saveReaderOutline(bool visible);
 
 signals:
     void configChanged();
@@ -212,6 +215,7 @@ private:
     int m_detailedTypeWidth;
     double m_readerZoom;
     QString m_readerEditor;
+    bool m_readerOutline;
     QStringList m_bookmarks;
     QMap<QString, QVariantMap> m_bookmarkStyles;
     int m_radiusSmall;

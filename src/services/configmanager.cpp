@@ -249,6 +249,7 @@ void ConfigManager::setDefaults()
     m_previewInfoVisible = true;
     m_readerZoom = 1.0;
     m_readerEditor = QStringLiteral("vscodium");
+    m_readerOutline = true;
     m_millerParentFraction = 0.2;
     m_millerCurrentFraction = 0.5;
     m_detailedSizeWidth = 100;
@@ -343,6 +344,8 @@ void ConfigManager::loadConfig()
             m_readerZoom = qBound(0.5, *v, 3.0);
         if (auto v = config["reader"]["editor"].value<std::string>())
             m_readerEditor = QString::fromStdString(*v).trimmed();
+        if (auto v = config["reader"]["outline"].value<bool>())
+            m_readerOutline = *v;
 
         if (auto v = config["miller"]["parent_fraction"].value<double>())
             m_millerParentFraction = qBound(0.1, *v, 0.6);
@@ -482,6 +485,7 @@ int ConfigManager::previewInfoWidth() const { return m_previewInfoWidth; }
 bool ConfigManager::previewInfoVisible() const { return m_previewInfoVisible; }
 double ConfigManager::readerZoom() const { return m_readerZoom; }
 QString ConfigManager::readerEditor() const { return m_readerEditor; }
+bool ConfigManager::readerOutline() const { return m_readerOutline; }
 double ConfigManager::millerParentFraction() const { return m_millerParentFraction; }
 double ConfigManager::millerCurrentFraction() const { return m_millerCurrentFraction; }
 int ConfigManager::detailedSizeWidth() const { return m_detailedSizeWidth; }
@@ -724,12 +728,18 @@ void ConfigManager::saveSettings(const QVariantMap &settings)
         config.insert_or_assign("preview", std::move(preview));
     }
 
-    if (settings.contains("readerZoom")) {
+    if (settings.contains("readerZoom") || settings.contains("readerOutline")) {
         toml::table reader;
         if (auto existingReader = config["reader"].as_table())
             reader = *existingReader;
-        m_readerZoom = qBound(0.5, settings.value("readerZoom").toDouble(), 3.0);
-        reader.insert_or_assign("zoom", m_readerZoom);
+        if (settings.contains("readerZoom")) {
+            m_readerZoom = qBound(0.5, settings.value("readerZoom").toDouble(), 3.0);
+            reader.insert_or_assign("zoom", m_readerZoom);
+        }
+        if (settings.contains("readerOutline")) {
+            m_readerOutline = settings.value("readerOutline").toBool();
+            reader.insert_or_assign("outline", m_readerOutline);
+        }
         config.insert_or_assign("reader", std::move(reader));
     }
 
@@ -1167,6 +1177,11 @@ void ConfigManager::savePreviewInfoPanel(int width, bool visible)
 void ConfigManager::saveReaderZoom(double zoom)
 {
     saveSettings(QVariantMap{{"readerZoom", zoom}});
+}
+
+void ConfigManager::saveReaderOutline(bool visible)
+{
+    saveSettings(QVariantMap{{"readerOutline", visible}});
 }
 
 void ConfigManager::saveMillerColumns(double parentFraction, double currentFraction)

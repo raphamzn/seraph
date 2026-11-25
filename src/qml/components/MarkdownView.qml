@@ -20,6 +20,11 @@ Item {
     // Width of overlays the host draws at the top-right; the meta strip
     // wraps early so its chips never run underneath them.
     property real headerRightInset: 0
+    // Hosts without their own outline toggle (the reader) get a button at
+    // the top-right that collapses the rail, so a small window gives the
+    // whole width to the text, and brings it back.
+    property bool outlineToggleVisible: false
+    signal outlineToggled(bool visible)
 
     property var document: root.emptyDocument()
 
@@ -388,7 +393,9 @@ Item {
             // however far the host's overlay pills reach into the column.
             Flow {
                 readonly property real intrusion: Math.max(0,
-                    (content.x + content.width) - (root.width - root.headerRightInset))
+                    (content.x + content.width) - (root.width - root.headerRightInset
+                        - (outlineToggleButton.visible && !root.outlineVisible
+                            ? outlineToggleButton.width + 2 * outlineToggleButton.anchors.rightMargin : 0)))
                 visible: !root.compact
                 width: parent.width - intrusion
                 spacing: 6
@@ -527,8 +534,10 @@ Item {
             anchors.top: parent.top
             anchors.leftMargin: Math.round(18 * Theme.uiScale)
             anchors.rightMargin: Math.round(12 * Theme.uiScale)
+                + (outlineToggleButton.visible ? outlineToggleButton.width + outlineToggleButton.anchors.rightMargin : 0)
             anchors.topMargin: Math.round(14 * Theme.uiScale)
             text: qsTr("ON THIS PAGE")
+            elide: Text.ElideRight
             color: Theme.muted
             font.pointSize: Theme.fontSmall - 1
             font.weight: Font.DemiBold
@@ -593,6 +602,38 @@ Item {
                 HoverHandler { id: entryHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler { onTapped: root.scrollToBlock(outlineEntry.modelData.blockIndex) }
             }
+        }
+    }
+
+    // Collapses the outline rail; while it is collapsed the same button
+    // floats over the top-right of the text to bring it back.
+    HoverRect {
+        id: outlineToggleButton
+        visible: root.outlineToggleVisible && root.outlineAvailable
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: root.outlineTopInset + Math.round(8 * Theme.uiScale)
+        anchors.rightMargin: Math.round(10 * Theme.uiScale)
+        width: Math.round(28 * Theme.uiScale)
+        height: width
+        border.width: root.showOutline ? 1 : 0
+        border.color: root.showOutline
+            ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.65)
+            : root.cardBorder
+        color: root.showOutline
+            ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, hovered ? 0.30 : 0.22)
+            : (hovered ? Qt.rgba(Theme.text.r, Theme.text.g, Theme.text.b, 0.12) : root.pillColor)
+        Accessible.role: Accessible.Button
+        Accessible.name: root.showOutline ? qsTr("Hide outline") : qsTr("Show outline")
+        onClicked: {
+            root.showOutline = !root.showOutline
+            root.outlineToggled(root.showOutline)
+        }
+
+        IconList {
+            anchors.centerIn: parent
+            size: Math.round(16 * Theme.uiScale)
+            color: root.showOutline ? Theme.accent : Theme.subtext
         }
     }
 }

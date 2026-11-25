@@ -1637,6 +1637,14 @@
         <source>ON THIS PAGE</source>
         <translation>NESTA PÁGINA</translation>
     </message>
+    <message>
+        <source>Hide outline</source>
+        <translation>Ocultar sumário</translation>
+    </message>
+    <message>
+        <source>Show outline</source>
+        <translation>Mostrar sumário</translation>
+    </message>
 </context>
 <context>
     <name>MetadataExtractor</name>

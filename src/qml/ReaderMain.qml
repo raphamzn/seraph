@@ -162,6 +162,14 @@ ApplicationWindow {
     Shortcut { sequence: "Ctrl+0"; onActivated: window.setZoom(1.0) }
     Shortcut { sequence: "Alt+Left"; onActivated: readerDocument.goBack() }
     Shortcut {
+        sequence: "Ctrl+Shift+O"
+        enabled: markdownView.outlineAvailable
+        onActivated: {
+            markdownView.showOutline = !markdownView.showOutline
+            config.saveReaderOutline(markdownView.showOutline)
+        }
+    }
+    Shortcut {
         sequences: [StandardKey.Copy]
         onActivated: {
             var text = markdownView.selectedText()
@@ -212,6 +220,9 @@ ApplicationWindow {
         source: readerDocument.errorMessage === "" ? readerDocument.content : ""
         baseDir: readerDocument.baseDir
         fileName: readerDocument.fileName
+        showOutline: config.readerOutline
+        outlineToggleVisible: true
+        onOutlineToggled: (visible) => config.saveReaderOutline(visible)
         keepScrollOnChange: true
         interceptLinks: true
         renderOptions: ({
